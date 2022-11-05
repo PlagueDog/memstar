@@ -5,16 +5,23 @@
 
 namespace ExeFixes {
 
-	MultiPointer(ptrWideScreen, 0, 0, 0x0063c807, 0x0064B747);
-	CodePatch widescreen = {
-		ptrWideScreen,
-		"",
-		"\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90",
-		58,
-		false
-	};
+	//OpenGL
+	//MultiPointer(ptrOGLWidthMin, 0, 0, 0x0063C80B, 0x0064B74B);
+	//MultiPointer(ptrOGLWidthMax, 0, 0, 0x0063C816, 0x0064B756);
+	//MultiPointer(ptrOGLHeightMin, 0, 0, 0x0063C825, 0x0064B765);
+	//MultiPointer(ptrOGLHeightMax, 0, 0, 0x0063C835, 0x0064B775);
+	//CodePatch OpenGLWidthMin =	{ ptrOGLWidthMin,"","\x3D\xAA\x01",3,false };
+	//CodePatch OpenGLWidthMax =	{ ptrOGLWidthMax,"","\x3D\x00\x0A",3,false };
+	//CodePatch OpenGLHeightMin = { ptrOGLHeightMin,"","\x81\xFA\xF0\x00",4,false };
+	//CodePatch OpenGLHeightMax = { ptrOGLHeightMax,"","\x81\xF9\xA0\x05",4,false };
 
+	//DirectDraw (Software)
+	//MultiPointer(ptrSoftwareResWidthCap, 0, 0, 0x0064831A, 0x00658032);
+	//MultiPointer(ptrSoftwareResHeightCap, 0, 0, 0x00648324, 0x0065803C);
+	//CodePatch SoftwareResWidthCap =	 { ptrSoftwareResWidthCap,	"","\x3D\x00\x05",		3,false };
+	//CodePatch SoftwareResHeightCap = { ptrSoftwareResHeightCap,	"","\x81\xFA\x00\x03",	4,false };
 	MultiPointer(ptrDoSFix, 0, 0, 0x0067c7e6, 0x0068C6B2);
+
 	//                                                 |.  8DBD 38FFFFFF     LEA EDI,DWORD PTR SS:[EBP-C8]
 	CodePatch dosfix = {
 		ptrDoSFix,
@@ -74,7 +81,12 @@ namespace ExeFixes {
 				return;
 			}
 
-			widescreen.Apply(true);
+			//OpenGLWidthMin.Apply(true);
+			//OpenGLWidthMax.Apply(true);
+			//OpenGLHeightMin.Apply(true);
+			//OpenGLHeightMax.Apply(true);
+			//SoftwareResWidthCap.Apply(true);
+			//SoftwareResHeightCap.Apply(true);
 			dosfix.DoctorRelative((u32)DosFix, 1).Apply(true);
 		}
 	} init;
