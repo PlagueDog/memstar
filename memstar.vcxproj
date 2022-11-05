@@ -109,6 +109,7 @@
     <ClCompile Include="Lib\Strings.cpp" />
     <ClCompile Include="License.cpp" />
     <ClCompile Include="Loader.cpp" />
+    <ClCompile Include="Modloader.cpp" />
     <ClCompile Include="MS_Stub.cpp" />
     <ClCompile Include="OpenGL.cpp" />
     <ClCompile Include="OpenGL_Pointers.cpp" />
