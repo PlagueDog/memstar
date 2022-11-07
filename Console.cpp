@@ -1,7 +1,6 @@
 #include "Console.h"
 #include "Callback.h"
 #include "Strings.h"
-#include "VersionSnoop.h"
 
 namespace Console {
 
@@ -131,13 +130,6 @@ namespace Console {
 		Console::echo("---------------------------------");
 		Console::execFunction(0, "Memstar::version");
 		Console::echo("---------------------------------");
-
-
-		const char* pref = Console::getVariable("$pref::OpenGL::NoPackedTextures");
-		if (VersionSnoop::GetVersion() == VERSION::v001004 && _stricmp(pref, "false") != 0) {
-			Console::echo("[mem.dll] v4 Warning: initalizing $pref::OpenGL::NoPackedTextures to 'false'", pref);
-			Console::setVariable("$pref::OpenGL::NoPackedTextures", "false");
-		}
 	}
 
 	struct Init {

@@ -1,4 +1,3 @@
-#include "Console.h"
 #include "Memstar.h"
 #include "VersionSnoop.h"
 #include "Callback.h"
@@ -49,15 +48,6 @@ namespace VersionSnoop {
 		}
 
 		return VersionStrings[in];
-	}
-
-	char* GetVersionCString(VERSION in) {
-
-		if (in == VERSION::vUnknown) {
-			return VersionCStrings[4];
-		}
-
-		return VersionCStrings[in];
 	}
 
 	VERSION GetVersion() {

@@ -20,14 +20,6 @@ static wchar_t* VersionStrings[5] = {
 	L"Unknown",
 };
 
-static char* VersionCStrings[5] = {
-	"V001.000R",
-	"V001.002R",
-	"V001.003R",
-	"V001.004R",
-	"Unknown",
-};
-
 namespace VersionSnoop {
 
 	struct VersionInfo {
@@ -39,7 +31,6 @@ namespace VersionSnoop {
 	VERSION GetVersion();
 	VERSION versionSnoop();
 	wchar_t* GetVersionString(VERSION in);
-	char*    GetVersionCString(VERSION in);
 
 	static DWORD* versionPtr;
 	static VERSION Version = VERSION::vUnknown;
