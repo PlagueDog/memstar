@@ -160,12 +160,10 @@ namespace Terrain {
 	};
 
 	MultiPointer(ptr_TERRAIN_RENDER_STATE, 0, 0, 0, 0x00725B2C);
+#define PTR_TERRAIN_RENDER_STATE_1004 0x00725B2C
 	TerrainRenderState* getTerrainRenderState() {
 		__asm {
-			push esi
-			mov esi, ptr_TERRAIN_RENDER_STATE
-			mov eax, ds: [esi]
-			pop esi
+			mov eax, ds: [PTR_TERRAIN_RENDER_STATE_1004]
 		}
 	}
 

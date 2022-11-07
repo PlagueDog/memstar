@@ -10,9 +10,9 @@ namespace VersionSnoop {
 
 namespace GUI {
 
-MultiPointer(ptr_SIMCANVASSET_ONRENDER_VFT, 0, 0, 0x00704670, 0x00714AE0);
-MultiPointer(ptr_SIMCANVAS_RENDER, 0, 0, 0x005c9a50, 0x005CD2F4);
-MultiPointer(ptr_SIMCANVAS_RENDERGUI_CALL, 0, 0, 0x005d5db4, 0x005D9658);
+	MultiPointer(ptr_SIMCANVASSET_ONRENDER_VFT, 0, 0, 0x00704670, 0x00714AE0);
+	MultiPointer(ptr_SIMCANVAS_RENDER, 0, 0, 0x005c9a50, 0x005CD2F4);
+	MultiPointer(ptr_SIMCANVAS_RENDERGUI_CALL, 0, 0, 0x005d5db4, 0x005D9658);
 
 	CodePatch cpDrawGUI = { ptr_SIMCANVAS_RENDERGUI_CALL, "\xe8\x97\x3c\xff\xff", "\xe8rgui", 5, false };
 

@@ -1,3 +1,4 @@
+#include "Console.h"
 #include "Memstar.h"
 #include "VersionSnoop.h"
 #include "Callback.h"

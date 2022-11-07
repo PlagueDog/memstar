@@ -118,6 +118,8 @@ namespace OpenGL {
 		return glActive;
 	}
 
+#define OPENGL32_GLDISABLE_1004 0x00877208
+#define OPENGL32_GLDISABLE_1003 0x00856124
 	// The second texture unit is left enabled sometimes, this will disable it
 	void ShutdownTex1ARB() {
 		mState->TEXTURE_2D0_ARB = 0;
@@ -125,19 +127,33 @@ namespace OpenGL {
 		mState->TEXTURE_UNIT_ACTIVE = 0;
 		if (!mState->_glActiveTextureARB)
 			return;
-
-		__asm {
-			mov ebx, [mState]
-			push dword ptr GL_TEXTURE1_ARB
-			call[ebx + 8] // glActiveTextureARB( GL_TEXTURE1_ARB );
-			push dword ptr GL_TEXTURE_2D
-			mov esi, OpenGLPtrs::ptr_OPENGL32_GLDISABLE
-			call ds:[esi] // glDisable( GL_TEXTURE_2D );
-			push dword ptr GL_TEXTURE0_ARB
-			call[ebx + 8] // glActiveTextureARB( GL_TEXTURE0_ARB );
-			push dword ptr GL_TEXTURE_2D
-			mov esi, OpenGLPtrs::ptr_OPENGL32_GLDISABLE
-			call ds:[esi] // glDisable( GL_TEXTURE_2D );
+		if (VersionSnoop::GetVersion() == VERSION::v001004)
+		{
+			__asm {
+				mov ebx, [mState]
+				push dword ptr GL_TEXTURE1_ARB
+				call[ebx + 8] // glActiveTextureARB( GL_TEXTURE1_ARB );
+				push dword ptr GL_TEXTURE_2D
+				call ds : [OPENGL32_GLDISABLE_1004] // glDisable( GL_TEXTURE_2D );
+				push dword ptr GL_TEXTURE0_ARB
+				call[ebx + 8] // glActiveTextureARB( GL_TEXTURE0_ARB );
+				push dword ptr GL_TEXTURE_2D
+				call ds : [OPENGL32_GLDISABLE_1004] // glDisable( GL_TEXTURE_2D );
+			}
+		}
+		else
+		{
+			__asm {
+				mov ebx, [mState]
+				push dword ptr GL_TEXTURE1_ARB
+				call[ebx + 8] // glActiveTextureARB( GL_TEXTURE1_ARB );
+				push dword ptr GL_TEXTURE_2D
+				call ds : [OPENGL32_GLDISABLE_1003] // glDisable( GL_TEXTURE_2D );
+				push dword ptr GL_TEXTURE0_ARB
+				call[ebx + 8] // glActiveTextureARB( GL_TEXTURE0_ARB );
+				push dword ptr GL_TEXTURE_2D
+				call ds : [OPENGL32_GLDISABLE_1003] // glDisable( GL_TEXTURE_2D );
+			}
 		}
 	}
 

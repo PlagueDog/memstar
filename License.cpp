@@ -10,12 +10,12 @@ namespace Licence {
 		Console::echo("%s", VER_PRODUCTNAME_STR);
 		Console::echo("------------------");
 		Console::echo("Version: %s", VER_FILEVERSION_STR);
-#ifdef VER_SPECIAL_STR
-		Console::dbecho("Special Build Note: %s", VER_SPECIAL_STR);
-#endif
-#ifdef VER_PRIVATE_STR
-		Console::dbecho("Private Build Note: %s", VER_PRIVATE_STR);
-#endif
+//#ifdef VER_SPECIAL_STR
+//		Console::dbecho("Special Build Note: %s", VER_SPECIAL_STR);
+//#endif
+//#ifdef VER_PRIVATE_STR
+//		Console::dbecho("Private Build Note: %s", VER_PRIVATE_STR);
+//#endif
 #ifdef VER_COMMENT_STR
 		Console::echo("Build Note: %s", VER_COMMENT_STR);
 #endif
