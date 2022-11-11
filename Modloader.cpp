@@ -1,25 +1,26 @@
 #include "Fear.h"
-#include "Filesystem.h"
 #include "Console.h"
 #include "Windows.h"
 #include "Patch.h"
 #include <stdlib.h>
-//#include <cstdint>
 #include <stdio.h>
+#include <stdint.h>
 #include "Strings.h"
-//#include "shlwapi.h"
 #include <sstream>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
+#include <iterator>
+#include <filesystem>
 #include <dirent.h>
-#include <sys/types.h>
+#include "VersionSnoop.h"
 
 using namespace std;
 using namespace Fear;
 
 
+//Big endian to little endian
 string BEtoLE(string& str)
 {
 	string it;
@@ -30,6 +31,7 @@ string BEtoLE(string& str)
 	return it;
 }
 
+//Hex to ascii
 string htoa(string hex)
 {
 	// initialize the ASCII code string as empty.
@@ -358,7 +360,7 @@ namespace ModloaderMain {
 		char* flt2hex_c = flt2hex(atof(argv[0]), 1);
 		//Convert hex string to raw hex
 		char* hex2char_c = hex2char(flt2hex_c);
-		MultiPointer(ptrOGLshift, 0, 0, 0x0063D9AC, 0x0064C905);
+		MultiPointer(ptrOGLshift, 0, 0, 0x0063D9A8, 0x0064C905);
 		CodePatch genericCodePatch = { ptrOGLshift,"",hex2char_c,4,false }; genericCodePatch.Apply(true);
 		return "true";
 	}
@@ -436,15 +438,6 @@ namespace ModloaderMain {
 	//	return "true";
 	//}
 	// 
-	 //CodePatch TEST_modloader_customTerrain_noDisconnect = {
-		// 0x0057F331,
-		 //"",
-		 //"\x90\x90"
-		 //2,
-		 //false
-	 //};
-
-
 
 	////////////////////////////////////////////////////////
 	// RENDERING
@@ -478,13 +471,6 @@ namespace ModloaderMain {
 		13,
 		false
 	};
-	//CodePatch gotosimres_patch = {
-	//	0x006DE419,
-	//	"",
-	//	"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-	//	13,
-	//	false
-	//};
 
 	//Increase the maximum visible distance to 256000 up from 10000
 	MultiPointer(ptrMaxVisDist, 0, 0, 0x006D7D43, 0x006E7F03);
@@ -520,14 +506,6 @@ namespace ModloaderMain {
 		19,
 		false
 	};
-	//Allow sethudmapviewoffset(); to be used clientside
-	//CodePatch clientHudviewMapOffset_patch = {
-	//	0x005E6A28,
-	//	"",
-	//	"\x90\x90",
-	//	2,
-	//	false
-	//};
 
 	BuiltInFunction("modloader::patchMapview", _mlpatchMapView) {
 
@@ -562,9 +540,9 @@ namespace ModloaderMain {
 		char* hex2char_c = hex2char(flt2hex_c);
 
 		//Console::echo(rawHexString);
-		MultiPointer(ptrInitFov, 0, 0, 0x004689EC, 0x0046A416);
+		MultiPointer(ptrInitFov, 0, 0, 0x004689F2, 0x0046A416);
+		MultiPointer(ptrZoomFov, 0, 0, 0x0046D827, 0x0046F349);
 		CodePatch initialFovPatch = { ptrInitFov,"",hex2char_c,4,false }; initialFovPatch.Apply(true);
-		MultiPointer(ptrZoomFov, 0, 0, 0x0046D823, 0x0046F349);
 		CodePatch postZoomFovPatch = { ptrZoomFov,"",hex2char_c,4,false }; postZoomFovPatch.Apply(true);
 		Console::setVariable("client::fov", argv[0]);
 		Console::eval("export(\"client::*\", \"playerPrefs.cs\");");
@@ -753,26 +731,98 @@ namespace ModloaderMain {
 		 false
 	};
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// INTERNAL
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//BuiltInFunction("modloader::patchConstructors", _mpc)
-	//{
-	//	if (argc == 0)
-	//	{
-	//		CodePatch constructorLockDisable = { 0x0040206C,"","\xC6\x05\x58\x90\x6D\x00\x01",7,false };
-	//		constructorLockDisable.Apply(true);
-	//	}
-	//	else
-	//	{
-	//		CodePatch constructorLockDisable = { 0x0040206C,"","\xC6\x05\x58\x90\x6D\x00\x00",7,false };
-	//		constructorLockDisable.Apply(true);
-	//	}
-	//	return 0;
-	//}
+	//Constructor bypasses for 1.004. 1.003 does not have any
 	CodePatch constructorBypass01 = { 0x0040206C,"","\xC6\x05\x58\x90\x6D\x00\x01",7,false };
 	CodePatch constructorBypass02 = { 0x005385A0,"","\xC6\x05\x58\x90\x6D\x00\x01",7,false };
 	CodePatch constructorBypass03 = { 0x0053F4AF,"","\xC6\x05\x58\x90\x6D\x00\x01",7,false };
+
+	MultiPointer(ptrNewHerc,		0, 0, 0x006C8FBF, 0x006D90B7);
+	MultiPointer(ptrHercBase,		0, 0, 0x006C8FC7, 0x006D90BF);
+	MultiPointer(ptrHercCpit,		0, 0, 0x006C8FF7, 0x006D90EF);
+	MultiPointer(ptrNewTank,		0, 0, 0x006C9021, 0x006D9119);
+	MultiPointer(ptrTankBase,		0, 0, 0x006C9029, 0x006D9121);
+	MultiPointer(ptrTankCpit,		0, 0, 0x006C9042, 0x006D913A);
+	MultiPointer(ptrNewDrone,		0, 0, 0x006C9089, 0x006D9181);
+	MultiPointer(ptrDroneBase,		0, 0, 0x006C9092, 0x006D918A);
+	MultiPointer(ptrNewFlyer,		0, 0, 0x006C90E7, 0x006D91DF);
+	MultiPointer(ptrFlyerBase,		0, 0, 0x006C90F0, 0x006D91E8);
+	MultiPointer(ptrFlyerCpit,		0, 0, 0x006C910C, 0x006D9204);
+	MultiPointer(ptrNewTurret,		0, 0, 0x006C916F, 0x006D9267);
+	MultiPointer(ptrTurretBase,		0, 0, 0x006C9179, 0x006D9271);
+	MultiPointer(ptrNewWeapon,		0, 0, 0x006C91F7, 0x006D92EF);
+	MultiPointer(ptrWeaponInfo1,	0, 0, 0x006C9201, 0x006D92F9);
+	MultiPointer(ptrNewBullet,		0, 0, 0x006C9257, 0x006D934F);
+	MultiPointer(ptrNewMissile,		0, 0, 0x006C9261, 0x006D9359);
+	MultiPointer(ptrNewEnergy,		0, 0, 0x006C926C, 0x006D9364);
+	MultiPointer(ptrNewBeam,		0, 0, 0x006C9276, 0x006D936E);
+	MultiPointer(ptrNewMine,		0, 0, 0x006C927E, 0x006D9376);
+	MultiPointer(ptrNewBomb,		0, 0, 0x006C9286, 0x006D937E);
+	MultiPointer(ptrNewMountable,	0, 0, 0x006C928E, 0x006D9386);
+	MultiPointer(ptrMountInfo1,		0, 0, 0x006C929B, 0x006D9393);
+	MultiPointer(ptrNewEngine,		0, 0, 0x006C92B1, 0x006D93A9);
+	MultiPointer(ptrEngineInfo1,	0, 0, 0x006C92BB, 0x006D93B3);
+	MultiPointer(ptrNewSensor,		0, 0, 0x006C92D3, 0x006D93CB);
+	MultiPointer(ptrSensorInfo1,	0, 0, 0x006C92DD, 0x006D93D5);
+	MultiPointer(ptrNewReactor,		0, 0, 0x006C9300, 0x006D93F8);
+	MultiPointer(ptrReactorInfo1,	0, 0, 0x006C930B, 0x006D9403);
+	MultiPointer(ptrNewShield,		0, 0, 0x006C9325, 0x006D941D);
+	MultiPointer(ptrShieldInfo1,	0, 0, 0x006C932F, 0x006D9427);
+	MultiPointer(ptrNewModulator,	0, 0, 0x006C9347, 0x006D943F);
+	MultiPointer(ptrNewAmplifier,	0, 0, 0x006C9354, 0x006D944C);
+	MultiPointer(ptrNewCapacitor,	0, 0, 0x006C9361, 0x006D9459);
+	MultiPointer(ptrNewComputer,	0, 0, 0x006C936E, 0x006D9466);
+	MultiPointer(ptrNewBooster,		0, 0, 0x006C937A, 0x006D9472);
+	MultiPointer(ptrNewRepair,		0, 0, 0x006C9385, 0x006D947D);
+	MultiPointer(ptrNewCloak,		0, 0, 0x006C938F, 0x006D9487);
+	MultiPointer(ptrNewArmor,		0, 0, 0x006C93AE, 0x006D94A6);
+	MultiPointer(ptrArmorInfo1,		0, 0, 0x006C93B7, 0x006D94AF);
+	MultiPointer(ptrNewECM,			0, 0, 0x006C93DE, 0x006D94D6);
+	MultiPointer(ptrNewThermal,		0, 0, 0x006C93E5, 0x006D94DD);
+	MultiPointer(ptrNewBattery,		0, 0, 0x006C93F0, 0x006D94E8);
+
+	CodePatch constructorsPatch1 =		{ ptrNewHerc,		"","MLNHerc",		7,false };
+	CodePatch constructorsPatch1a =		{ ptrHercBase,		"","MLhcBase",		8,false };
+	CodePatch constructorsPatch2 =		{ ptrHercCpit,		"","MLhcCpit",		8,false };
+	CodePatch constructorsPatch3 =		{ ptrNewTank,		"","MLNTank",		7,false };
+	CodePatch constructorsPatch3a =		{ ptrTankBase,		"","MLtkBase",		8,false };
+	CodePatch constructorsPatch4 =		{ ptrTankCpit,		"","MLtkCpit",		8,false };
+	CodePatch constructorsPatch5 =		{ ptrNewDrone,		"","MLNDrone",		8,false };
+	CodePatch constructorsPatch5a =		{ ptrDroneBase,		"","MLDrnBase",		8,false };
+	CodePatch constructorsPatch6 =		{ ptrNewFlyer,		"","MLNFlyer",		8,false };
+	CodePatch constructorsPatch6a =		{ ptrFlyerBase,		"","MLflyBase",		9,false };
+	CodePatch constructorsPatch7 =		{ ptrFlyerCpit,		"","MLflyCpit",		9,false };
+	CodePatch constructorsPatch8 =		{ ptrNewTurret,		"","MLNTurret",		9,false };
+	CodePatch constructorsPatch9 =		{ ptrTurretBase,	"","MLturrBase",	10,false };
+	CodePatch constructorsPatch10 =		{ ptrNewWeapon,		"","MLNWeapon",		9,false };
+	CodePatch constructorsPatch10a =	{ ptrWeaponInfo1,	"","MLweapInfo1",	11,false };
+	CodePatch constructorsPatch11 =		{ ptrNewBullet,		"","MLNBullet",		9,false };
+	CodePatch constructorsPatch12 =		{ ptrNewMissile,	"","MLNMissile",	10,false };
+	CodePatch constructorsPatch13 =		{ ptrNewEnergy,		"","MLNEnergy",		9,false };
+	CodePatch constructorsPatch14 =		{ ptrNewBeam,		"","MLNBeam",		7,false };
+	CodePatch constructorsPatch15 =		{ ptrNewMine,		"","MLNMine",		7,false };
+	CodePatch constructorsPatch16 =		{ ptrNewBomb,		"","MLNBomb",		7,false };
+	CodePatch constructorsPatch17 =		{ ptrNewMountable,	"","MLNMountable",	12,false };
+	CodePatch constructorsPatch39 =		{ ptrMountInfo1,	"","MLmntInfo1",	10,false };
+	CodePatch constructorsPatch19 =		{ ptrNewEngine,		"","MLNEngine",		9,false };
+	CodePatch constructorsPatch20 =		{ ptrEngineInfo1,	"","MLengiInfo1",	11,false };
+	CodePatch constructorsPatch21 =		{ ptrNewSensor,		"","MLNSensor",		9,false };
+	CodePatch constructorsPatch22 =		{ ptrSensorInfo1,	"","MLsensInfo1",	11,false };
+	CodePatch constructorsPatch23 =		{ ptrNewReactor,	"","MLNReactor",	10,false };
+	CodePatch constructorsPatch24 =		{ ptrReactorInfo1,	"","MLreactInfo1",	12,false };
+	CodePatch constructorsPatch25 =		{ ptrNewShield,		"","MLNShield",		9,false };
+	CodePatch constructorsPatch26 =		{ ptrShieldInfo1,	"","MLshldInfo1",	11,false };
+	CodePatch constructorsPatch27 =		{ ptrNewModulator,	"","MLNModulator",	12,false };
+	CodePatch constructorsPatch28 =		{ ptrNewAmplifier,	"","MLNAmplifier",	12,false };
+	CodePatch constructorsPatch29 =		{ ptrNewCapacitor,	"","MLNCapacitor",	12,false };
+	CodePatch constructorsPatch30 =		{ ptrNewComputer,	"","MLNComputer",	11,false };
+	CodePatch constructorsPatch31 =		{ ptrNewBooster,	"","MLNBooster",	10,false };
+	CodePatch constructorsPatch32 =		{ ptrNewRepair,		"","MLNRepair",		9,false };
+	CodePatch constructorsPatch33 =		{ ptrNewCloak,		"","MLNCloak",		8,false };
+	CodePatch constructorsPatch34 =		{ ptrNewArmor,		"","MLNArmor",		8,false };
+	CodePatch constructorsPatch35 =		{ ptrArmorInfo1,	"","MLarmInfo1",	10,false };
+	CodePatch constructorsPatch36 =		{ ptrNewECM,		"","MLNECM",		6,false };
+	CodePatch constructorsPatch37 =		{ ptrNewThermal,	"","MLNThermal",	10,false };
+	CodePatch constructorsPatch38 =		{ ptrNewBattery,	"","MLNBattery",	10,false };
 
 	MultiPointer(ptrTagDictLoaded, 0, 0, 0x004B408F, 0x004B6473);
 	CodePatch tagDictionary_patch = { //Disable tagDictionary load check
@@ -818,10 +868,6 @@ namespace ModloaderMain {
 	MultiPointer(ptrSubDirFileWrite3, 0, 0, 0x00570EE1, 0x005740E9);
 	CodePatch f_cr_sub2 = { ptrSubDirFileWrite3,"","\x90\x90\xEB\x25",4,false };
 
-	///
-	/// Windowed Fullscreen OpenGL
-	//BuiltInVariable("pref::windowedFullscreenOpenGL", bool, prefwindowedFullscreenOpenGL, false);
-
 	//BuiltInFunction("setChatboxSize", _scbs)
 	//{
 	//	if (argc != 2 || atoi(argv[0]) <= 0 || atoi(argv[1]) <= 0)
@@ -853,8 +899,8 @@ namespace ModloaderMain {
 		Vector2i screen;
 		Fear::getScreenDimensions(&screen);
 		HWND windowHandle = FindWindowA(NULL, "Starsiege");
-		MultiPointer(ptrOGLFullScreen1, 0, 0, 0x0063CE87, 0x0064BDC8);
-		MultiPointer(ptrOGLFullScreen2, 0, 0, 0x0063CEE9, 0x0064BE2A);
+		MultiPointer(ptrOGLFullScreen1, 0, 0, 0x0063CE88, 0x0064BDC8);
+		MultiPointer(ptrOGLFullScreen2, 0, 0, 0x0063CEEA, 0x0064BE2A);
 		if (argv[0] == "false")
 		{
 			CodePatch genericCodePatch = { ptrOGLFullScreen1,"","\xF0",1,false };
@@ -883,6 +929,53 @@ namespace ModloaderMain {
 				constructorBypass02.Apply(true);
 				constructorBypass03.Apply(true);
 			}
+			if (std::filesystem::exists("modloader.vol"))
+			{
+				constructorsPatch1.Apply(true);
+				constructorsPatch1a.Apply(true);
+				constructorsPatch2.Apply(true);
+				constructorsPatch3.Apply(true);
+				constructorsPatch3a.Apply(true);
+				constructorsPatch4.Apply(true);
+				constructorsPatch5.Apply(true);
+				constructorsPatch5a.Apply(true);
+				constructorsPatch6.Apply(true);
+				constructorsPatch6a.Apply(true);
+				constructorsPatch7.Apply(true);
+				constructorsPatch8.Apply(true);
+				constructorsPatch9.Apply(true);
+				constructorsPatch10.Apply(true);
+				constructorsPatch10a.Apply(true);
+				constructorsPatch11.Apply(true);
+				constructorsPatch12.Apply(true);
+				constructorsPatch13.Apply(true);
+				constructorsPatch14.Apply(true);
+				constructorsPatch15.Apply(true);
+				constructorsPatch16.Apply(true);
+				constructorsPatch17.Apply(true);
+				constructorsPatch19.Apply(true);
+				constructorsPatch20.Apply(true);
+				constructorsPatch21.Apply(true);
+				constructorsPatch22.Apply(true);
+				constructorsPatch23.Apply(true);
+				constructorsPatch24.Apply(true);
+				constructorsPatch25.Apply(true);
+				constructorsPatch26.Apply(true);
+				constructorsPatch27.Apply(true);
+				constructorsPatch28.Apply(true);
+				constructorsPatch29.Apply(true);
+				constructorsPatch30.Apply(true);
+				constructorsPatch31.Apply(true);
+				constructorsPatch32.Apply(true);
+				constructorsPatch33.Apply(true);
+				constructorsPatch34.Apply(true);
+				constructorsPatch35.Apply(true);
+				constructorsPatch36.Apply(true);
+				constructorsPatch37.Apply(true);
+				constructorsPatch38.Apply(true);
+				constructorsPatch39.Apply(true);
+			}
+			tagDictionary_patch.Apply(true);
 			tagDictionary_patch.Apply(true);
 			tagDefinitionBypass1_patch.Apply(true);
 			tagDefinitionBypass2_patch.Apply(true);

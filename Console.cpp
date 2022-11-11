@@ -229,11 +229,11 @@ namespace Console {
 		Console::echo("---------------------------------");
 
 
-		const char* pref = Console::getVariable("$pref::OpenGL::NoPackedTextures");
-		if (VersionSnoop::GetVersion() == VERSION::v001004 && _stricmp(pref, "false") != 0) {
-			Console::echo("[mem.dll] v4 Warning: initalizing $pref::OpenGL::NoPackedTextures to 'false'", pref);
-			Console::setVariable("$pref::OpenGL::NoPackedTextures", "false");
-		}
+		//const char* pref = Console::getVariable("$pref::OpenGL::NoPackedTextures");
+		//if (VersionSnoop::GetVersion() == VERSION::v001004 && _stricmp(pref, "false") != 0) {
+		//	Console::echo("[mem.dll] v4 Warning: initalizing $pref::OpenGL::NoPackedTextures to 'false'", pref);
+		//	Console::setVariable("$pref::OpenGL::NoPackedTextures", "false");
+		//}
 	}
 
 	struct Init {
@@ -280,9 +280,4 @@ namespace Console {
 		return "true";
 	}
 
-	BuiltInFunction("TestGetVar")
-	{
-		Console::echo(argv[0]);
-		return 0;
-	}
 }; // namespace Console

@@ -176,6 +176,12 @@ namespace OpenGL {
 			Callback::trigger(Callback::OnOpenGL, true);
 
 		Console::echo("OpenGL is %s", glActive ? "active" : "not active");
+		Console::setVariable("Opengl::Active", "true");
+
+		if (!glActive)
+		{
+			Console::setVariable("Opengl::Active", "false");
+		}
 
 		return result; // return must be BOOL(32bit), not GLboolean(8bit)
 	}
@@ -188,9 +194,9 @@ namespace OpenGL {
 
 	struct Init {
 		Init() {
-			if (VersionSnoop::GetVersion() != VERSION::v001004) {
-				return;
-			}
+			//if (VersionSnoop::GetVersion() != VERSION::v001004) {
+				//return;
+			//}
 			if (VersionSnoop::GetVersion() == VERSION::vNotGame) {
 				return;
 			}

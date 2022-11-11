@@ -15,5 +15,4 @@
 #include "version.h"
 
 
-
 #endif // __MEMSTAR_H__
