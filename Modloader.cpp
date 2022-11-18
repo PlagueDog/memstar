@@ -639,32 +639,12 @@ namespace ModloaderMain {
 	// Don't disconnect when server has a terrain we don't have
 
 	//1.004r
-	MultiPointer(ptrMissServTerrain_1004, 0, 0, 0, 0x0057F349);
-	CodePatch missingTerrain_patch_1004 = {
-		ptrMissServTerrain_1004,
+	MultiPointer(ptrMissServTerrain, 0, 0, 0x00683430, 0x00693328);
+	CodePatch missingTerrain_patch = {
+		ptrMissServTerrain,
 		"",
-		"\x90\x90\x90\x90\x90",
-		5,
-		false
-	};
-
-	//1.003r
-	MultiPointer(ptrMissServTerrain_1003, 0, 0, 0x0057B517, 0);
-	CodePatch missingTerrain_patch_1003 = {
-		ptrMissServTerrain_1004,
-		"",
-		"\x90\x90\x90\x90\x90\x90\x90\x90\x90\x8D\x8B\xA4\x06\x00\x00\x8B\xD0\x8B\xC3\xE8\x8F\xF2\xFF\xFF\x90\x90\x90\x90",
-		28,
-		false
-	};
-
-	// Don't disconnect when server has a different version of terrain
-	MultiPointer(ptrCustServTerrain, 0, 0, 0, 0x0057F376);
-	CodePatch modifiedTerrain_patch = {
-		0x0057F376,
-		"",
-		"\x90\x90\x90\x90\x90",
-		5,
+		"\xC3",
+		1,
 		false
 	};
 
@@ -868,6 +848,12 @@ namespace ModloaderMain {
 	MultiPointer(ptrSubDirFileWrite3, 0, 0, 0x00570EE1, 0x005740E9);
 	CodePatch f_cr_sub2 = { ptrSubDirFileWrite3,"","\x90\x90\xEB\x25",4,false };
 
+
+	//Move the "Variable Ref. Before Assign." verboose to $console::printlevel of 3. Also fix the typo and reword the verboose.
+	MultiPointer(ptrVarRefBefAssign, 0, 0, 0x005E4DCD, 0x005E8671);
+	CodePatch VarRefBefAssign_patch = { ptrVarRefBefAssign, "", "\x03", 1, false };
+	MultiPointer(ptrVarRefBefAssignVerb, 0, 0, 0x00712ECB, 0x0072333B);
+	CodePatch VarRefBefAssignVerb_patch = { ptrVarRefBefAssignVerb, "", "%s referenced before it has been assigned", 41, false };
 	//BuiltInFunction("setChatboxSize", _scbs)
 	//{
 	//	if (argc != 2 || atoi(argv[0]) <= 0 || atoi(argv[1]) <= 0)
@@ -919,6 +905,24 @@ namespace ModloaderMain {
 		return "true";
 	}
 
+	//BuiltInFunction("memstar::codePatch_INTERNAL", _mcp)
+	//{
+		//if (!strlen(argv[0]) || !strlen(argv[1]))
+		//{
+			//Console::echo("memstar::codePatch(address, hexString);");
+			//return 0;
+		//}
+			//uint64_t address;
+			//std::istringstream(argv[0]) >> std::hex >> address;
+			//string hexStr = argv[1];
+			//Parse the hexString
+			//string rawHexString = hexStr.c_str();
+			//Plug into CodePatch
+			//char* rawHexString_cstr = const_cast<char*>(rawHexString.c_str());
+			//int byteLen = strlen(hex2char(rawHexString_cstr));
+			//CodePatch consoleCodePatch = { address,"",hex2char(rawHexString_cstr),byteLen,false }; consoleCodePatch.Apply(true);
+		//return "true";
+	//}
 	///
 	struct Init {
 		Init() {
@@ -1002,16 +1006,7 @@ namespace ModloaderMain {
 			invalidPackets1_patch.Apply(true);
 			invalidPackets2_patch.Apply(true);
 
-			if (VersionSnoop::GetVersion() == VERSION::v001004)
-			{
-				missingTerrain_patch_1004.Apply(true);
-				modifiedTerrain_patch.Apply(true);
-			}
-
-			if (VersionSnoop::GetVersion() == VERSION::v001003)
-			{
-				missingTerrain_patch_1003.Apply(true);
-			}
+			missingTerrain_patch.Apply(true);
 
 			//Gameplay
 			weaponShotCap_patch.Apply(true);

@@ -234,7 +234,7 @@ const char *format( const char *fmt, ... ) {
 
 	va_list args;
 	va_start( args, fmt );
-	Snprintf( buffer, conversionBufferSize, fmt, args );
+	_vsnprintf( buffer, conversionBufferSize, fmt, args );
 	va_end( args );
 
 	return( buffer );
@@ -243,14 +243,14 @@ const char *format( const char *fmt, ... ) {
 const char *format( int buffersize, char *buffer, const char *fmt, ... ) {
 	va_list args;
 	va_start( args, fmt );
-	Snprintf( buffer, buffersize, fmt, args );
+	_vsnprintf( buffer, buffersize, fmt, args );
 	va_end( args );
 
 	return( buffer );
 }
 
 const char *format( int buffersize, char *buffer, va_list &args, const char *fmt ) {
-	Snprintf( buffer, buffersize, fmt, args );
+	_vsnprintf( buffer, buffersize, fmt, args );
 	return( buffer );
 }
 
