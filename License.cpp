@@ -27,14 +27,14 @@ namespace Licence {
 		return "true";
 	}
 
-	BuiltInFunction("Memstar::license", license) {
+	//BuiltInFunction("Memstar::license", license) {
 		//HRSRC licenseResource = FindResourceA(NULL, NULL, MAKEINTRESOURCEA(IDR_LICENSE1));
 		//HGLOBAL licenseLoad = LoadResource(NULL, licenseResource);
 
-		MessageBoxW(NULL, L"This is from mem.dll!", L"Test!", MB_YESNOCANCEL | MB_ICONQUESTION | MB_SETFOREGROUND);
-
-		return "true";
-	}
+	//	MessageBoxW(NULL, L"This is from mem.dll!", L"Test!", MB_YESNOCANCEL | MB_ICONQUESTION | MB_SETFOREGROUND);
+	//
+	//	return "true";
+	//}
 
 #if 0
 	class LicenseHandler {

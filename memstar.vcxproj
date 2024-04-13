@@ -47,6 +47,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
+    <LibraryPath>C:\Users\Zweym\source\repos\memstar_3r.4r\TribesRebirth-master\Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Zweym\source\repos\memstar_3r.4r\vfs\source;C:\Users\Zweym\source\repos\memstar_3r.4r\vfs\inc;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -73,13 +75,16 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>./;Lib;winogg;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MEMSTAR_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>./;Lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MEMSTAR_EXPORTS;WINDOWS_IGNORE_PACKING_MISMATCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <MinimalRebuild>true</MinimalRebuild>
     </ClCompile>
     <Link>
       <OutputFile>C:\Dynamix\Starsiege\mem.dll</OutputFile>
@@ -100,11 +105,15 @@
     <ClCompile Include="CliServDatManagement.cpp" />
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="DLLMain.cpp" />
+    <ClCompile Include="Events.cpp" />
     <ClCompile Include="ExeFixes.cpp" />
+    <ClCompile Include="ExtSimObjectProperties.cpp" />
     <ClCompile Include="Fear.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="FontManager.cpp" />
+    <ClCompile Include="GlideLib.cpp" />
+    <ClCompile Include="HudScaling.cpp" />
     <ClCompile Include="Lib\Callback.cpp" />
     <ClCompile Include="Lib\Hash.cpp" />
     <ClCompile Include="Lib\StringConversions.cpp" />
@@ -113,7 +122,9 @@
     <ClCompile Include="Loader.cpp" />
     <ClCompile Include="Modloader.cpp" />
     <ClCompile Include="MS_Stub.cpp" />
+    <ClCompile Include="Intercepts.cpp" />
     <ClCompile Include="OpenGL.cpp" />
+    <ClCompile Include="OpenGLFixes.cpp" />
     <ClCompile Include="OpenGL_Pointers.cpp" />
     <ClCompile Include="PlayGui.cpp" />
     <ClCompile Include="Replacer.cpp" />
@@ -141,6 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Console.h" />
+    <ClInclude Include="conversionFunctions.h" />
     <ClInclude Include="Fear.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="Font.h" />

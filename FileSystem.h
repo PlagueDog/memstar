@@ -7,6 +7,7 @@
 #include "Strings.h"
 #include "Texture.h"
 #include "zlib/unzip.h"
+#include "Console.h"
 
 class FileInfo {
 public:
@@ -147,11 +148,9 @@ public:
 		delete[] buffer;
 		return (ok);
 	}
-
 private:
 	void ProcessZip(const char* path);
 	void Scan(const char* path, bool zip_scan);
-
 	FileHash mFiles;
 	ZipList mZipHandles;
 };

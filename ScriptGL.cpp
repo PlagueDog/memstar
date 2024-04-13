@@ -6,22 +6,21 @@
 #include "Callback.h"
 #include "GLOpcodes.h"
 #include "Console.h"
+#include "Patch.h"
 
 class ScriptTexture : public Texture {
 public:
-	ScriptTexture() : Texture(), mLastUsed(GetTickCount()) { }
+	ScriptTexture() : Texture(), mLastUsed(GetTickCount64()) { }
 	~ScriptTexture() { }
 
 	int LastUsed() const { return (mLastUsed); }
-	void UpdateLastUsed() { mLastUsed = GetTickCount(); }
+	void UpdateLastUsed() { mLastUsed = GetTickCount64(); }
 
 private:
 	int mLastUsed;
 };
 
-
 namespace ScriptGL {
-
 	// types
 	typedef HashTable<
 		String, ScriptTexture*,
@@ -150,7 +149,7 @@ namespace ScriptGL {
 
 	void Open() {
 		Close();
-		mFiles.Grok("Memstar/ScriptGL");
+		mFiles.Grok("Mods/ScriptGL");
 	}
 
 	void OnDraw(int pre_or_post) {
@@ -431,6 +430,14 @@ namespace ScriptGL {
 
 		return "true";
 	}
+	/// 1.003r compat
+	CodePatch CallPauseDLG = { 0x6CE421, "", "ScriptGL::GuiPushDialog(\"Pause.dlg\");\x00", 38, false };
+	CodePatch CallPrefsDLG = { 0x6CE537, "", "ScriptGL::GuiPushDialog(\"Prefs.dlg\");\x00", 38, false };
+	CodePatch CallChatDLG0 = { 0x6CE5C8, "", "ScriptGL::GuiPushDialog(\"Chat.dlg\");\x00", 37, false };
+	CodePatch CallChatDLG1 = { 0x6CE60F, "", "ScriptGL::GuiPushDialog(\"Chat.dlg\");\x00", 37, false };
+	CodePatch CallScoreBoardDLG = { 0x6CE64A, "", "ScriptGL::GuiPushDialog(\"ScoreBoard.dlg\");\x00", 43, false };
+	CodePatch CallHudObjectivesDLG = { 0x6CE675, "", "ScriptGL::GuiPushDialog(\"HudObjectives.dlg\");\x00", 47, false };
+	CodePatch CallExitDLG = { 0x6F945B, "", "ScriptGL::GuiPushDialog(\"Exit.dlg\");\x00", 38, false };
 
 	void OnGuiDraw(bool is_predraw) {
 		OnDraw((is_predraw) ? __SCRIPTGL_PREDRAW__ : __SCRIPTGL_POSTDRAW__);
@@ -438,6 +445,16 @@ namespace ScriptGL {
 
 	struct Init {
 		Init() {
+			if (VersionSnoop::GetVersion() == VERSION::v001003) {
+				CallPrefsDLG.Apply(true);
+				CallPrefsDLG.Apply(true);
+				CallChatDLG0.Apply(true);
+				CallChatDLG1.Apply(true);
+				CallScoreBoardDLG.Apply(true);
+				CallHudObjectivesDLG.Apply(true);
+				CallExitDLG.Apply(true);
+			}
+
 			Callback::attach(Callback::OnEndframe, GarbageCollect);
 			Callback::attach(Callback::OnGuiDraw, OnGuiDraw);
 			Open();

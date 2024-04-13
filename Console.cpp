@@ -199,41 +199,42 @@ namespace Console {
 	}
 
 	MultiPointer(fnSetVariable, 0, 0, 0x005e32ac, 0x005E6B50);
+	MultiPointer(ptrSetVariable, 0, 0, 0x00712b34, 0x00722FA4);
 	void setVariable(const char* name, const char* value) {
-		if (VersionSnoop::GetVersion() == VERSION::v001004)
-		{
-			__asm {
-				mov eax, ds: [CONSOLE_PTR_1004]
-				mov edx, [name]
-				mov ecx, [value]
-				call[fnSetVariable]
-			}
+		__asm {
+			mov eax, ds: [ptrSetVariable]
+			mov edx, [name]
+			mov ecx, [value]
+			call[fnSetVariable]
 		}
-		else
-		{
-			__asm {
-				mov eax, ds: [CONSOLE_PTR_1003]
-				mov edx, [name]
-				mov ecx, [value]
-				call[fnSetVariable]
-			}
-		}
+		//if (VersionSnoop::GetVersion() == VERSION::v001004)
+		//{
+		//	__asm {
+		//		mov eax, ds: [CONSOLE_PTR_1004]
+		//		mov edx, [name]
+		//		mov ecx, [value]
+		//		call[fnSetVariable]
+		//	}
+		//}
+		//else
+		//{
+		//	__asm {
+		//		mov eax, ds: [CONSOLE_PTR_1003]
+		//		mov edx, [name]
+		//		mov ecx, [value]
+		//		call[fnSetVariable]
+		//	}
+		//}
 	}
 
 	void OnStarted(bool active) {
 		VariableConstructor::Process();
 		ConsoleConstructor::Process();
-		Console::echo("[mem.dll] Initalized Successfully");
+		Console::echo("[mem.dll] (Modloader) Initalized Successfully");
 		Console::echo("---------------------------------");
 		Console::execFunction(0, "Memstar::version");
 		Console::echo("---------------------------------");
-
-
-		//const char* pref = Console::getVariable("$pref::OpenGL::NoPackedTextures");
-		//if (VersionSnoop::GetVersion() == VERSION::v001004 && _stricmp(pref, "false") != 0) {
-		//	Console::echo("[mem.dll] v4 Warning: initalizing $pref::OpenGL::NoPackedTextures to 'false'", pref);
-		//	Console::setVariable("$pref::OpenGL::NoPackedTextures", "false");
-		//}
+		Console::setVariable("$pref::OpenGL::NoPackedTextures", "false");
 	}
 
 	struct Init {

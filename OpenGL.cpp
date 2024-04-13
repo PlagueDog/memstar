@@ -12,7 +12,7 @@ namespace Loader {
 
 namespace OpenGL {
 
-	BuiltInVariable("pref::forceTrilinear", bool, glForceTrilinear, true);
+	//BuiltInVariable("pref::forceTrilinear", bool, glForceTrilinear, true);
 
 	// outsourced setting mState to Hooks.cpp
 	bool glActive = false;
@@ -67,6 +67,7 @@ namespace OpenGL {
 		return false;
 	}
 
+
 	NAKED void setAlphaSource() {
 		__asm {
 			mov ecx, [eax + 0x158]
@@ -82,9 +83,9 @@ namespace OpenGL {
 
 	NAKED void glTexParamateri() {
 		__asm {
-			cmp[glForceTrilinear], 0
-			je __check_nearest
-
+			//cmp[glForceTrilinear], 1
+			//je __check_nearest
+			//
 			mov eax, [esp + 0x8]
 			cmp eax, GL_TEXTURE_MAG_FILTER
 			je __check_filter
@@ -103,7 +104,7 @@ namespace OpenGL {
 
 				__check_nearest :
 			mov eax, [esp + 0xc]
-				cmp eax, GL_NEAREST
+				cmp eax, GL_LINEAR
 				jne __done
 
 				// sky overlays are rendered with GL_NEAREST, let's go linear
@@ -177,6 +178,8 @@ namespace OpenGL {
 
 		Console::echo("OpenGL is %s", glActive ? "active" : "not active");
 		Console::setVariable("Opengl::Active", "true");
+		Console::setVariable("$pref::Opengl::NoPackedTextures", "false"); //Set to false. Causes crashes on minimize
+		Console::setVariable("$pref::OpenGL::Use32BitTex", "false"); // Set to false. Incompatible with hud scaling
 
 		if (!glActive)
 		{

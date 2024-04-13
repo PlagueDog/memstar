@@ -15,6 +15,7 @@ namespace Replacer {
 	MultiPointer(ptr_OPENGL_FLUSH_TEXTURE_VFT, 0, 0, 0x0071a15c, 0x0072A748);
 
 	BuiltInVariable("pref::ShowMatchedTextures", bool, prefShowMatchedTextures, false);
+	BuiltInVariable("pref::echoMatchedTextures", bool, prefEchoMatchedTextures, false);
 
 	typedef HashTable< String, TextureWithMips*, IKeyCmp, ValueDeleter<String, TextureWithMips*> > ReplacementHash;
 	typedef HashTable< u32, String > OriginalHash;
@@ -70,7 +71,7 @@ namespace Replacer {
 	void Open() {
 		mFiles.Clear();
 		mTextures.Clear();
-		mFiles.Grok("Memstar/Replacements");
+		mFiles.Grok("mods/Replacements");
 	}
 
 	void Scan(Fear::GFXBitmap* bmp) {
@@ -79,11 +80,8 @@ namespace Replacer {
 
 		lastFoundCRC = HashBytes(bmp->bitmapData, bmp->width * bmp->height);
 		const String* file = FindOriginalName(lastFoundCRC);
-#if _DEBUG
-		if (file != NULL) {
+		if (file != NULL && prefEchoMatchedTextures)
 			Console::echo("Matched texture %s", file->c_str());
-		}
-#endif
 		foundLastCRC = (file != NULL);
 		lastMatchedTexture = FindReplacement(file);
 		lastScanMatched = (lastMatchedTexture != NULL);
@@ -263,15 +261,15 @@ namespace Replacer {
 
 	void OnStarted(bool state) {
 		Open();
-
+		
 		for (int i = 0; i < __ORIGINAL_COUNT__; i++) {
 			mOriginals.Insert(mOriginalsTable[i].mCrc, String2(mOriginalsTable[i].mName));
 		}
-
+		
 		fnglTexImage2D = Patch::ReplaceHook((void*)OpenGLPtrs::ptr_OPENGL32_GLTEXIMAGE2D, OnGlTexImage2D);
 		fnglTexSubImage2D = Patch::ReplaceHook((void*)OpenGLPtrs::ptr_OPENGL32_GLTEXSUBIMAGE2D, OnGlTexSubImage2D);
 		fnFlushTexture = Patch::ReplaceHook((void*)ptr_OPENGL_FLUSH_TEXTURE_VFT, OnFlushTexture);
-
+		
 		cacheBitmapPatch.DoctorRelative((u32)&OnCacheBitmap, 1).Apply(true);
 	}
 

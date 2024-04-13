@@ -21,7 +21,7 @@ namespace Terrain {
 
 #define GridSquare_Pinned         ( 4 )
 
-	MultiPointer(ptr_OPENGL_FLUSH_TEXTURE_CACHE_VFT, 0, 0, 0, 0x0072A738);
+	MultiPointer(ptr_OPENGL_FLUSH_TEXTURE_CACHE_VFT, 0, 0, 0x0071A14C, 0x0072A738);
 
 	struct HiddenTexture {
 		TextureWithMips* replacement, * originalUpsampled;
@@ -649,7 +649,7 @@ namespace Terrain {
 		}
 
 		tiles.Clear();
-		uniqueStamp = GetTickCount();
+		uniqueStamp = GetTickCount64();
 		BaseAddr = NULL;
 		texImageMatch = false;
 		texSubImageMatch = false;

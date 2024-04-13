@@ -15,11 +15,13 @@
 #include <filesystem>
 #include <dirent.h>
 #include "VersionSnoop.h"
+#include <bitset>
 
 using namespace std;
 using namespace Fear;
 
-
+namespace modloaderFunctions
+{
 //Big endian to little endian
 string BEtoLE(string& str)
 {
@@ -31,10 +33,13 @@ string BEtoLE(string& str)
 	return it;
 }
 
-//Hex to ascii
-string htoa(string hex)
+char* hexToASCII3(char* input)
 {
 	// initialize the ASCII code string as empty.
+	char buffer[MAX_PATH];
+	strcpy(buffer, "00");
+	strcat(buffer, input);
+	string hex = buffer;
 	string ascii = "";
 	for (size_t i = 0; i < hex.length(); i += 2)
 	{
@@ -46,14 +51,40 @@ string htoa(string hex)
 		char ch = stoul(part, nullptr, 16);
 
 		// add this char to final ASCII string
-		ascii += ch;
+		ascii += part;
 	}
+	char* ascii_cstr = const_cast<char*>(ascii.c_str());
+	//char* ascii_cstr_ = const_cast<char*>(ascii_cstr);
+	free(buffer);
+	return ascii_cstr;
+}
+
+string hexToASCII(string input)
+{
+	int length = input.length();
+	string result;
+	for (int i = 0; i < length; i += 2)
+	{
+		string byte = input.substr(i, 2);
+		char chr = (char)(int)strtol(byte.c_str(), NULL, 16);
+		result.push_back(chr);
+	}
+	char* ascii = const_cast<char*>(result.c_str());
 	return ascii;
+}
+
+string hexToASCII2(std::string hex) {
+	stringstream ss;
+	for (size_t i = 0; i < hex.length(); i += 2) {
+		unsigned char byte = stoi(hex.substr(i, 2), nullptr, 16);
+		ss << byte;
+	}
+	return ss.str();
 }
 
 char* hex2char(char* hexString = "00")
 {
-	std::string hex = hexString;
+	const std::string hex = hexString;
 	std::basic_string<uint8_t> bytes;
 	for (size_t i = 0; i < hex.length(); i += 2)
 	{
@@ -108,6 +139,34 @@ char* flt2hex(float input = 0.00, int type = 0)
 	return hexString;
 }
 
+BuiltInFunction("Simgui::GuiBitmapCtrl::SetDefaultImage", _SGSDI)
+{
+	if (argc != 1)
+	{
+		Console::echo("MAIN_MENU, SP_MAIN, MFD, LOADING");
+	}
+	string background = argv[0];
+	MultiPointer(ptrGuiBitmapCtrlImageTag, 0, 0, 0x005CED27, 0x005D25CB);
+	if (background.compare("MAIN_MENU") == 0)
+	{
+		CodePatch genericCodePatch = { ptrGuiBitmapCtrlImageTag,"","\x1D\x71",2,false }; genericCodePatch.Apply(true);
+	}
+	if (background.compare("SP_MAIN") == 0)
+	{
+		CodePatch genericCodePatch = { ptrGuiBitmapCtrlImageTag,"","\x38\x71",2,false }; genericCodePatch.Apply(true);
+	}
+	if (background.compare("MFD") == 0)
+	{
+		CodePatch genericCodePatch = { ptrGuiBitmapCtrlImageTag,"","\x15\x71",2,false }; genericCodePatch.Apply(true);
+	}
+	if (background.compare("LOADING") == 0)
+	{
+		CodePatch genericCodePatch = { ptrGuiBitmapCtrlImageTag,"","\x2C\x71",2,false }; genericCodePatch.Apply(true);
+	}
+
+	return "true";
+}
+
 namespace ModloaderMain {
 
 	void toggleWindowedOpenGL(HWND hwnd, int x, int y, UINT keyFlags)
@@ -135,78 +194,53 @@ namespace ModloaderMain {
 			//SetWindowPos(hwnd, NULL, 0, 0, 0, 0,
 			//	SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
 			//	SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-			Console::eval("OpenGL::winKeyOut();");
+			//Console::eval("OpenGL::winKeyOut();");
 		}
 	}
-
-	//NYI
-	//BuiltInFunction("setRadar", _sra)
-	//{
-		//if (argc < 1)
+}
+	MultiPointer(ptrSplash480, 0, 0, 0x0063C5CE, 0x0064B50E);
+	MultiPointer(ptrSplash640, 0, 0, 0x0063C5C5, 0x0064B505);
+	BuiltInFunction("setSplash640x480", _ss640x480)
+	{
+		if (argc != 2 || atoi(argv[1]) < 1 )
+		{
+			Console::echo("%s ( width/height, int);");
+			return 0;
+		}
+		string type = argv[0];
+		//string hex = int2hex(atoi(argv[1]), 1);
+		//if (type.compare("width") != 0 || type.compare("height") != 0)
 		//{
-		//	Console::echo("setRadar( <Perspective|Scale|DiagonalOffs|HorizontalOffs|SensModeHorizOff|SensModeVertOff|AccelVertOffs|AccelHorizOffs>, int/float);");
+		//	Console::echo("%s ( width/height, int);");
 		//	return 0;
 		//}
-		//std::string float_arg = argv[0];
-		////If there is no float arg reset to the default value
-		//float f_arg = atof(argv[1]);
-		//char* f_arg_hex = flt2hex(f_arg,1);
-		//char* f_arg_hString = hex2char(f_arg_hex);
-		//
-		//	if (float_arg.compare("Perspective") == 0 && !strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F058,"","\x00\x00\x96\x43",4,false }; genericCodePatch0.Apply(true); return 0; }
-		//else if (float_arg.compare("Perspective") == 0 && strlen(argv[1])) {CodePatch genericCodePatch0 = { 0x0074F058,"",f_arg_hString,4,false }; genericCodePatch0.Apply(true); return 0;}
+		string buffer = hexToASCII(int2hex(atoi(argv[1]),1));
+		char* result = const_cast<char*>(buffer.c_str());
+		if (type.compare("width") == 0)
+		{
+			CodePatch goSplash640 = { ptrSplash640, "", result, 2, false };goSplash640.Apply(true);
+		}
+		else if (type.compare("height") == 0)
+		{
+			CodePatch goSplash480 = { ptrSplash480, "", result, 2, false };goSplash480.Apply(true);
+		}
+		//Console::echo(result);
+		//Console::echo(int2hex(atoi(argv[1]), 1));
+		return 0;
+	}
 
-		//if (float_arg.compare("Scale") == 0 && !strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F05C,"","\x42\x00\x00\x00",4,false }; genericCodePatch0.Apply(true); return 0;}
-		//else if(float_arg.compare("Scale") == 0 && strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F05C,"",i_arg_hString,4,false }; genericCodePatch0.Apply(true); return 0;}
-
-		//if (float_arg.compare("DiagonalOffs") == 0 && !strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F060,"","\x00\x00\x00\xCE",4,false }; genericCodePatch0.Apply(true); return 0;}
-		//else if (float_arg.compare("DiagonalOffs") == 0 && strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F060,"",f_arg_hString,4,false }; genericCodePatch0.Apply(true); return 0;}
-
-		//if (float_arg.compare("HorizontalOffs") == 0 && !strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F064,"","\xE0\xFF\xFF\xFF",4,false }; genericCodePatch0.Apply(true); return 0;}
-		//else if (float_arg.compare("HorizontalOffs") == 0 && strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F064,"",f_arg_hString,4,false }; genericCodePatch0.Apply(true); return 0;}
-
-		//if (float_arg.compare("SensModeHorizOff") == 0 && !strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F068,"","\x00\x00\x00\x5B",4,false }; genericCodePatch0.Apply(true); return 0;}
-		//else if (float_arg.compare("SensModeHorizOff") == 0 && strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F068,"",f_arg_hString,4,false }; genericCodePatch0.Apply(true); return 0;}
-
-		//if (float_arg.compare("SensModeVertOff") == 0 && !strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F06C,"","\xF6\xFF\xFF\xFF",4,false }; genericCodePatch0.Apply(true); return 0;}
-		//else if (float_arg.compare("SensModeVertOff") == 0 && strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F06C,"",f_arg_hString,4,false }; genericCodePatch0.Apply(true); return 0;}
-
-		//if (float_arg.compare("AccelVertOffs") == 0 && !strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F074,"","\x00\x00\x00\x1C",4,false }; genericCodePatch0.Apply(true); return 0;}
-		//else if (float_arg.compare("AccelVertOffs") == 0 && strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F074,"",f_arg_hString,4,false }; genericCodePatch0.Apply(true); return 0;}
-
-		//if (float_arg.compare("AccelHorizOffs") == 0 && !strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F078,"","\x00\x00\x00\x23",4,false }; genericCodePatch0.Apply(true); return 0;}
-		//else if (float_arg.compare("AccelHorizOffs") == 0 && strlen(argv[1])) { CodePatch genericCodePatch0 = { 0x0074F078,"",f_arg_hString,4,false }; genericCodePatch0.Apply(true); return 0;}
-		//return "true";
-	//}
-
-	//BuiltInFunction("setWeaponDisplay::FontTag", _srp)
-	//{
-	//	if (argc == 0)
-	//	{
-	//		CodePatch genericCodePatch0 = { 0x00524356,"","\x47\x4A\x02",3,false }; genericCodePatch0.Apply(true);
-	//		return "true";
-	//	}
-	//	float f_arg = atof(argv[0]);
-	//	char* f_arg_hex = flt2hex(f_arg, 1);
-	//	char* f_arg_hString = hex2char(f_arg_hex);
-	//	CodePatch genericCodePatch0 = { 0x00524356,"",f_arg_hString,3,false }; genericCodePatch0.Apply(true);
-	//	return "true";
-	//}
-
-	//BuiltInFunction("setRadar::Scale", _srs)
-	//{
-	//	if (argc == 0)
-	//	{
-	//		CodePatch genericCodePatch0 = { 0x00524356,"","\x42\x00\x00\x00",4,false }; genericCodePatch0.Apply(true);
-	//		return "true";
-	//	}
-	//	string f_arg_hString = htoa(int2hex(stoi(argv[0])));
-	//	//BEtoLE(f_arg_hString);
-	//	const char* f_arg_cstr = f_arg_hString.c_str();
-	//	char* f_arg_cstrr = const_cast<char*>(f_arg_cstr);
-	//	CodePatch genericCodePatch0 = { 0x00524356,"",f_arg_cstrr,strlen(f_arg_cstrr),false }; genericCodePatch0.Apply(true);
-	//	return "true";
-	//}
+	BuiltInFunction("allowCloakWhenNoEnergy", _acwne) {
+		MultiPointer(ptrCloakEnergyCheck, 0, 0, 0x00410AB3, 0x004115EB);
+		if (!argv[0])
+		{
+			CodePatch CloakEnergyCheck = { ptrCloakEnergyCheck,"","\x84\xC9\x75",3,false }; CloakEnergyCheck.Apply(true);
+		}
+		else
+		{
+			CodePatch CloakEnergyCheck = { ptrCloakEnergyCheck,"","\x90\x90\xEB",3,false }; CloakEnergyCheck.Apply(true);
+		}
+		return "true";
+	}
 
 	BuiltInFunction("getDirectory", _gd)
 	{
@@ -241,22 +275,33 @@ namespace ModloaderMain {
 		return 0;
 	}
 
-	BuiltInFunction("OpenGL::toggleWindowedFullscreen", _togl) {
-		toggleWindowedOpenGL(FindWindowA(NULL, "Starsiege"), NULL, NULL, NULL);
-		return "true";
+	HWND getGameHWND() {
+		MultiPointer(ptrHWND, 0, 0, 0x00705C5C, 0x007160CC);
+		uintptr_t HWND_PTR = ptrHWND;
+		int GAME_HWND = *reinterpret_cast<int*>(HWND_PTR);
+		HWND SS_HWND = reinterpret_cast<HWND>(GAME_HWND);
+		return SS_HWND;
 	}
 
+	//BuiltInFunction("OpenGL::toggleWindowedFullscreen", _togl) {
+		//toggleWindowedOpenGL(FindWindowA(NULL, "Starsiege"), NULL, NULL, NULL);
+		//toggleWindowedOpenGL(getGameHWND(), NULL, NULL, NULL);
+		//return "true";
+	//}
+
 	BuiltInFunction("disableWindowBorder", _dwd) {
-		LONG lStyle = GetWindowLong(FindWindowA(NULL, "Starsiege"), GWL_STYLE);
+		LONG lStyle = GetWindowLong(getGameHWND(), GWL_STYLE);
 		lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
-		SetWindowLong(FindWindowA(NULL, "Starsiege"), GWL_STYLE, lStyle);
+		SetWindowLong(getGameHWND(), GWL_STYLE, lStyle);
 		return "true";
 	}
 
 	BuiltInFunction("enableWindowBorder", _ewb) {
-		LONG lStyle = GetWindowLong(FindWindowA(NULL, "Starsiege"), GWL_STYLE);
+		LONG lStyle = GetWindowLong(getGameHWND(), GWL_STYLE);
+		//lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+		//SetWindowLong(FindWindowA(NULL, "Starsiege"), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU);
 		lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
-		SetWindowLong(FindWindowA(NULL, "Starsiege"), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU);
+		SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU);
 		return "true";
 	}
 
@@ -266,7 +311,7 @@ namespace ModloaderMain {
 			Console::echo("%s( int_xPosition, int_yPosition, int_windowWidth, int_windowHeight );");
 			return 0;
 		}
-		SetWindowPos(FindWindowA(NULL, "Starsiege"), HWND_TOPMOST, atoi(argv[0]), atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), NULL);
+		SetWindowPos(getGameHWND(), HWND_TOPMOST, atoi(argv[0]), atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), NULL);
 		return "True";
 	}
 
@@ -288,7 +333,7 @@ namespace ModloaderMain {
 
 	BuiltInFunction("getWindowPosition", _gwp) {
 		RECT window;
-		GetWindowRect(FindWindowA(NULL, "Starsiege"), &window);
+		GetWindowRect(getGameHWND(), &window);
 		int x = window.left;
 		int y = window.top;
 		if (atoi(argv[0]) == 1)
@@ -302,16 +347,53 @@ namespace ModloaderMain {
 		return 0;
 	}
 
+	//BuiltInFunction("getWindowSize", _gws) {
+	//	RECT window;
+	//	GetWindowRect(getGameHWND(), &window);
+	//	int width = window.right - window.left;
+	//	int height = window.bottom - window.top;
+	//	if (atoi(argv[0]) == 1)
+	//	{
+	//		return tostring(width);
+	//	}
+	//	else
+	//	{
+	//		return tostring(height);
+	//	}
+	//	return 0;
+	//}
+
+	//BuiltInFunction("hex2str", _h2s) {
+	//	if (argc != 1)
+	//	{
+	//		Console::echo("%s ( hexString );");
+	//		return 0;
+	//	}
+	//	char* arg0 = const_cast<char*>(argv[0]);
+	//	char* hexString = hexToASCII(arg0);
+	//	return hexString;
+	//}
 	BuiltInFunction("getWindowSize", _gws) {
-		RECT window;
-		GetWindowRect(FindWindowA(NULL, "Starsiege"), &window);
-		int width = window.right - window.left;
-		int height = window.bottom - window.top;
-		if (atoi(argv[0]) == 1)
+		if (argc != 1)
+		{
+			Console::echo("%s ( width/height );");
+			return 0;
+		}
+		if (strlen(argv[0]) == 0)
+		{
+			Console::echo("%s ( width/height );");
+			return 0;
+		}
+		Vector2i screen;
+		Fear::getScreenDimensions(&screen);
+		int width = screen.x;
+		int height = screen.y;
+		std::string arg1 = argv[0];
+		if (arg1.compare("width") == 0 || atoi(argv[0]) == 1)
 		{
 			return tostring(width);
 		}
-		else
+		else if (arg1.compare("height") == 0 || atoi(argv[0]) == 2)
 		{
 			return tostring(height);
 		}
@@ -336,7 +418,7 @@ namespace ModloaderMain {
 	}
 
 	BuiltInFunction("flt2hex", _f2h) {
-		if (argc != 2 || !atof(argv[0]) > 0)
+		if (!atof(argv[0]) > 0)
 		{
 			Console::echo("%s( float, endianness[0|1] );");
 			return 0;
@@ -352,41 +434,87 @@ namespace ModloaderMain {
 		return 0;
 	}
 
+	//Render Height = -1.0 @ 480
+	MultiPointer(ptrOpenGLRenderHeight, 0, 0, 0, 0x0064C954);
+
+	//Render Width = 1.0 @ 640
+	MultiPointer(ptrOpenGLRenderWidth, 0, 0, 0, 0x0064C959);
+
+	//Render Vertical Offset = -1.0 @ 640
+	MultiPointer(ptrOpenGLRenderVert, 0, 0, 0, 0x0064C900);
+
+	MultiPointer(ptrOGLshift, 0, 0, 0x0063D9AD, 0x0064C905);
 	BuiltInFunction("OpenGL::shiftGUI", _oglshgui) {
 		if (argc != 1)
 		{
 			Console::echo("%s( int/flt ); //Additive values shift the GUI to the right and vice versa. Default: -1");
+			return 0;
 		}
 		char* flt2hex_c = flt2hex(atof(argv[0]), 1);
 		//Convert hex string to raw hex
 		char* hex2char_c = hex2char(flt2hex_c);
-		MultiPointer(ptrOGLshift, 0, 0, 0x0063D9A8, 0x0064C905);
 		CodePatch genericCodePatch = { ptrOGLshift,"",hex2char_c,4,false }; genericCodePatch.Apply(true);
 		return "true";
 	}
 
+
+	MultiPointer(ptrOGLoffset, 0, 0, 0x0063DAFC, 0x0064CA54);
 	BuiltInFunction("OpenGL::offsetGUI", _oglogui) {
 		if (argc != 1)
 		{
 			Console::echo("%s( int/flt ); //Offsets the GUI vertically. Default: 0.5");
+			return 0;
 		}
 		char* flt2hex_c = flt2hex(atof(argv[0]), 1);
 		//Convert hex string to raw hex
 		char* hex2char_c = hex2char(flt2hex_c);
-		MultiPointer(ptrOGLoffset, 0, 0, 0x0063DAFC, 0x0064CA54);
 		CodePatch genericCodePatch = { ptrOGLoffset,"",hex2char_c,4,false }; genericCodePatch.Apply(true);
 		return "true";
 	}
 
+	BuiltInFunction("OpenGL::UpscaleGUI", _OpenGLUpscaleGUI) {
+
+		//Check args
+		if (argc != 2 || atoi(argv[0]) < 640 || atoi(argv[1]) < 480)
+		{
+			Console::echo("%s( width, height );");
+			return 0;
+		}
+		//char* relativeWidth = flt2hex((atof(argv[0])/640), 1);
+		char* relativeWidth = flt2hex((atof(argv[1])/atof(argv[0]), 1));
+		Console::echo("Width %s", relativeWidth);
+		char* relativeWidth_Hx = hex2char(relativeWidth);
+		//Patch in the new width
+		CodePatch genericCodePatch01 = { ptrOpenGLRenderWidth,"",relativeWidth_Hx,4,false }; genericCodePatch01.Apply(true);
+		free(relativeWidth_Hx);
+
+		char* relativeHeight = flt2hex(-(atof(argv[1])/480), 1);
+		Console::echo("Height %s", relativeHeight);
+		char* relativeHeight_Hx = hex2char(relativeHeight);
+		//Patch in the new height
+		CodePatch genericCodePatch02 = { ptrOpenGLRenderHeight,"",relativeHeight_Hx,4,false }; genericCodePatch02.Apply(true);
+		free(relativeHeight_Hx);
+
+		char* relativeVertOffset = flt2hex(-(atof(argv[1])/480), 1);
+		Console::echo("Offset %s", relativeVertOffset);
+		char* relativeVertOffset_Hx = hex2char(relativeVertOffset);
+		//Patch in the new vertical offset
+		CodePatch genericCodePatch03 = { ptrOpenGLRenderVert,"",relativeVertOffset_Hx,4,false }; genericCodePatch03.Apply(true);
+		free(relativeVertOffset_Hx);
+		return "true";
+	}
+
+	MultiPointer(ptrOGLscale, 0, 0, 0x0063DAF8, 0x0064CA50);
 	BuiltInFunction("OpenGL::scaleGUI", _oglsgui) {
 		if (argc != 1)
 		{
 			Console::echo("%s( int/flt ); //Changes the internal GUI rendering scale. Default: 2");
+			return 0;
 		}
 		float scale = atof(argv[0]);
 		char* scale_c = flt2hex(scale, 1);
 		char* scale_hString = hex2char(scale_c);
-		MultiPointer(ptrOGLscale, 0, 0, 0x0063DAF8, 0x0064CA50);
+
 		CodePatch GUIscalePatch = { ptrOGLscale,"",scale_hString,4,false }; GUIscalePatch.Apply(true);
 		//Console::setVariable("Opengl::scaleGUI", scale_c);
 		return "true";
@@ -430,14 +558,24 @@ namespace ModloaderMain {
 
 	//Test function to run a subroutine
 	//BuiltInFunction("subroutine", _hc) {
-	//	typedef int (*FunctionType)(int);
-	//	//FunctionType hardcallf = (FunctionType)0x005C45CC; //0x004458A4
-	//	FunctionType hardcallf = (FunctionType)0x00579950; //0x004458A4
-	//	//char* arg = const_cast<char*>(argv[0]);
-	//	hardcallf(atoi(argv[0]));
+		//typedef int (*FunctionType)(int,int);
+		//typedef int (*FunctionType)(u8 r, u8 g, u8 b);
+		//FunctionType hardcallf = (FunctionType)0x005C45CC; //0x004458A4
+		//FunctionType hardcallf = (FunctionType)0x0054FAC0; //0x004458A4
+		//char* arg = const_cast<char*>(argv[0]);
+		//u8 r = reinterpret_cast<u8>(&argv[0]);
+		//u8 b = reinterpret_cast<u8>(&argv[1]);
+		//u8 g = reinterpret_cast<u8>(&argv[2]);
+		//hardcallf(r, g, b);
+		//return "true";
+	//}
+
+	//BuiltInFunction("SimStarfield::setBottomVisible", _ssfsbv) {
+	//	typedef int (*FunctionType)(bool v);
+	//	FunctionType EXEC_SUBR = (FunctionType)0x006B1F80;
+	//	EXEC_SUBR(argv[0]);
 	//	return "true";
 	//}
-	// 
 
 	////////////////////////////////////////////////////////
 	// RENDERING
@@ -451,6 +589,7 @@ namespace ModloaderMain {
 		ptrWinMaxWinSize,
 		"",
 		"\xC7\x02\x00\x0A\x00\x00\xC7\x42\x04\x0A\x05",
+		//"\xC7\x02\x10\xE0\x00\x00\xC7\x42\x04\x00\x1E",
 		11,
 		false
 	};
@@ -460,6 +599,7 @@ namespace ModloaderMain {
 		ptrWinMaxIntRendSizeWidth,
 		"",
 		"\x3D\x00\x0F\x00\x00\x7E\x06\xC7\x06\x00\x0F",
+		//"\x3D\x10\xE0\x00\x00\x7E\x06\xC7\x06\x10\xE0",
 		11,
 		false
 	};
@@ -468,6 +608,7 @@ namespace ModloaderMain {
 		ptrWinMaxIntRendSizeHeight,
 		"",
 		"\x81\xF9\x00\x0F\x00\x00\x7E\x07\xC7\x46\x04\x00\x0F",
+		//"\x81\xF9\x00\x1E\x00\x00\x7E\x07\xC7\x46\x04\x00\x1E",
 		13,
 		false
 	};
@@ -521,6 +662,9 @@ namespace ModloaderMain {
 		return "true";
 	}
 
+	MultiPointer(ptrTScontrolFOV, 0, 0, 0, 0x005D90EC);
+	MultiPointer(ptrTScontrolViewPortTerrainCullingRange, 0, 0, 0, 0x0049FCBC);
+
 	BuiltInFunction("fov", _fov) {
 		if (argc != 1)
 		{
@@ -542,8 +686,10 @@ namespace ModloaderMain {
 		//Console::echo(rawHexString);
 		MultiPointer(ptrInitFov, 0, 0, 0x004689F2, 0x0046A416);
 		MultiPointer(ptrZoomFov, 0, 0, 0x0046D827, 0x0046F349);
+		MultiPointer(ptrEditCameraFov, 0, 0, 0x0040D5F4, 0x0040D6FC);
 		CodePatch initialFovPatch = { ptrInitFov,"",hex2char_c,4,false }; initialFovPatch.Apply(true);
 		CodePatch postZoomFovPatch = { ptrZoomFov,"",hex2char_c,4,false }; postZoomFovPatch.Apply(true);
+		CodePatch editCameraFovPatch = { ptrEditCameraFov,"",hex2char_c,4,false }; editCameraFovPatch.Apply(true);
 		Console::setVariable("client::fov", argv[0]);
 		Console::eval("export(\"client::*\", \"playerPrefs.cs\");");
 
@@ -551,6 +697,14 @@ namespace ModloaderMain {
 	}
 
 	BuiltInFunction("modloader::patchEvents", _mlpatchPlayerEvents) {
+
+		//Mission Events
+		MultiPointer(ptrMissionEnd1, 0, 0, 0x006CBB62, 0x006DBC7A);
+		CodePatch MissionEnd1 = { ptrMissionEnd1,"","MLMissionEnd",12,false }; MissionEnd1.Apply(true);
+		MultiPointer(ptrMissionEnd2, 0, 0, 0x006F977C, 0x00709A5C);
+		CodePatch MissionEnd2 = { ptrMissionEnd2,"","MLMissionEnd",12,false }; MissionEnd2.Apply(true);
+
+		//Player Events
 		MultiPointer(ptrPlayerAddEvent1, 0, 0, 0x006CBAE9, 0x006DBC01);
 		CodePatch PlayerEvent1 = { ptrPlayerAddEvent1,"","MLplyr::onAdd",13,false }; PlayerEvent1.Apply(true);
 		MultiPointer(ptrPlayerAddEvent2, 0, 0, 0x006CBAFA, 0x006DBC12);
@@ -559,16 +713,75 @@ namespace ModloaderMain {
 		CodePatch PlayerEvent3 = { ptrPlayerRemoveEvent1,"","MLplyr::onRemove",16,false }; PlayerEvent3.Apply(true);
 		MultiPointer(ptrPlayerRemoveEvent2, 0, 0, 0x006CBB3A, 0x006DBC52);
 		CodePatch PlayerEvent4 = { ptrPlayerRemoveEvent2,"","MLplyr::onRemove",16,false }; PlayerEvent4.Apply(true);
-		MultiPointer(ptrVehAddEvent, 0, 0, 0x006D97DC, 0x006E9A22);
-		CodePatch VehicleOnAdd = { ptrVehAddEvent,"","MLveh::onAdd\x00\x00",16,false }; VehicleOnAdd.Apply(true);
+
+		//Vehicle Events
+		MultiPointer(ptrVehicleOnAdd, 0, 0, 0x006D97DC, 0x006E9A22);
+		CodePatch VehicleOnAdd = { ptrVehicleOnAdd,"","MLveh::onAdd\x00\x00",14,false }; VehicleOnAdd.Apply(true);
+	//	MultiPointer(ptrVehicleOnAttacked,	0, 0, 0x006D97EB, 0x006E9A31);
+	//	CodePatch VehicleOnAttacked = { ptrVehicleOnAttacked,"","MLveh::onAttacked\x00\x00",19,false };
+	//	MultiPointer(ptrVehicleOnEnabled,	0, 0, 0x006D97FF, 0x006E9A45);
+	//	CodePatch VehicleOnEnabled = { ptrVehicleOnEnabled,"","MLveh::onEnabled\x00\x00",18,false };
+	//	MultiPointer(ptrVehicleOnDisabled,	0, 0, 0x006D9812, 0x006E9A58);
+	//	CodePatch VehicleOnDisabled = { ptrVehicleOnDisabled,"","MLveh::onDisabled\x00\x00",19,false };
+	//	MultiPointer(ptrVehicleOnDestroyed, 0, 0, 0x006D9826, 0x006E9A6C);
+	//	CodePatch VehicleOnDestroyed = { ptrVehicleOnDestroyed,"","MLveh::onDestroyed\x00\x00",20,false};
+	//	MultiPointer(ptrVehicleOnArrived,	0, 0, 0x006D983B, 0x006E9A81);
+	//	CodePatch VehicleOnArrived = { ptrVehicleOnArrived,"","MLveh::onArrived\x00\x00",18,false };
+	//	MultiPointer(ptrVehicleOnScan,		0, 0, 0x006D984E, 0x006E9A94);
+	//	CodePatch VehicleOnScan = { ptrVehicleOnScan,"","MLveh::onScan\x00\x00",15,false };			
+	//	MultiPointer(ptrVehicleOnSpot,		0, 0, 0x006D985E, 0x006E9AA4);
+	//	CodePatch VehicleOnSpot = { ptrVehicleOnSpot,"","MLveh::onSpot\x00\x00",15,false };			
+	//	MultiPointer(ptrVehicleOnNewLeader, 0, 0, 0x006D986E, 0x006E9AB4);
+	//	CodePatch VehicleOnNewLeader = { ptrVehicleOnNewLeader,"","MLveh::onNewLeader\x00\x00",20,false};
+	//	MultiPointer(ptrVehicleOnNewTarget, 0, 0, 0x006D9883, 0x006E9AC9);
+	//	CodePatch VehicleOnNewTarget = { ptrVehicleOnNewTarget,"","MLveh::onNewTarget\x00\x00",20,false};
+	//	MultiPointer(ptrVehicleOnTargeted,	0, 0, 0x006D9898, 0x006E9ADE);
+	//	CodePatch VehicleOnTargeted = { ptrVehicleOnTargeted,"","MLveh::onTargeted\x00\x00",19,false };
+	//	MultiPointer(ptrVehicleOnMessage,	0, 0, 0x006D98AC, 0x006E9AF2);
+	//	CodePatch VehicleOnMessage = { ptrVehicleOnMessage,"","MLveh::onMessage\x00\x00",18,false };
+	//	MultiPointer(ptrVehicleOnAction,	0, 0, 0x006D98BF, 0x006E9B05);
+	//	CodePatch VehicleOnAction = { ptrVehicleOnAction,"","MLveh::onAction\x00\x00",17,false };
+	//
+	//	if (std::filesystem::exists("modloader.vol"))
+	//	{
+	//		VehicleOnAttacked.Apply(true);
+	//		VehicleOnEnabled.Apply(true);
+	//		VehicleOnDisabled.Apply(true);
+	//		VehicleOnDestroyed.Apply(true);
+	//		VehicleOnArrived.Apply(true);
+	//		VehicleOnScan.Apply(true);
+	//		VehicleOnSpot.Apply(true);
+	//		VehicleOnNewLeader.Apply(true);
+	//		VehicleOnNewTarget.Apply(true);
+	//		VehicleOnTargeted.Apply(true);
+	//		VehicleOnMessage.Apply(true);
+	//		VehicleOnAction.Apply(true);
+	//	}
 		return "true";
 	}
 
 	BuiltInFunction("quitGame", _quitGame) {
-		exit(0);
+		//exit(0);
+		PostQuitMessage(0);
 		return "true";
 	}
 
+	BuiltInVariable("pref::NoCockpitFadein", bool, prefCockpitFadein, true);
+	BuiltInFunction("modloader::toggleCockpitFadein", _tcf) {
+		MultiPointer(ptrSimFadein01, 0, 0, 0x0045AA7E, 0x0045BF42);
+		MultiPointer(ptrSimFadein02, 0, 0, 0x0045AA97, 0x0045BF5B);
+		if (!prefCockpitFadein)
+		{
+			CodePatch SimFadein01 = { ptrSimFadein01,"","\x9A\x99\x99\x3F",4,false }; SimFadein01.Apply(true);
+			CodePatch SimFadein02 = { ptrSimFadein02,"","\x40",1,false }; SimFadein02.Apply(true);
+		}
+		else
+		{
+			CodePatch SimFadein01 = { ptrSimFadein01,"","\x00\x00\x00\x00",4,false }; SimFadein01.Apply(true);
+			CodePatch SimFadein02 = { ptrSimFadein02,"","\x00",1,false }; SimFadein02.Apply(true);
+		}
+		return "true";
+	}
 	//Get the executable path and file name, close the current session, open new session
 	//BuiltInFunction("newSession", _newSession) {
 	//
@@ -659,7 +872,7 @@ namespace ModloaderMain {
 		false
 	};
 
-	//The default value for the packrate field in the options gui
+	//The default value for the packetrate field in the options gui
 	MultiPointer(ptrDefPacketRateOpt, 0, 0, 0x0053B9CC, 0x0053DED8);
 	CodePatch packetRateDefaultMax_patch = {
 		ptrDefPacketRateOpt,
@@ -854,40 +1067,17 @@ namespace ModloaderMain {
 	CodePatch VarRefBefAssign_patch = { ptrVarRefBefAssign, "", "\x03", 1, false };
 	MultiPointer(ptrVarRefBefAssignVerb, 0, 0, 0x00712ECB, 0x0072333B);
 	CodePatch VarRefBefAssignVerb_patch = { ptrVarRefBefAssignVerb, "", "%s referenced before it has been assigned", 41, false };
-	//BuiltInFunction("setChatboxSize", _scbs)
-	//{
-	//	if (argc != 2 || atoi(argv[0]) <= 0 || atoi(argv[1]) <= 0)
-	//	{
-	//		Console::echo("setChatboxSize( width, height);");
-	//		return 0;
-	//	}
-	//	char* width_int2hex_c = int2hex(atoi(argv[0]), 1);
-	//	char* width_hex2char_c = hex2char(width_int2hex_c);
-	//	int width_byteLength = strlen(width_hex2char_c) + 1;
-	//
-	//	char* height_int2hex_c = int2hex(atoi(argv[1]), 1);
-	//	char* height_hex2char_c = hex2char(height_int2hex_c);
-	//	int height_byteLength = strlen(height_hex2char_c) + 1;
-	//	CodePatch genericCodePatch1 = { 0x0052905E,"",width_hex2char_c,width_byteLength,false };genericCodePatch1.Apply(true);
-	//	CodePatch genericCodePatch2 = { 0x00529065,"",height_hex2char_c,height_byteLength,false };genericCodePatch2.Apply(true);
-	//
-	//	CodePatch genericCodePatch3 = { 0x00529071,"",width_hex2char_c,width_byteLength,false }; genericCodePatch3.Apply(true);
-	//	CodePatch genericCodePatch4 = { 0x00529078,"",height_hex2char_c,height_byteLength,false }; genericCodePatch4.Apply(true);
-	//
-	//	CodePatch genericCodePatch5 = { 0x00529084,"",width_hex2char_c,width_byteLength,false }; genericCodePatch5.Apply(true);
-	//	CodePatch genericCodePatch6 = { 0x0052908B,"",height_hex2char_c,height_byteLength,false }; genericCodePatch6.Apply(true);
-	//	Console::eval("setHudChatDisplayType(2);setHudChatDisplayType(1);");
-	//	return "true";
-	//}
 
 	BuiltInFunction("OpenGL::windowedFullscreen", _oglwf)
 	{
-		Vector2i screen;
-		Fear::getScreenDimensions(&screen);
-		HWND windowHandle = FindWindowA(NULL, "Starsiege");
+		const char* str = argv[0];
+		std::string arg1 = str;
+		//Vector2i screen;
+		//Fear::getScreenDimensions(&screen);
+		//HWND windowHandle = FindWindowA(NULL, "Starsiege");
 		MultiPointer(ptrOGLFullScreen1, 0, 0, 0x0063CE88, 0x0064BDC8);
 		MultiPointer(ptrOGLFullScreen2, 0, 0, 0x0063CEEA, 0x0064BE2A);
-		if (argv[0] == "false")
+		if (arg1.compare("false") == 0)
 		{
 			CodePatch genericCodePatch = { ptrOGLFullScreen1,"","\xF0",1,false };
 			genericCodePatch.Apply(true);
@@ -900,11 +1090,31 @@ namespace ModloaderMain {
 			genericCodePatch.Apply(true);
 			CodePatch genericCodePatch0 = { ptrOGLFullScreen2,"","\x0A",1,false };
 			genericCodePatch0.Apply(true);
-			SetWindowPos(windowHandle, HWND_TOP, 0, 0, screen.x, screen.y, 0);
+			//SetWindowPos(windowHandle, HWND_TOP, 0, 0, screen.x, screen.y, 0);
 		}
 		return "true";
 	}
 
+	void LeftClick()
+	{
+		INPUT    Input = { 0 };
+		// left down 
+		Input.type = INPUT_MOUSE;
+		Input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+		::SendInput(1, &Input, sizeof(INPUT));
+
+		// left up
+		::ZeroMemory(&Input, sizeof(INPUT));
+		Input.type = INPUT_MOUSE;
+		Input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+		::SendInput(1, &Input, sizeof(INPUT));
+	}
+
+	BuiltInFunction("client::performLeftClick", _cplc)
+	{
+		LeftClick();
+		return 0;
+	}
 	//BuiltInFunction("memstar::codePatch_INTERNAL", _mcp)
 	//{
 		//if (!strlen(argv[0]) || !strlen(argv[1]))
@@ -924,17 +1134,55 @@ namespace ModloaderMain {
 		//return "true";
 	//}
 	///
+
+	//theTeamGUI modloader compat fix
+	MultiPointer(ptrTeamgui, 0, 0, 0x0054D320, 0x0054F854);
+	CodePatch teamPicRenderCompat = { ptrTeamgui,	"","\xC3",		1,false };
+
+	static const char* GameEndFrame = "Engine::EndFrame";
+	MultiPointer(ptrEndFrameFunctionCall, 0, 0, 0x0059D774, 0x005A0F90);
+	MultiPointer(ptrEndFrameFunctionCallRetn, 0, 0, 0x0059D780, 0x005A0F97);
+	//MultiPointer(ptrConsoleEval, 0, 0, 0x00712B34, 0x00722FA4);
+	CodePatch gameendframepatch = { ptrEndFrameFunctionCall,	"","\xE9GMEF",		5,false };
+	NAKED void GameEndFramePatch() {
+		__asm {
+			push [GameEndFrame]
+			push 1
+			jmp [ptrEndFrameFunctionCallRetn]
+		}
+	}
+
+	MultiPointer(ptrTerrainVolume, 0, 0, 0x00773D68, 0x00784380);
+	BuiltInFunction("getTerrainGridFile", _getTerrainGridFile)
+	{
+		uintptr_t ptr1 = ptrTerrainVolume;
+		char* ptr1_string = reinterpret_cast<char*>(ptr1);
+		if (!strlen(ptr1_string))
+		{
+			Console::echo("Simterrain not found.");
+			return 0;
+		}
+		else
+		{
+			return ptr1_string;
+		}
+		return 0;
+	}
+
 	struct Init {
 		Init() {
 			//Internal
+			gameendframepatch.DoctorRelative((u32)GameEndFramePatch, 1).Apply(true);
+
 			if(VersionSnoop::GetVersion() == VERSION::v001004)
 			{
 				constructorBypass01.Apply(true);
 				constructorBypass02.Apply(true);
 				constructorBypass03.Apply(true);
 			}
-			if (std::filesystem::exists("modloader.vol"))
+			if (std::filesystem::exists("Nova.vol"))
 			{
+				teamPicRenderCompat.Apply(true);
 				constructorsPatch1.Apply(true);
 				constructorsPatch1a.Apply(true);
 				constructorsPatch2.Apply(true);
@@ -950,12 +1198,12 @@ namespace ModloaderMain {
 				constructorsPatch9.Apply(true);
 				constructorsPatch10.Apply(true);
 				constructorsPatch10a.Apply(true);
-				constructorsPatch11.Apply(true);
-				constructorsPatch12.Apply(true);
-				constructorsPatch13.Apply(true);
-				constructorsPatch14.Apply(true);
-				constructorsPatch15.Apply(true);
-				constructorsPatch16.Apply(true);
+				//constructorsPatch11.Apply(true);
+				//constructorsPatch12.Apply(true);
+				//constructorsPatch13.Apply(true);
+				//constructorsPatch14.Apply(true);
+				//constructorsPatch15.Apply(true);
+				//constructorsPatch16.Apply(true);
 				constructorsPatch17.Apply(true);
 				constructorsPatch19.Apply(true);
 				constructorsPatch20.Apply(true);
@@ -986,12 +1234,14 @@ namespace ModloaderMain {
 			f_cr_sub0.Apply(true);
 			f_cr_sub1.Apply(true);
 			f_cr_sub2.Apply(true);
+			VarRefBefAssign_patch.Apply(true);
+			VarRefBefAssignVerb_patch.Apply(true);
 
 			//Rendering
 			terrainMaxVisDistance_patch.Apply(true);
-			canvasWindowMaxWindowedSize_patch.Apply(true);
-			canvasWindowMaxInteralRenderSizeWidth_patch.Apply(true);
-			canvasWindowMaxInteralRenderSizeHeight_patch.Apply(true);
+			//canvasWindowMaxWindowedSize_patch.Apply(true);
+			//canvasWindowMaxInteralRenderSizeWidth_patch.Apply(true);
+			//canvasWindowMaxInteralRenderSizeHeight_patch.Apply(true);
 
 			//Networking
 			remoteEvalBufferSize_S_patch.Apply(true);
@@ -1022,7 +1272,9 @@ namespace ModloaderMain {
 			CreateDirectory(".\\mods\\replacements", NULL);
 			CreateDirectory(".\\mods\\ScriptGL", NULL);
 			CreateDirectory(".\\mods\\cache", NULL);
-			CreateDirectory(".\\mods\\local", NULL);
+			CreateDirectory(".\\mods\\session", NULL);
+			CreateDirectory(".\\temp", NULL);
+			//CreateDirectory(".\\tdata", NULL);
 		}
 	} init;
-};
+	}

@@ -2858,6 +2858,8 @@ Original mOriginalsTable[] = {
 	{ 0xffee35f5, "PLUTO.RD_D_TEE.TGA" },
 	{ 0xffeec6ce, "NODE.TGA" },
 	{ 0xfffe2653, "HUSENSORS1_S.TGA" },
+	{ 0xc8252b2f, "CONSOLE.TGA" },
+	{ 0xf9171eb4, "MAINMENU.TGA" },
 };
 
 #define __ORIGINAL_COUNT__ ( sizeof( Replacer::mOriginalsTable ) / sizeof( Original ) )

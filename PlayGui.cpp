@@ -12,7 +12,7 @@ namespace GUI {
 
 	MultiPointer(ptr_SIMCANVASSET_ONRENDER_VFT, 0, 0, 0x00704670, 0x00714AE0);
 	MultiPointer(ptr_SIMCANVAS_RENDER, 0, 0, 0x005c9a50, 0x005CD2F4);
-	MultiPointer(ptr_SIMCANVAS_RENDERGUI_CALL, 0, 0, 0x005d5db4, 0x005D9658);
+	MultiPointer(ptr_SIMCANVAS_RENDERGUI_CALL, 0, 0, 0x005D5DB4, 0x005D9658);
 
 	CodePatch cpDrawGUI = { ptr_SIMCANVAS_RENDERGUI_CALL, "\xe8\x97\x3c\xff\xff", "\xe8rgui", 5, false };
 
@@ -24,7 +24,10 @@ namespace GUI {
 
 	void OnPlayGUIPreDraw(Fear::GraphicsAdapter* gfx) {
 		if (OpenGL::IsActive()) {
-			OpenGL::ShutdownTex1ARB();
+			if (VersionSnoop::GetVersion() == VERSION::v001004)
+			{
+				OpenGL::ShutdownTex1ARB();
+			}
 			glDisable(GL_CULL_FACE);
 			Callback::trigger(Callback::OnGuiDraw, true);
 		}
@@ -73,9 +76,9 @@ namespace GUI {
 			if (VersionSnoop::GetVersion() == VERSION::vNotGame) {
 				return;
 			}
-			if (VersionSnoop::GetVersion() != VERSION::v001004) {
-				return;
-			}
+			//if (VersionSnoop::GetVersion() != VERSION::v001004) {
+			//	return;
+			//}
 
 			cpDrawGUI.DoctorRelative((u32)OnPlayGUI, 1).Apply(true);
 			fnOnRender = Patch::ReplaceHook((void*)ptr_SIMCANVASSET_ONRENDER_VFT, OnRender);

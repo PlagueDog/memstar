@@ -25,7 +25,7 @@ namespace VistaFix {
 			Patch::Protect((u32*)ptrWindowsHookExA, 256, PAGE_READWRITE);
 			Patch::ReplaceHook((u32*)ptrWindowsHookExA, &SetWindowsHookExAStub);
 		}
-	} VistaFixInit;
+	}VistaFixInit;
 
 
 

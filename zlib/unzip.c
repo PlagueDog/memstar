@@ -946,6 +946,14 @@ extern int ZEXPORT unzGoToFilePos(file, file_pos)
 // Unzip Helper Functions - should be here?
 ///////////////////////////////////////////
 */
+extern int ZEXPORT unzLocateFileMy(unzFile file, uLong num, uLong pos) {
+    unz_s* s;
+    s = (unz_s*)file;
+    s->pos_in_central_dir = pos;
+    s->num_file = num;
+    unzlocal_GetCurrentFileInfoInternal(file, &s->cur_file_info, &s->cur_file_info_internal, NULL, 0, NULL, 0, NULL, 0);
+    return 1;
+}
 
 /*
   Read the local header of the current zipfile

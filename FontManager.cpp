@@ -47,7 +47,7 @@ namespace FontManager {
 	FileSystem mFiles(32);
 	Hash mFonts(32);
 	char mBuffer[256];
-	int mLastGarbageCollect = (GetTickCount());
+	int mLastGarbageCollect = (GetTickCount64());
 
 	void Close() {
 		FileSystem::Iterator iter = mFiles.Begin(), end = mFiles.End();
@@ -65,7 +65,7 @@ namespace FontManager {
 		Check for unused fonts every 5 seconds
 	*/
 	void GarbageCollect(bool endframe) {
-		int ticks = (GetTickCount());
+		int ticks = (GetTickCount64());
 		if (ticks - mLastGarbageCollect < 5000)
 			return;
 		mLastGarbageCollect = (ticks);

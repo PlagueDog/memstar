@@ -1,4 +1,5 @@
 #include "FileSystem.h"
+#include "Console.h"
 
 void FileSystem::ProcessZip(const char* path) {
 	unzFile zip = (unzOpen(path));
@@ -18,8 +19,8 @@ void FileSystem::ProcessZip(const char* path) {
 			char* base = (slashf) ? (slashf + 1) : (slashb) ? (slashb + 1) : name;
 			key = base;
 
-			// Con::Echo( " -- %s %s", name, mFiles.InsertUnique( name, file ) ? "ACCEPTED" : "REJECTED" );
 			ZipFile* fileinfo = new ZipFile(zip, file_info.uncompressed_size, unzGetOffset(zip));
+			//Console::echo(" -- %s %s", name, mFiles.InsertUnique(name, fileinfo) ? "ACCEPTED" : "REJECTED");
 			if (!fileinfo || !mFiles.InsertUnique(key, fileinfo))
 				delete fileinfo;
 		} while (unzGoToNextFile(zip) == UNZ_OK);

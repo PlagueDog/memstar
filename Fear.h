@@ -143,6 +143,7 @@ namespace Fear {
 	struct SimTerrain : public Object {
 		PAD(0x057c - (0x004c + 0x000));   GridFile* gf;                     // 0x057c
 		PAD(0x0584 - (0x057c + 0x004));   void* terrainFile;                // 0x0584
+		PAD(0x0584 - (0x057c + 0x004));   const char* terrainFileName;      // 0x0584
 	};
 
 	struct OpenGLTextureCache {

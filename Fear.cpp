@@ -1,6 +1,7 @@
 #include "Fear.h"
 #include "Strings.h"
 #include "MultiPointer.h"
+#include "console.h"
 
 namespace Fear {
 
@@ -61,7 +62,7 @@ namespace Fear {
 		__asm {
 			// SimGui::Canvas
 			mov esi, ptr_SIMCANVAS_PTR
-			mov eax, ds:[esi]
+			mov eax, ds: [esi]
 			and eax, eax
 			jz done
 

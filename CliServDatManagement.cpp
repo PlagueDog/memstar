@@ -1,3 +1,4 @@
+#include <filesystem>
 #include "Fear.h"
 #include "Console.h"
 #include "windows.h"
@@ -15,6 +16,7 @@
 #include <iterator>
 #include <filesystem>
 #include <algorithm>
+#include "hunzip.h"
 
 using namespace std;
 using namespace Fear;
@@ -40,34 +42,6 @@ namespace clientDataHandler {
 			return 0;
 		}
 		string path = argv[0];
-		if (path.find("reset") != -1)
-		{
-			Console::setVariable("zzmodloader::VehicleDir", "vehicles");
-
-			//1004
-			if (VersionSnoop::GetVersion() == VERSION::v001004)
-			{
-				CodePatch genericCodePatch0 = { 0x004A8D75,"","\x68\x3E\xBA\x6E",4,false }; genericCodePatch0.Apply(true);
-				CodePatch genericCodePatch5 = { 0x004F5143,"","\xBD\xE1\xD0\x6F",4,false }; genericCodePatch0.Apply(true);
-				CodePatch genericCodePatch1 = { 0x0046ADA1,"","\x68\xD4\x95\x6E",4,false }; genericCodePatch1.Apply(true);
-				CodePatch genericCodePatch2 = { 0x004F38CD,"","\x68\x88\xD0\x6F",4,false }; genericCodePatch2.Apply(true);
-				CodePatch genericCodePatch3 = { 0x0055C24E,"","\x68\xC4\xD3\x70",4,false }; genericCodePatch3.Apply(true);
-				CodePatch genericCodePatch4 = { 0x004F542F,"","\x68\xFF\xD0\x6F",4,false }; genericCodePatch4.Apply(true);
-			}
-
-			//1003
-			else
-			{
-				CodePatch genericCodePatch0 = { 0x004A6A59,"","\x68\xCA\xB7\x6D",4,false }; genericCodePatch0.Apply(true);
-				CodePatch genericCodePatch5 = { 0x004F2CAB,"","\xBD\x59\xCE\x6E",4,false }; genericCodePatch0.Apply(true);
-				CodePatch genericCodePatch1 = { 0x0046937D,"","\x68\x90\x93\x6D",4,false }; genericCodePatch1.Apply(true);
-				CodePatch genericCodePatch2 = { 0x004F38CD,"","\x68\x88\xD0\x6F",4,false }; genericCodePatch2.Apply(true);
-				CodePatch genericCodePatch3 = { 0x00559412,"","\x68\xA0\xD0\x6F",4,false }; genericCodePatch3.Apply(true);
-				CodePatch genericCodePatch4 = { 0x004F2F97,"","\x68\x77\xCE\x6E",4,false }; genericCodePatch4.Apply(true);
-			}
-			return 0;
-		}
-
 		string ext = path.substr(path.size() - 4, path.size());
 		if (path.find(":") != -1)
 		{
@@ -78,8 +52,9 @@ namespace clientDataHandler {
 		char pathExt[MAX_PATH];
 		char pathExt2[MAX_PATH];
 		char pathExt3[MAX_PATH];
-		strcpy(pathExt, "mods\\cache\\");
-		strcat(pathExt, argv[0]);
+		//strcpy(pathExt, "mods\\cache\\");
+		//strcat(pathExt, argv[0]);
+		strcpy(pathExt, argv[0]);
 		Console::setVariable("zzmodloader::VehicleDir", pathExt);
 		strcpy(pathExt2, pathExt);
 		strcpy(pathExt3, pathExt);
@@ -88,21 +63,22 @@ namespace clientDataHandler {
 		strcat(pathExt3, "\\%s.veh");
 
 		int byteLength = strlen(pathExt) + 1;
-		int byteLength2 = strlen(pathExt2) + 1;
-		int byteLength3 = strlen("mods\\cache\\local\\%s.fvh") + 1;
-		int byteLength4 = strlen("mods\\cache\\local\\*.fvh") + 1;
+		//int byteLength2 = strlen(pathExt2) + 1;
+		int byteLength3 = strlen("mods\\session\\%s.fvh") + 1;
+		int byteLength4 = strlen("mods\\session\\*.fvh") + 1;
+		//int byteLength5 = strlen(pathExt3) + 1;
 
 		if (VersionSnoop::GetVersion() == VERSION::v001004)
 		{
 			//New factory vehicle lookup dir path
-			CodePatch genericCodePatch5 = { 0x006D79B2,"","mods\\cache\\local\\%s.fvh",byteLength3,false }; genericCodePatch5.Apply(true);
+			CodePatch genericCodePatch5 = { 0x006D79B2,"","mods\\session\\%s.fvh",byteLength3,false }; genericCodePatch5.Apply(true);
 			CodePatch genericCodePatch7 = { 0x004A8D75,"","\x68\xB2\x79\x6D",4,false }; genericCodePatch7.Apply(true);
 
 			//New factory vehicle lookup dir path PTR ("vehicles\\%s.fvh")
 			//CodePatch genericCodePatch7 = { 0x0055B5A0,"","\xC7\x44\x24\x08\xB2\x79\x6D",7,false }; genericCodePatch7.Apply(true);
 
 			//vehicles\\*.fvh
-			CodePatch genericCodePatch4 = { 0x006D79EE,"","mods\\cache\\local\\*.fvh",byteLength4,false }; genericCodePatch4.Apply(true);
+			CodePatch genericCodePatch4 = { 0x006D79EE,"","mods\\session\\*.fvh",byteLength4,false }; genericCodePatch4.Apply(true);
 			CodePatch genericCodePatch8 = { 0x004F514A,"","\xBD\xEE\x79\x6D",4,false }; genericCodePatch8.Apply(true);
 
 			//New vehicle lookup dir path
@@ -112,7 +88,7 @@ namespace clientDataHandler {
 			CodePatch genericCodePatch1 = { 0x004F5143,"","\xBD\x00\x79\x6D",4,false }; genericCodePatch1.Apply(true);
 
 			//new vehicle save dir path
-			CodePatch genericCodePatch2 = { 0x006D793A,"",pathExt2,byteLength2,false }; genericCodePatch2.Apply(true);
+			CodePatch genericCodePatch2 = { 0x006D793A,"",pathExt2,byteLength+4,false }; genericCodePatch2.Apply(true);
 
 			//new vehicle save dir path PTR ("vehicles\\%s")
 			CodePatch genericCodePatch1a = { 0x0055C24E,"","\x68\x3A\x79\x6D",4,false }; genericCodePatch1a.Apply(true);
@@ -120,7 +96,7 @@ namespace clientDataHandler {
 			CodePatch genericCodePatch3 = { 0x004F38CD,"","\x68\x3A\x79\x6D",4,false }; genericCodePatch3.Apply(true);
 
 			//New vehicle delete dir path
-			CodePatch genericCodePatch9 = { 0x006D7976,"",pathExt3,byteLength,false }; genericCodePatch9.Apply(true);
+			CodePatch genericCodePatch9 = { 0x006D7976,"",pathExt3,byteLength+7,false }; genericCodePatch9.Apply(true);
 
 			//New vehicle delete dir path PTR ("vehicles\\%s.veh")
 			CodePatch genericCodePatch1c = { 0x004F542F,"","\x68\x76\x79\x6D",4,false }; genericCodePatch1c.Apply(true);
@@ -128,14 +104,14 @@ namespace clientDataHandler {
 		else
 		{
 			//New factory vehicle lookup dir path
-			CodePatch genericCodePatch5 = { 0x006C788F,"","mods\\cache\\local\\%s.fvh",byteLength3,false }; genericCodePatch5.Apply(true);
+			CodePatch genericCodePatch5 = { 0x006C788F,"","mods\\session\\%s.fvh",byteLength3,false }; genericCodePatch5.Apply(true);
 			CodePatch genericCodePatch7 = { 0x004A6A59,"","\x68\x8F\x78\x6C",4,false }; genericCodePatch7.Apply(true);
 
 			//New factory vehicle lookup dir path PTR ("vehicles\\%s.fvh")
 			//CodePatch genericCodePatch7 = { 0x0055B5A0,"","\xC7\x44\x24\x08\xB2\x79\x6D",7,false }; genericCodePatch7.Apply(true);
 
 			//vehicles\\*.fvh
-			CodePatch genericCodePatch4 = { 0x006C78F3,"","mods\\cache\\local\\*.fvh",byteLength4,false }; genericCodePatch4.Apply(true);
+			CodePatch genericCodePatch4 = { 0x006C78F3,"","mods\\session\\*.fvh",byteLength4,false }; genericCodePatch4.Apply(true);
 			CodePatch genericCodePatch8 = { 0x004F2CB2,"","\xBD\xF3\x78\x6C",4,false }; genericCodePatch8.Apply(true);
 
 			//New vehicle lookup dir path
@@ -145,7 +121,7 @@ namespace clientDataHandler {
 			CodePatch genericCodePatch1 = { 0x004F2CAB,"","\xBD\x57\x79\x6C",4,false }; genericCodePatch1.Apply(true);
 
 			//new vehicle save dir path
-			CodePatch genericCodePatch2 = { 0x006C79BB,"",pathExt2,byteLength2,false }; genericCodePatch2.Apply(true);
+			CodePatch genericCodePatch2 = { 0x006C79BB,"",pathExt2,byteLength+4,false }; genericCodePatch2.Apply(true);
 
 			//new vehicle save dir path PTR ("vehicles\\%s")
 			CodePatch genericCodePatch1a = { 0x00559412,"","\x68\xBB\x79\x6C",4,false }; genericCodePatch1a.Apply(true);
@@ -153,7 +129,7 @@ namespace clientDataHandler {
 			CodePatch genericCodePatch3 = { 0x004F1435,"","\x68\xBB\x79\x6C",4,false }; genericCodePatch3.Apply(true);
 
 			//New vehicle delete dir path
-			CodePatch genericCodePatch9 = { 0x006C7A1F,"",pathExt3,byteLength,false }; genericCodePatch9.Apply(true);
+			CodePatch genericCodePatch9 = { 0x006C7A1F,"",pathExt3,byteLength+7,false }; genericCodePatch9.Apply(true);
 
 			//New vehicle delete dir path PTR ("vehicles\\%s.veh")
 			CodePatch genericCodePatch1c = { 0x004F2F97,"","\x68\x1F\x7A\x6C",4,false }; genericCodePatch1c.Apply(true);
@@ -165,41 +141,41 @@ namespace clientDataHandler {
 		return "true";
 	}
 
-	BuiltInFunction("fileWriteExt", _fw) {
-		if (argc != 3 || !strlen(argv[0]) || !strlen(argv[1]) || !strlen(argv[2]))
-		{
-		error:
-			{
-				Console::echo("fileWrite(file, append|overwrite, string);");
-				return 0;
-			}
-		}
-		string path = argv[0];
-		if (path.find(":") != -1)
-		{
-			Console::echo("Cannot write outside of the Starsiege directory.");
-			return "false";
-		}
-		std::ofstream outputfile;
-
-		if (strcmp(argv[1], "overwrite") == 0)
-		{
-			outputfile.open(argv[0], std::ios_base::out);
-			outputfile << argv[2];
-			outputfile.close();
-		}
-		else if (strcmp(argv[1], "append") == 0)
-		{
-			outputfile.open(argv[0], std::ios_base::app);
-			outputfile << argv[2];
-			outputfile.close();
-		}
-		else
-		{
-			goto error;
-		}
-		return 0;
-	}
+	//BuiltInFunction("fileWriteExt", _fw) {
+	//	if (argc != 3 || !strlen(argv[0]) || !strlen(argv[1]) || !strlen(argv[2]))
+	//	{
+	//	error:
+	//		{
+	//			Console::echo("fileWrite(file, append|overwrite, string);");
+	//			return 0;
+	//		}
+	//	}
+	//	string path = argv[0];
+	//	if (path.find(":") != -1)
+	//	{
+	//		Console::echo("Cannot write outside of the Starsiege directory.");
+	//		return "false";
+	//	}
+	//	std::ofstream outputfile;
+	//
+	//	if (strcmp(argv[1], "overwrite") == 0)
+	//	{
+	//		outputfile.open(argv[0], std::ios_base::out);
+	//		outputfile << argv[2];
+	//		outputfile.close();
+	//	}
+	//	else if (strcmp(argv[1], "append") == 0)
+	//	{
+	//		outputfile.open(argv[0], std::ios_base::app);
+	//		outputfile << argv[2];
+	//		outputfile.close();
+	//	}
+	//	else
+	//	{
+	//		goto error;
+	//	}
+	//	return 0;
+	//}
 
 	BuiltInFunction("removeSkinFile", _rsf) {
 		if (argc != 1)
@@ -257,7 +233,7 @@ namespace clientDataHandler {
 			return "false";
 		}
 		char cachePath[MAX_PATH];
-		strcpy(cachePath, "mods\\cache\\");
+		strcpy(cachePath, "mods\\");
 		strcat(cachePath, argv[0]);
 		//Console::echo(cachePath);
 		if (!isFile(cachePath))
@@ -623,4 +599,45 @@ namespace serverDataHandler {
 		}
 		return "false";
 	}
+
+	BuiltInFunction("fileHasPilotData", _fhpd) {
+		if (argc != 1 || !strlen(argv[0]))
+		{
+			Console::echo("fileHasPilotData( file ); \\\\Checks a file to see if it contains pilot definitions. Returns a boolean.");
+			return 0;
+		}
+		if (!isFile(argv[0]))
+		{
+			Console::echo("fileHasPilotData: File not found.");
+			return 0;
+		}
+		string path = argv[0];
+		if (path.find(":") != -1)
+		{
+			Console::echo("Cannot read files outside of the Starsiege directories.");
+			return "false";
+		}
+
+		//Don't read the file as binary
+		std::ifstream fin(argv[0], std::ios::in);
+		std::vector<std::string> constructors{ "pilot\x20", "Pilot\x20", "skill\x20=", "skill=" };
+
+		// Read complete file
+		std::string fileContent(std::istreambuf_iterator<char>(fin), {});
+
+		// Search for the lookup strings
+		for (const std::string& l : constructors)
+		{
+			if (std::search(fileContent.begin(), fileContent.end(), l.begin(), l.end()) != fileContent.end())
+			{
+				return "true";
+			}
+		}
+		return "false";
+	}
+
+	//struct Init {
+	//	Init() {
+	//	}
+	//} init;
 }
