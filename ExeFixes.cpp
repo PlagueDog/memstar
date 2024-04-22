@@ -100,10 +100,10 @@ namespace ExeFixes {
 	//DirectDraw (Software)
 	MultiPointer(ptrSoftwareResWidthCap, 0, 0, 0x0064831A, 0x00658032);
 	MultiPointer(ptrSoftwareResHeightCap, 0, 0, 0x00648324, 0x0065803C);
-	//CodePatch SoftwareResWidthCap = { ptrSoftwareResWidthCap,	"","\x3D\x00\x05",		3,false };
-	//CodePatch SoftwareResHeightCap = { ptrSoftwareResHeightCap,	"","\x81\xFA\x00\x04",	4,false };
-	CodePatch SoftwareResWidthCap = { ptrSoftwareResWidthCap,	"","\x3D\x10\xE0",		3,false };
-	CodePatch SoftwareResHeightCap = { ptrSoftwareResHeightCap,	"","\x81\xFA\x00\x1E",	4,false };
+	CodePatch SoftwareResWidthCap = { ptrSoftwareResWidthCap,	"","\x3D\x00\x05",		3,false };
+	CodePatch SoftwareResHeightCap = { ptrSoftwareResHeightCap,	"","\x81\xFA\x00\x04",	4,false };
+	//CodePatch SoftwareResWidthCap = { ptrSoftwareResWidthCap,	"","\x3D\x10\xE0",		3,false };
+	//CodePatch SoftwareResHeightCap = { ptrSoftwareResHeightCap,	"","\x81\xFA\x00\x1E",	4,false };
 
 	MultiPointer(ptrWinMaxIntRendSizeWidth, 0, 0, 0x006487A6, 0x006584BE);
 	MultiPointer(ptrWinMaxIntRendSizeHeight, 0, 0, 0x006487C5, 0x006584DD);
@@ -729,7 +729,7 @@ namespace ExeFixes {
 	//MultiPointer(ptrForceKeyInput, 0, 0, 0x005C5C12, 0x005C948A);
 	//CodePatch dinput8fix = { ptrForceKeyInput, "", "\x82", 1, false };
 	
-	//Apply CS_NOCLOSE to the window
+	//Apply CS to the window
 	MultiPointer(ptrWindowStyle, 0, 0, 0, 0x00577151);
 	MultiPointer(ptrWindowStyleRetn, 0, 0, 0, 0x00577158);
 	CodePatch windowstyle = { ptrWindowStyle, "", "\xE9WSTY", 5, false };
@@ -742,6 +742,24 @@ namespace ExeFixes {
 			mov edx, CS_NOCLOSE
 			//mov edx, WS_POPUP
 			jmp [ptrWindowStyleRetn]
+		}
+	}
+
+	//Catch no-terrain crash
+	MultiPointer(ptrWorldRend, 0, 0, 0x00589F98, 0x0058D7B4);
+	MultiPointer(ptrWorldRendCont, 0, 0, 0x00589FA2, 0x0058D7BE);
+	MultiPointer(ptrWorldRendDetour, 0, 0, 0x00589FC5, 0x0058D7E1);
+	CodePatch terraincrashcatcher = { ptrWorldRend, "", "\xE9NTCR", 5, false };
+	NAKED void TerrainCrashCatcher() {
+		__asm {
+			mov edx, 0x8
+			mov ecx, [eax]
+			call dword ptr [ecx + 0x68]
+			test eax, eax //Test for 0x00000000 (We are missing the terrain!)
+			jz __crashEscape
+			jmp [ptrWorldRendCont]
+				__crashEscape:
+					jmp [ptrWorldRendDetour]
 		}
 	}
 
@@ -814,6 +832,8 @@ namespace ExeFixes {
 
 			//Window Patches
 			windowstyle.DoctorRelative((u32)WindowStyle, 1).Apply(true);
+
+			terraincrashcatcher.DoctorRelative((u32)TerrainCrashCatcher, 1).Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes
