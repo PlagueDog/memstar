@@ -8,13 +8,17 @@
 #include "Console.h"
 #include "Patch.h"
 
+using namespace std;
+
 class ScriptTexture : public Texture {
 public:
-	ScriptTexture() : Texture(), mLastUsed(GetTickCount64()) { }
+	//ScriptTexture() : Texture(), mLastUsed(GetTickCount64()) { }
+	ScriptTexture() : Texture(), mLastUsed(GetTickCount()) { }
 	~ScriptTexture() { }
 
 	int LastUsed() const { return (mLastUsed); }
-	void UpdateLastUsed() { mLastUsed = GetTickCount64(); }
+	//void UpdateLastUsed() { mLastUsed = GetTickCount64(); }
+	void UpdateLastUsed() { mLastUsed = GetTickCount(); }
 
 private:
 	int mLastUsed;
@@ -93,7 +97,8 @@ namespace ScriptGL {
 
 
 	bool Allowed() {
-		return (mCanDraw);
+		return "true";
+		//return (mCanDraw);
 	}
 
 	void Close() {
@@ -152,6 +157,7 @@ namespace ScriptGL {
 		mFiles.Grok("Mods/ScriptGL");
 	}
 
+	BuiltInVariable("ScriptGL::inShell", bool, scriptglinshell, true);
 	void OnDraw(int pre_or_post) {
 		mCanDraw = (OpenGL::IsActive());
 
@@ -165,6 +171,9 @@ namespace ScriptGL {
 			char* function = (pre_or_post) ?
 				"ScriptGL::playGUI::onPostDraw" : "ScriptGL::playGUI::onPreDraw";
 
+			char* shellfunction = (pre_or_post) ?
+				"ScriptGL::shellGUI::onPostDraw" : "ScriptGL::shellGUI::onPreDraw";
+
 			Vector2i screen;
 			Fear::getScreenDimensions(&screen);
 			String2 dim;
@@ -174,6 +183,11 @@ namespace ScriptGL {
 
 			if (Console::functionExists(function))
 				Console::execFunction(1, function, dim.c_str());
+
+			if (Console::functionExists(shellfunction) && scriptglinshell)
+			{
+				Console::execFunction(1, shellfunction, dim.c_str());
+			}
 
 			if (pre_or_post == __SCRIPTGL_POSTDRAW__)
 				mLastGLDraw = (ticks);
