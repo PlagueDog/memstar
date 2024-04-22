@@ -210,7 +210,7 @@ namespace OpenGLFixes
 			//GuiLoadLoad1.Apply(true);
 			//GuiLoadLoad2.Apply(true);
 			//WndInsertAfter0.Apply(true);
-			wglinfowindow.Apply(true);
+			//wglinfowindow.Apply(true);
 			windowproperiespatch.DoctorRelative((u32)WindowPropertiesPatch, 1).Apply(true);
 			BitmapCtrlLineFix.Apply(true);
 			//goSplash640.Apply(true);
