@@ -38,7 +38,7 @@ namespace clientDataHandler {
 	BuiltInFunction("setVehicleDir", _svd) {
 		if (argc != 1 || !strlen(argv[0]))
 		{
-			Console::echo("setVehicleDir( dir );");
+			Console::echo("%s( dir );", self);
 			return 0;
 		}
 		string path = argv[0];
@@ -180,7 +180,7 @@ namespace clientDataHandler {
 	BuiltInFunction("removeSkinFile", _rsf) {
 		if (argc != 1)
 		{
-			Console::echo("removeSkinFile( file );");
+			Console::echo("%s( file );", self);
 			return 0;
 		}
 		if (!isFile(argv[0]))
@@ -205,7 +205,7 @@ namespace clientDataHandler {
 		strcat(cachePath, argv[0]);
 		if (!isFile(cachePath))
 		{
-			Console::echo("removeSkinFile: File not found.");
+			Console::echo("%s: File not found.", self);
 			return 0;
 		}
 		std::remove(cachePath);
@@ -222,7 +222,7 @@ namespace clientDataHandler {
 	BuiltInFunction("removeCacheFile", _rcf) {
 		if (argc != 1)
 		{
-			Console::echo("removeCacheFile( file );");
+			Console::echo("%s( file );", self);
 			return 0;
 		}
 		string path = argv[0];
@@ -238,7 +238,7 @@ namespace clientDataHandler {
 		//Console::echo(cachePath);
 		if (!isFile(cachePath))
 		{
-			Console::echo("removeCacheFile: File not found.");
+			Console::echo("%s: File not found.", self);
 			free(cachePath);
 			return 0;
 		}
@@ -250,7 +250,7 @@ namespace clientDataHandler {
 	BuiltInFunction("removeTerrainFile", _rtf) {
 		if (argc != 1)
 		{
-			Console::echo("removeTerrainFile( file );");
+			Console::echo("%s( file );", self);
 			return 0;
 		}
 		string path = argv[0];
@@ -271,7 +271,7 @@ namespace clientDataHandler {
 		//Console::echo(cachePath);
 		if (!isFile(cachePath))
 		{
-			Console::echo("removeTerrainFile: File not found.");
+			Console::echo("%s: File not found.", self);
 			free(cachePath);
 			return 0;
 		}
@@ -283,12 +283,12 @@ namespace clientDataHandler {
 	BuiltInFunction("getSHA1", _gsha1) {
 		if (argc != 1)
 		{
-			Console::echo("getSHA1( file, [string] );");
+			Console::echo("%s( file, [string] );", self);
 			return 0;
 		}
 		if (!isFile(argv[0]))
 		{
-			Console::echo("getSHA1: File not found.");
+			Console::echo("%s: File not found.", self);
 			Console::echo(argv[0]);
 			return 0;
 		}
@@ -311,7 +311,7 @@ namespace clientDataHandler {
 	BuiltInFunction("getFileSize", _gfs) {
 		if (argc != 1)
 		{
-			Console::echo("getFileSize( file );");
+			Console::echo("%s( file );", self);
 			return 0;
 		}
 		if (!isFile(argv[0]))
@@ -345,7 +345,7 @@ namespace clientDataHandler {
 	BuiltInFunction("createCacheDir", _ccd) {
 		if (argc != 1)
 		{
-			Console::echo("createCacheDir( DirectoryName );");
+			Console::echo("%s( DirectoryName );", self);
 			return "false";
 		}
 		string path = argv[0];
@@ -359,7 +359,7 @@ namespace clientDataHandler {
 	BuiltInFunction("resetClientScriptFile", _rcsf) {
 		if (argc != 1)
 		{
-			Console::echo("resetClientScriptFile( fileName.cs );");
+			Console::echo("%s( fileName.cs );", self);
 			return "false";
 		}
 		string fileName = argv[0];
@@ -456,7 +456,7 @@ namespace serverDataHandler {
 	BuiltInFunction("fileToHex", _fth) {
 		if (argc != 1)
 		{
-			Console::echo("fileToHex( file );");
+			Console::echo("%s( file );", self);
 			return 0;
 		}
 		if (!isFile(argv[0]))
@@ -497,12 +497,12 @@ namespace serverDataHandler {
 	BuiltInFunction("modloader::uploadFiletoClient", _mluftc) {
 		if (argc != 3 || !strlen(argv[0]) || !strlen(argv[1]) || !strlen(argv[2]))
 		{
-			Console::echo("modloader::uploadFiletoClient( file, playerID, token );");
+			Console::echo("%s( file, playerID, token );", self);
 			return 0;
 		}
 		if (!isFile(argv[0]))
 		{
-			Console::echo("modloader::uploadFiletoClient: File not found.");
+			Console::echo("%s: File not found.", self);
 			return 0;
 		}
 		string path = argv[0];
@@ -564,7 +564,7 @@ namespace serverDataHandler {
 	BuiltInFunction("fileHasConstructors", _fhc) {
 		if (argc != 1 || !strlen(argv[0]))
 		{
-			Console::echo("fileHasConstructors( file ); \\Scans a file for vehicle|component|weapon|projectile constructors and returns a boolean");
+			Console::echo("fileHasConstructors( file ); \\Scans a file for vehicle|component|weapon|projectile constructors and returns a boolean", self);
 			return 0;
 		}
 		if (!isFile(argv[0]))
@@ -603,7 +603,7 @@ namespace serverDataHandler {
 	BuiltInFunction("fileHasPilotData", _fhpd) {
 		if (argc != 1 || !strlen(argv[0]))
 		{
-			Console::echo("fileHasPilotData( file ); \\\\Checks a file to see if it contains pilot definitions. Returns a boolean.");
+			Console::echo("fileHasPilotData( file ); \\\\Checks a file to see if it contains pilot definitions. Returns a boolean.", self);
 			return 0;
 		}
 		if (!isFile(argv[0]))
