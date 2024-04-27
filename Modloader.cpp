@@ -204,7 +204,7 @@ namespace ModloaderMain {
 	{
 		if (argc != 2 || atoi(argv[1]) < 1 )
 		{
-			Console::echo("%s ( width/height, int);");
+			Console::echo("%s( width/height, int);", self);
 			return 0;
 		}
 		string type = argv[0];
@@ -308,7 +308,7 @@ namespace ModloaderMain {
 	BuiltInFunction("setWindowPos", _swp) {
 		if (argc != 4)
 		{
-			Console::echo("%s( int_xPosition, int_yPosition, int_windowWidth, int_windowHeight );");
+			Console::echo("%s( int_xPosition, int_yPosition, int_windowWidth, int_windowHeight );", self);
 			return 0;
 		}
 		SetWindowPos(getGameHWND(), HWND_TOPMOST, atoi(argv[0]), atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), NULL);
@@ -376,12 +376,12 @@ namespace ModloaderMain {
 	BuiltInFunction("getWindowSize", _gws) {
 		if (argc != 1)
 		{
-			Console::echo("%s ( width/height );");
+			Console::echo("%s( width/height );", self);
 			return 0;
 		}
 		if (strlen(argv[0]) == 0)
 		{
-			Console::echo("%s ( width/height );");
+			Console::echo("%s( width/height );", self);
 			return 0;
 		}
 		Vector2i screen;
@@ -403,7 +403,7 @@ namespace ModloaderMain {
 	BuiltInFunction("int2hex", _i2h) {
 		if (!strlen(argv[0]) || !atoi(argv[0]) > 0)
 		{
-			Console::echo("%s( integer endianness[0|1] );");
+			Console::echo("%s( integer endianness[0|1] );", self);
 			return 0;
 		}
 		if (argc == 1)
@@ -420,7 +420,7 @@ namespace ModloaderMain {
 	BuiltInFunction("flt2hex", _f2h) {
 		if (!atof(argv[0]) > 0)
 		{
-			Console::echo("%s( float, endianness[0|1] );");
+			Console::echo("%s( float, endianness[0|1] );", self);
 			return 0;
 		}
 		if (argc == 1)
@@ -447,7 +447,7 @@ namespace ModloaderMain {
 	BuiltInFunction("OpenGL::shiftGUI", _oglshgui) {
 		if (argc != 1)
 		{
-			Console::echo("%s( int/flt ); //Additive values shift the GUI to the right and vice versa. Default: -1");
+			Console::echo("%s( int/flt ); //Additive values shift the GUI to the right and vice versa. Default: -1", self);
 			return 0;
 		}
 		char* flt2hex_c = flt2hex(atof(argv[0]), 1);
@@ -462,7 +462,7 @@ namespace ModloaderMain {
 	BuiltInFunction("OpenGL::offsetGUI", _oglogui) {
 		if (argc != 1)
 		{
-			Console::echo("%s( int/flt ); //Offsets the GUI vertically. Default: 0.5");
+			Console::echo("%s( int/flt ); //Offsets the GUI vertically. Default: 0.5", self);
 			return 0;
 		}
 		char* flt2hex_c = flt2hex(atof(argv[0]), 1);
@@ -477,7 +477,7 @@ namespace ModloaderMain {
 		//Check args
 		if (argc != 2 || atoi(argv[0]) < 640 || atoi(argv[1]) < 480)
 		{
-			Console::echo("%s( width, height );");
+			Console::echo("%s( width, height );", self);
 			return 0;
 		}
 		//char* relativeWidth = flt2hex((atof(argv[0])/640), 1);
@@ -508,7 +508,7 @@ namespace ModloaderMain {
 	BuiltInFunction("OpenGL::scaleGUI", _oglsgui) {
 		if (argc != 1)
 		{
-			Console::echo("%s( int/flt ); //Changes the internal GUI rendering scale. Default: 2");
+			Console::echo("%s( int/flt ); //Changes the internal GUI rendering scale. Default: 2", self);
 			return 0;
 		}
 		float scale = atof(argv[0]);
@@ -523,7 +523,7 @@ namespace ModloaderMain {
 	BuiltInFunction("setCursorPos", _scp) {
 		if (argc != 2)
 		{
-			Console::echo("%s( x, y); ");
+			Console::echo("%s( x, y);", self);
 			return "false";
 		}
 		Console::eval("winmouse();");
@@ -588,7 +588,7 @@ namespace ModloaderMain {
 	CodePatch canvasWindowMaxWindowedSize_patch = {
 		ptrWinMaxWinSize,
 		"",
-		"\xC7\x02\x00\x0A\x00\x00\xC7\x42\x04\x0A\x05",
+		"\xC7\x02\x80\x16\x00\x00\xC7\x42\x04\x00\x1E",
 		//"\xC7\x02\x10\xE0\x00\x00\xC7\x42\x04\x00\x1E",
 		11,
 		false
@@ -598,7 +598,7 @@ namespace ModloaderMain {
 	CodePatch canvasWindowMaxInteralRenderSizeWidth_patch = {
 		ptrWinMaxIntRendSizeWidth,
 		"",
-		"\x3D\x00\x0F\x00\x00\x7E\x06\xC7\x06\x00\x0F",
+		"\x3D\x00\x1E\x00\x00\x7E\x06\xC7\x06\x00\x1E",
 		//"\x3D\x10\xE0\x00\x00\x7E\x06\xC7\x06\x10\xE0",
 		11,
 		false
@@ -607,7 +607,7 @@ namespace ModloaderMain {
 	CodePatch canvasWindowMaxInteralRenderSizeHeight_patch = {
 		ptrWinMaxIntRendSizeHeight,
 		"",
-		"\x81\xF9\x00\x0F\x00\x00\x7E\x07\xC7\x46\x04\x00\x0F",
+		"\x81\xF9\x80\x16\x00\x00\x7E\x07\xC7\x46\x04\x80\x16",
 		//"\x81\xF9\x00\x1E\x00\x00\x7E\x07\xC7\x46\x04\x00\x1E",
 		13,
 		false
@@ -692,6 +692,33 @@ namespace ModloaderMain {
 		CodePatch editCameraFovPatch = { ptrEditCameraFov,"",hex2char_c,4,false }; editCameraFovPatch.Apply(true);
 		Console::setVariable("client::fov", argv[0]);
 		Console::eval("export(\"client::*\", \"playerPrefs.cs\");");
+
+		return "true";
+	}
+	MultiPointer(ptr_patchMipDetail, 0, 0, 0, 0x006020F8);
+	MultiPointer(ptr_patchFlatPaneMipDetail, 0, 0, 0, 0x00601AAE);
+	BuiltInFunction("Nova::setTerrainDetail", _novasetterraindetail) {
+		if (argc != 1)
+		{
+			Console::echo("%s( 0 - 2.0 );", self);
+			return "false";
+		}
+		if (atof(argv[0]) < 0.1 && atof(argv[0]) > 2.0)
+		{
+			Console::echo("%s( 0 - 2.0 );", self);
+			return "false";
+		}
+		//Convert float to hex string
+		char* flt2hex_c = flt2hex(atof(argv[0]), 1);
+		char* flt2hex_c2 = flt2hex(-atof(argv[0]), 1);
+		//Convert hex string to raw hex
+		char* hex2char_c = hex2char(flt2hex_c);
+		char* hex2char_c2 = hex2char(flt2hex_c);
+
+		CodePatch patch = { ptr_patchMipDetail,"",hex2char_c,4,false }; patch.Apply(true);
+		CodePatch patch2 = { ptr_patchFlatPaneMipDetail,"",hex2char_c2,false }; patch2.Apply(true);
+		//Console::setVariable("client::fov", argv[0]);
+		//Console::eval("export(\"client::*\", \"playerPrefs.cs\");");
 
 		return "true";
 	}
@@ -1239,9 +1266,9 @@ namespace ModloaderMain {
 
 			//Rendering
 			terrainMaxVisDistance_patch.Apply(true);
-			//canvasWindowMaxWindowedSize_patch.Apply(true);
-			//canvasWindowMaxInteralRenderSizeWidth_patch.Apply(true);
-			//canvasWindowMaxInteralRenderSizeHeight_patch.Apply(true);
+			canvasWindowMaxWindowedSize_patch.Apply(true);
+			canvasWindowMaxInteralRenderSizeWidth_patch.Apply(true);
+			canvasWindowMaxInteralRenderSizeHeight_patch.Apply(true);
 
 			//Networking
 			remoteEvalBufferSize_S_patch.Apply(true);

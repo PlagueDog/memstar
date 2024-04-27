@@ -730,8 +730,8 @@ namespace ExeFixes {
 	//CodePatch dinput8fix = { ptrForceKeyInput, "", "\x82", 1, false };
 	
 	//Apply CS to the window
-	MultiPointer(ptrWindowStyle, 0, 0, 0, 0x00577151);
-	MultiPointer(ptrWindowStyleRetn, 0, 0, 0, 0x00577158);
+	MultiPointer(ptrWindowStyle, 0, 0, 0x00573F49, 0x00577151);
+	MultiPointer(ptrWindowStyleRetn, 0, 0, 0x00573F50, 0x00577158);
 	CodePatch windowstyle = { ptrWindowStyle, "", "\xE9WSTY", 5, false };
 	NAKED void WindowStyle() {
 		__asm {
@@ -744,6 +744,22 @@ namespace ExeFixes {
 			jmp [ptrWindowStyleRetn]
 		}
 	}
+
+	//World rendering
+	//MultiPointer(ptrWorldRender, 0, 0, 0x00589EE8, 0x0058D704);
+	//BuiltInFunction("Nova::EnableWorldRender", _novaEnableWorldRender)
+	//{
+	//	CodePatch WorldRenderPatch = { ptrWorldRender, "", "\x53", 1, false }; // push ebx
+	//	WorldRenderPatch.Apply(true);
+	//	return "true";
+	//}
+	//
+	//BuiltInFunction("Nova::DisableWorldRender", _novaDisableWorldRender)
+	//{
+	//	CodePatch WorldRenderPatch = { ptrWorldRender, "", "\xC3", 1, false }; // retn
+	//	WorldRenderPatch.Apply(true);
+	//	return "true";
+	//}
 
 	//Catch no-terrain crash
 	MultiPointer(ptrWorldRend, 0, 0, 0x00589F98, 0x0058D7B4);
@@ -763,9 +779,39 @@ namespace ExeFixes {
 		}
 	}
 
+	//Catch Volumetric DML render crash
+	MultiPointer(ptrVolumetRend, 0, 0, 0, 0x0062E7CA);
+	MultiPointer(ptrVolumetRendCont, 0, 0, 0, 0x0062E7D5);
+	CodePatch volumetriccrashcatcher = { ptrVolumetRend, "", "\xE9VDCR", 5, false };
+	NAKED void VolumetricCrashCatcher() {
+		__asm {
+			//test edx, edx //Test for greater than 0xF7000000
+			//cmp edx, 0xF7000000
+			//ja __fixptr
+			//lea edx, [ecx + edx * 8]
+			lea edx, [ecx + edx * 8]
+			mov ecx, [edx]
+			mov [eax + 0x20], ecx
+			mov ecx, [edx + 4]
+			jmp[ptrVolumetRendCont]
+				//__fixptr:
+				//sub edx, 0xF7000000
+				//mov ecx, [edx - 0xF7000000]
+				//mov [eax + 0x20], ecx
+				//mov ecx, [edx - 0xF7000000 + 4]
+				//jmp[ptrVolumetRendCont]
+		}
+	}
+
+	//Volumetric Face Rendering
+	MultiPointer(ptrVolumetricFaceRender, 0, 0, 0, 0x006810BC);
+	//Terrain Tile Rendering
+	MultiPointer(ptrTerrainTileRender, 0, 0, 0, 0x00600AB1);
+	//Terrain Mip Rendering
+	MultiPointer(ptrTerrainMipRender, 0, 0, 0, 0x00601AAC);
+
 	struct Init {
 		Init() {
-
 			if (VersionSnoop::GetVersion() == VERSION::vNotGame) {
 				return;
 			}
@@ -834,6 +880,8 @@ namespace ExeFixes {
 			windowstyle.DoctorRelative((u32)WindowStyle, 1).Apply(true);
 
 			terraincrashcatcher.DoctorRelative((u32)TerrainCrashCatcher, 1).Apply(true);
+			//volumetriccrashcatcher.DoctorRelative((u32)VolumetricCrashCatcher, 1).Apply(true);
+			//recordcrashcatcher.DoctorRelative((u32)RecordCrashCatcher, 1).Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes

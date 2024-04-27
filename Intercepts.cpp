@@ -105,46 +105,56 @@ namespace Intercepts {
 		}
 	}
 
-	//Game cursor event function calls
-	MultiPointer(ptrOnSim3DMouseEvent, 0, 0, 0, 0x005A1846);
-	MultiPointer(ptrSim3DMouseProcessEvent, 0, 0, 0, 0x005A188C);
-	MultiPointer(ptrSim3DMouseEvent_RETN, 0, 0, 0, 0x005A184B);
-	static const char* OnSim3DMouseEvent_func = "Nova::onInputEvent();";
-	CodePatch onsim3Dmouseevent = { ptrOnSim3DMouseEvent, "", "\xE9VMSE", 5, false };
-	NAKED void OnSim3DMouseEvent() {
-		__asm {
-			call [ptrSim3DMouseProcessEvent]
-			push eax
-			mov eax, [OnSim3DMouseEvent_func]
-			push eax
-			call Console::eval
-			add esp, 0x8
-			jmp [ptrSim3DMouseEvent_RETN]
-		}
-	}
+	//Simgui Responder event calls
+	//These cursor events only fire on the games emulated cursor
+	MultiPointer(ptrOnGameCursorLeftDown, 0, 0, 0, 0x005CB814);
+	MultiPointer(ptrOnGameCursorRightDown, 0, 0, 0, 0x005CB844);
+	MultiPointer(ptrOnGameCursorRightUp, 0, 0, 0, 0x005CB8A4);
+	MultiPointer(ptrOnGameCursorRepeat, 0, 0, 0, 0x005CB814);
+	MultiPointer(ptrOnGameCursorMove, 0, 0, 0, 0x005CB844);
+	MultiPointer(ptrOnKeyDown, 0, 0, 0, 0x005CB8D4);
+	MultiPointer(ptrOnKeyUp, 0, 0, 0, 0x005CB8C4);
+
+	//MultiPointer(ptrSim3DMouseProcessEvent, 0, 0, 0, 0x005A188C);
+	//MultiPointer(ptrSim3DMouseEvent_RETN, 0, 0, 0, 0x005A184B);
+	//static const char* OnSim3DMouseEvent_func = "Nova::onInputEvent();";
+	//CodePatch onsim3Dmouseevent = { ptrOnSim3DMouseEvent, "", "\xE9VMSE", 5, false };
+	//NAKED void OnSim3DMouseEvent() {
+	//	__asm {
+	//		call [ptrSim3DMouseProcessEvent]
+	//		push eax
+	//		mov eax, [OnSim3DMouseEvent_func]
+	//		push eax
+	//		call Console::eval
+	//		add esp, 0x8
+	//		jmp [ptrSim3DMouseEvent_RETN]
+	//	}
+	//}
 
 	struct Init 
 	{
 		Init() 
 		{
+			if (std::filesystem::exists("Nova.vol"))
+			{
+				//////////////////////////////////////////////////
+				// Gui onOpen & onClose patches
+				/////////////////////////////////////////////////
+					//Nova::getGui();
+				guiopened.DoctorRelative((u32)guiOpened, 1).Apply(true);
 
-		//////////////////////////////////////////////////
-		// Gui onOpen & onClose patches
-		/////////////////////////////////////////////////
-			//Nova::getGui();
-			guiopened.DoctorRelative((u32)guiOpened, 1).Apply(true);
+				//Nova::guiOpen();
+				guiopen.DoctorRelative((u32)guiOpen, 1).Apply(true);
 
-			//Nova::guiOpen();
-			guiopen.DoctorRelative((u32)guiOpen, 1).Apply(true);
+				//Nova::getLastGui();
+				guiclosed.DoctorRelative((u32)guiClosed, 1).Apply(true);
 
-			//Nova::getLastGui();
-			guiclosed.DoctorRelative((u32)guiClosed, 1).Apply(true);
+				//Nova::guiClose();
+				guiclose.DoctorRelative((u32)guiClose, 1).Apply(true);
 
-			//Nova::guiClose();
-			guiclose.DoctorRelative((u32)guiClose, 1).Apply(true);
-
-			//Input Event Calls
-			//onsim3Dmouseevent.DoctorRelative((u32)OnSim3DMouseEvent, 1).Apply(true);
+				//Input Event Calls
+				//onsim3Dmouseevent.DoctorRelative((u32)OnSim3DMouseEvent, 1).Apply(true);
+			}
 
 		}
 	} init;

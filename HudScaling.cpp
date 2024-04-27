@@ -7,9 +7,9 @@
 #include <stdint.h>
 #include "Strings.h"
 #include <string>
+#include <filesystem>
 
-
-
+using namespace std;
 MultiPointer(ptrhudpbafix, 0, 0, 0x0063F6B1, 0x0064EAA5);
 MultiPointer(HudPBAResume, 0, 0, 0x0063F609, 0x0064E9FD);
 CodePatch hudpbafix = { ptrhudpbafix, "", "\xE9PBAF" , 5, false };
@@ -919,21 +919,24 @@ struct Init {
 		ShieldElementsAlwaysRefresh.Apply(true);
 
 		//Assign default hud fonts to alternative IDs to avoid conflicts with text scaling
-		CodePatch SB_Patch0 = { HudScoreboard_FontTag,						"","\xE4\x4B\x02",3,false }; SB_Patch0.Apply(true);
-		CodePatch WD_Patch0 = { WeaponDisplay_FontTag,						"","\xE4\x4B\x02",3,false }; WD_Patch0.Apply(true);
-		CodePatch WD_Patch0a = { WeaponDisplay_WeaponRollPitchError_FontTag,"","\xE6\x4B\x02",3,false }; WD_Patch0a.Apply(true);
-		CodePatch RD_PatchF = { RadarDisplay_FontTag,						"","\xE4\x4B\x02",3,false }; RD_PatchF.Apply(true);
-		CodePatch VD_Patch0 = { VehicleDisplay_FontTag,						"","\xE4\x4B\x02",3,false }; VD_Patch0.Apply(true);
-		CodePatch HT_Patch0 = { HudTimer_FontTag,							"","\xE4\x4B\x02",3,false }; HT_Patch0.Apply(true);
-		CodePatch CM_Patch0 = { CmdMenu_FontTag,							"","\xE4\x4B\x02",3,false }; CM_Patch0.Apply(true);
-		CodePatch SD_Patch1 = { ShieldDisplay_FontTag,						"","\xE4\x4B\x02",3,false }; SD_Patch1.Apply(true);
-		CodePatch AR_Patch0 = { AimRet_FontTag,								"","\xE4\x4B\x02",3,false }; AR_Patch0.Apply(true);
-		CodePatch ID_Patch0 = { IntD_Dim_FontTag,							"","\xE4\x4B\x02",3,false }; ID_Patch0.Apply(true);
-		CodePatch HDCFG_Patch0 = { HDCFG_Title_FontTag,						"","\xE4\x4B\x02",3,false }; HDCFG_Patch0.Apply(true);
-		CodePatch HDCFG_Patch2 = { HDCFG_ButtonFontTag,						"","\xE5\x4B\x02",3,false }; HDCFG_Patch2.Apply(true);
-		CodePatch HDCFG_Patch3 = { HDCFG_ButtonHighlightFontTag,			"","\xE4\x4B\x02",3,false }; HDCFG_Patch3.Apply(true);
-		CodePatch HDCFG_Patch4 = { HDCFG_CycleColorsButtonFontTag,			"","\xE5\x4B\x02",3,false }; HDCFG_Patch4.Apply(true);
-		CodePatch HDCFG_Patch5 = { HDCFG_CycleColorsButtonHighlightFontTag,	"","\xE4\x4B\x02",3,false }; HDCFG_Patch5.Apply(true);
+		if (std::filesystem::exists("Nova.vol"))
+		{
+			CodePatch SB_Patch0 = { HudScoreboard_FontTag,						"","\xE4\x4B\x02",3,false }; SB_Patch0.Apply(true);
+			CodePatch WD_Patch0 = { WeaponDisplay_FontTag,						"","\xE4\x4B\x02",3,false }; WD_Patch0.Apply(true);
+			CodePatch WD_Patch0a = { WeaponDisplay_WeaponRollPitchError_FontTag,"","\xE6\x4B\x02",3,false }; WD_Patch0a.Apply(true);
+			CodePatch RD_PatchF = { RadarDisplay_FontTag,						"","\xE4\x4B\x02",3,false }; RD_PatchF.Apply(true);
+			CodePatch VD_Patch0 = { VehicleDisplay_FontTag,						"","\xE4\x4B\x02",3,false }; VD_Patch0.Apply(true);
+			CodePatch HT_Patch0 = { HudTimer_FontTag,							"","\xE4\x4B\x02",3,false }; HT_Patch0.Apply(true);
+			CodePatch CM_Patch0 = { CmdMenu_FontTag,							"","\xE4\x4B\x02",3,false }; CM_Patch0.Apply(true);
+			CodePatch SD_Patch1 = { ShieldDisplay_FontTag,						"","\xE4\x4B\x02",3,false }; SD_Patch1.Apply(true);
+			CodePatch AR_Patch0 = { AimRet_FontTag,								"","\xE4\x4B\x02",3,false }; AR_Patch0.Apply(true);
+			CodePatch ID_Patch0 = { IntD_Dim_FontTag,							"","\xE4\x4B\x02",3,false }; ID_Patch0.Apply(true);
+			CodePatch HDCFG_Patch0 = { HDCFG_Title_FontTag,						"","\xE4\x4B\x02",3,false }; HDCFG_Patch0.Apply(true);
+			CodePatch HDCFG_Patch2 = { HDCFG_ButtonFontTag,						"","\xE5\x4B\x02",3,false }; HDCFG_Patch2.Apply(true);
+			CodePatch HDCFG_Patch3 = { HDCFG_ButtonHighlightFontTag,			"","\xE4\x4B\x02",3,false }; HDCFG_Patch3.Apply(true);
+			CodePatch HDCFG_Patch4 = { HDCFG_CycleColorsButtonFontTag,			"","\xE5\x4B\x02",3,false }; HDCFG_Patch4.Apply(true);
+			CodePatch HDCFG_Patch5 = { HDCFG_CycleColorsButtonHighlightFontTag,	"","\xE4\x4B\x02",3,false }; HDCFG_Patch5.Apply(true);
+		}
 		//CodePatch HDGMCFG_Patch0 = { HudGamePrefs_FontTag0,					"","\xE4\x4B\x02",3,false }; HDGMCFG_Patch0.Apply(true);
 		//CodePatch HDGMCFG_Patch1 = { HudGamePrefs_FontTag1,					"","\xE4\x4B\x02",3,false }; HDGMCFG_Patch1.Apply(true);
 		//CodePatch HDGMCFG_Patch2 = { HudGamePrefs_FontTag2,					"","\xE4\x4B\x02",3,false }; HDGMCFG_Patch2.Apply(true);

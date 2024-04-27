@@ -13,6 +13,7 @@ namespace Replacer {
 	extern bool prefShowMatchedTextures;
 }
 
+//using namespace conversionFunctions;
 namespace Terrain {
 #define GridBlock_Material_Plain  ( 0 )
 #define GridBlock_Material_Rotate ( 1 )
@@ -98,15 +99,22 @@ namespace Terrain {
 		false
 	};
 
-	// fix subdivide test
-	MultiPointer(ptr_patchSubdivideTest, 0, 0, 0, 0x00601A9B);
-	CodePatch patchSubdivideTest = {
-		ptr_patchSubdivideTest,
-		"\x66\x8B\x0B\x8B\x15",
-		"\xe9subd",
-		5,
-		false
-	};
+	// fix subdivide test (OLD - WARPING TERRAIN)
+	//MultiPointer(ptr_patchSubdivideTest, 0, 0, 0, 0x00601A9B);
+	//CodePatch patchSubdivideTest = {
+	//	ptr_patchSubdivideTest,
+	//	"\x66\x8B\x0B\x8B\x15",
+	//	"\xe9subd",
+	//	5,
+	//	false
+	//};
+
+	MultiPointer(ptr_patchMipDetail, 0, 0, 0, 0x006020F8);
+	CodePatch terrainTileMipDetail = { ptr_patchMipDetail, "", "\x00\x00\x81\x3F", 4, false };
+	MultiPointer(ptr_patchFlatPaneMipDetail, 0, 0, 0, 0x00601AAE);
+	CodePatch terrainFlatPaneMipDetail = { ptr_patchFlatPaneMipDetail, "", "\xCD\xCC\xCC\x3D", 4, false };
+	MultiPointer(ptr_patchTerrainMaxTileRend, 0, 0, 0, 0x006031C4);
+	CodePatch terrainMaxTileRender = { ptr_patchTerrainMaxTileRend, "", "\x00\x00\x00\x44", 4, false };
 
 	MultiPointer(ptr_patchForceTerrainRecache, 0, 0, 0, 0x006037D3);
 	CodePatch patchForceTerrainRecache = {
@@ -419,6 +427,8 @@ namespace Terrain {
 	}
 
 	MultiPointer(fnOnMipBltResume, 0, 0, 0, 0x005F6935);
+
+	//DEPRECATED
 	NAKED void OnMipBlt() {
 		__asm {
 			call OpenGL::IsActive
@@ -658,13 +668,19 @@ namespace Terrain {
 	void Open() {
 		Callback::attach(Callback::OnOpenGL, OnOpenGL);
 
-		patchMipBlt.DoctorRelative((u32)OnMipBlt, 1).Apply(true);
+		//patchMipBlt.DoctorRelative((u32)OnMipBlt, 1).Apply(true);
 		patchCreateFileFromGridFile.DoctorRelative((u32)OnCreateFileFromGridFile, 1).Apply(true);
-		patchSubdivideTest.DoctorRelative((u32)OnSubdivideTest, 1).Apply(true);
-		patchLeaveTerrainRenderLevelNonZero.DoctorRelative((u32)OnLeaveTerrainRenderLevelNonZero, 1).Apply(true);
-		patchLeaveTerrainRenderLevelNonZeroLoop.DoctorRelative((u32)OnTerrainRenderLevelNonZeroLoop, 1).Apply(true);
+
+		//Mipmap fix
+		terrainTileMipDetail.Apply(true);
+		terrainFlatPaneMipDetail.Apply(true);
+		terrainMaxTileRender.Apply(true);
+
+		//patchSubdivideTest.DoctorRelative((u32)OnSubdivideTest, 1).Apply(true);
+		//patchLeaveTerrainRenderLevelNonZero.DoctorRelative((u32)OnLeaveTerrainRenderLevelNonZero, 1).Apply(true);
+		//patchLeaveTerrainRenderLevelNonZeroLoop.DoctorRelative((u32)OnTerrainRenderLevelNonZeroLoop, 1).Apply(true);
 		patchTerrainRenderLevelZeroLoop.DoctorRelative((u32)OnRenderLevelZeroLoop, 1).Apply(true);
-		fnFlushTextureCache = Patch::ReplaceHook((void*)ptr_OPENGL_FLUSH_TEXTURE_CACHE_VFT, OnFlushTextureCache);
+		//fnFlushTextureCache = Patch::ReplaceHook((void*)ptr_OPENGL_FLUSH_TEXTURE_CACHE_VFT, OnFlushTextureCache);
 
 		Reset();
 	}
