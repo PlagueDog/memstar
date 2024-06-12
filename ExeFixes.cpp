@@ -34,10 +34,10 @@ namespace ExeFixes {
 		return tostring(ptr1_data);
 	}
 
-	int initialTick = static_cast<int>(GetTickCount());
+	int initialTick = GetTickCount();
 	BuiltInFunction("getTickCount", _getTickCount)
 	{
-		int currentTick = static_cast<int>(GetTickCount());
+		int currentTick = GetTickCount();
 		return tostring((currentTick - initialTick));
 	}
 
@@ -350,6 +350,9 @@ namespace ExeFixes {
 	//Sky Panel Color
 	MultiPointer(ptrSkyColor, 0, 0, 0, 0x0065326C);
 
+	//Cloak Transparency
+	MultiPointer(ptrCloakTransparency, 0, 0, 0, 0x00485ABB);
+
 	//Console newline feed char
 	MultiPointer(ptrConsoleNewLineFeed, 0, 0, 0x00703645, 0x00713AB5);
 	CodePatch consoleNewLineChar = { ptrConsoleNewLineFeed, "", "\x00\x00", 2, false };
@@ -430,6 +433,29 @@ namespace ExeFixes {
 			mov eax, [ebx + 8]
 			call[ptrFunctionAllocation]
 			jmp[ptrMissionPluginFunctionListResume]
+		}
+	}
+
+	MultiPointer(ptrFunctionList01, 0, 0, 0x004A653F, 0x004A885B);
+	MultiPointer(ptrFunctionList01Resume, 0, 0, 0x004A6554, 0x004A8870);
+	static const char* datadumpFunctionName = "dataDump";
+	static const char* gotoFunctionName = "goto";
+	CodePatch datadumprestore = { ptrFunctionList01, "", "\xE9_DPR", 5, false };
+	NAKED void DataDumpRestore() {
+		__asm {
+			push ebx
+			push 0
+			mov ecx, [datadumpFunctionName]
+			mov edx, 0x35
+			mov eax, [ebx + 8]
+			call[ptrFunctionAllocation]
+			push ebx
+			push 0
+			mov ecx, [gotoFunctionName]
+			mov edx, 3
+			mov eax, [ebx + 8]
+			call[ptrFunctionAllocation]
+			jmp[ptrFunctionList01Resume]
 		}
 	}
 
@@ -810,6 +836,23 @@ namespace ExeFixes {
 	//Terrain Mip Rendering
 	MultiPointer(ptrTerrainMipRender, 0, 0, 0, 0x00601AAC);
 
+	//Catch invalid damage part for internal mount crashes (i.e Clicking on internal mount config buttons in the vehicle lab with a flyer vehicle selected)
+	MultiPointer(ptrVehicleMountConfigButtonFn, 0, 0, 0x004EA7AA, 0x004ECC3E);
+	MultiPointer(ptrVehicleMountConfigButtonResume, 0, 0, 0x004EA7AF, 0x004ECC43);
+	MultiPointer(ptrVehicleMountConfigButtonNext, 0, 0, 0x004EA7DF, 0x004ECC73);
+	CodePatch invalidparentpartcrashcatcher = { ptrVehicleMountConfigButtonFn, "", "\xE9IPPC", 5, false };
+	NAKED void InvalidParentPartCrashCatcher() {
+		__asm {
+			test ecx, ecx //Test for 0x00000000 (Invalid part parent for mount)
+			jno __crashEscape
+			mov eax, ecx
+			mov ecx, [eax]
+			jmp[ptrVehicleMountConfigButtonResume] //Jump back into the native function
+			__crashEscape:
+			jmp[ptrVehicleMountConfigButtonNext]
+		}
+	}
+
 	struct Init {
 		Init() {
 			if (VersionSnoop::GetVersion() == VERSION::vNotGame) {
@@ -832,7 +875,8 @@ namespace ExeFixes {
 			//}
 			navfix.DoctorRelative((u32)NavFix, 1).Apply(true);
 			
-			//missioncreaterestore.DoctorRelative((u32)MissionCreateRestore, 1).Apply(true);
+			missioncreaterestore.DoctorRelative((u32)MissionCreateRestore, 1).Apply(true);
+			datadumprestore.DoctorRelative((u32)DataDumpRestore, 1).Apply(true);
 			//interiorpluginrestore.DoctorRelative((u32)InteriorPluginRestore, 1).Apply(true);
 
 			//ITRpatch.DoctorRelative((u32)ITRPatch, 1).Apply(true);
@@ -859,7 +903,7 @@ namespace ExeFixes {
 			consoleNewLineChar.Apply(true);
 
 			//Fix player vehicle properties
-			//PlayerVehiclePropertyCheckPatch.Apply(true);
+			PlayerVehiclePropertyCheckPatch.Apply(true);
 
 			//Allow drones to be pilotable by players (NYI)
 			//dronetypeallow.DoctorRelative((u32)droneTypeAllow, 1).Apply(true);
@@ -880,6 +924,7 @@ namespace ExeFixes {
 			windowstyle.DoctorRelative((u32)WindowStyle, 1).Apply(true);
 
 			terraincrashcatcher.DoctorRelative((u32)TerrainCrashCatcher, 1).Apply(true);
+			invalidparentpartcrashcatcher.DoctorRelative((u32)InvalidParentPartCrashCatcher, 1).Apply(true);
 			//volumetriccrashcatcher.DoctorRelative((u32)VolumetricCrashCatcher, 1).Apply(true);
 			//recordcrashcatcher.DoctorRelative((u32)RecordCrashCatcher, 1).Apply(true);
 		}

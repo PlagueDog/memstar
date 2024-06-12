@@ -21,6 +21,20 @@ MultiPointer(ptrConsoleEval, 0, 0, 0, 0x005E6DF0);
 MultiPointer(ptrConsoleEval2, 0, 0, 0x005E387C, 0x005E7120);
 MultiPointer(_sprintf, 0, 0, 0, 0x006CD8B4);
 
+char* despace(char* input)
+{
+	int i, j;
+	char* output = input;
+	for (i = 0, j = 0; i < strlen(input); i++, j++)
+	{
+		if (input[i] != ' ')
+			output[j] = input[i];
+		else
+			j--;
+	}
+	output[j] = 0;
+	return output;
+}
 
 namespace Intercepts {
 //GuiLoad
@@ -131,6 +145,112 @@ namespace Intercepts {
 	//	}
 	//}
 
+	//ListDevices
+	MultiPointer(ptrListDevices, 0, 0, 0x005A8EE2, 0x005AC6FE);
+	MultiPointer(ptrListDevicesRetn, 0, 0, 0x005A8EE8, 0x005AC704);
+	char* renderDevice;
+	static const char* _s = "%s";
+	static const char* NovaGetRenderDevice = "Nova::getRenderDevices();";
+	CodePatch listdevices = { ptrListDevices, "", "\xE9LSTD", 5, false };
+	NAKED void ListDevices() {
+		__asm {
+			mov renderDevice, eax
+			push eax
+			mov eax, [NovaGetRenderDevice]
+			push eax
+			call Console::eval
+			add esp, 0x8
+			lea eax, [ebp - 0x5E4]
+			push eax
+			push _s
+			jmp[ptrListDevicesRetn]
+		}
+	}
+
+	MultiPointer(ptrStatusPartDamageCalc, 0, 0, 0, 0x0046634A);
+	MultiPointer(ptrStatusPartDamageCalcResume, 0, 0, 0, 0x00466350);
+	MultiPointer(ptrStatusPart, 0, 0, 0, 0x006E8AAC);
+	CodePatch statuspartcalc = { ptrStatusPartDamageCalc, "", "\xE9SPDC", 5, false };
+	char* partName;
+	float partHealth;
+	float partMaxHealth;
+	static const char* NovaGetDamageStatus = "Nova::getDamageStatus();";
+	NAKED void statusPartCalc() {
+		__asm {
+			push eax
+			mov partName, eax // Part name
+			pop eax
+			fld dword ptr [ebx + 0x1C]
+			push eax
+			mov eax, dword ptr [ebx + 0x1C] //Current hit points (float)
+			mov partHealth, eax
+			pop eax
+			fdiv dword ptr[ebx + 0x18]
+			push eax
+			mov eax, dword ptr [ebx + 0x18] //Max hit points (float)
+			mov partMaxHealth, eax
+			pop eax
+
+			push eax
+			mov eax, [NovaGetDamageStatus]
+			push eax
+			call Console::eval
+			add esp, 0x8
+			mov eax, [esp + 0x1C + 0x1C]
+
+			jmp[ptrStatusPartDamageCalcResume]
+		}
+	}
+
+	BuiltInFunction("Nova::getDamageStatus", _novaecho)
+	{
+		//Console::echo("%s (%3.0f / %3.0f)", partName, partHealth, partMaxHealth);
+		if (strlen(partName))
+		{
+			char partNameAssign[127];
+			char partHealthAssign[127];
+			float partCurrentHealth = (partHealth / partMaxHealth) * 100;
+			//char* arrayIndex;
+			//
+			//strcat("Stat[", tostring(partArrayIndex));
+			//strcat(partNameFormatted, "]");
+
+			//Assign part name to array
+			strcpy(partNameAssign, "$damStat[$damStatArr++, name] = '");
+			strcat(partNameAssign, partName);
+			strcat(partNameAssign, "';");
+			Console::eval(partNameAssign);
+			free(partNameAssign);
+
+			//Assign part health to array
+			strcpy(partHealthAssign, "$damStat[$damStatArr, health] = '");
+			strcat(partHealthAssign, tostring(partCurrentHealth));
+			strcat(partHealthAssign, "';");
+			Console::eval(partHealthAssign);
+			//Console::echo(partNameFormatted);
+			free(partHealthAssign);
+		}
+		//free(arrayIndex);
+		//Console::echo(partName);
+		//Console::echo(tostring(partHealth));
+		//Console::echo(tostring(partMaxHealth));
+		return 0;
+	}
+
+	BuiltInFunction("Nova::getRenderDevices", _getRenderDevices)
+	{
+		if (strlen(renderDevice))
+		{
+			std::string device_full = renderDevice;
+			std::size_t trim_pos = device_full.find(":");
+			std::string device = device_full.erase(trim_pos, device_full.length());//Trim off the resolution mode list
+			if (device.find("Software") != -1) { Console::setVariable("Nova::SoftwareDevice", device.c_str());}
+			if (device.find("Glide") != -1) { Console::setVariable("Nova::GlideDevice", device.c_str());}
+			if (device.find("OpenGL") != -1){Console::setVariable("Nova::OpenGLDevice", device.c_str());}
+		}
+		return "false";
+	}
+
 	struct Init 
 	{
 		Init() 
@@ -151,6 +271,12 @@ namespace Intercepts {
 
 				//Nova::guiClose();
 				guiclose.DoctorRelative((u32)guiClose, 1).Apply(true);
+
+				//ListDevices();
+				listdevices.DoctorRelative((u32)ListDevices, 1).Apply(true);
+
+				//dumpDamage Patches
+				statuspartcalc.DoctorRelative((u32)statusPartCalc, 1).Apply(true);
 
 				//Input Event Calls
 				//onsim3Dmouseevent.DoctorRelative((u32)OnSim3DMouseEvent, 1).Apply(true);

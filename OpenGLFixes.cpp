@@ -140,6 +140,24 @@ namespace OpenGLFixes
 	MultiPointer(ptrOpenGLGuiIntScale, 0, 0, 0x006425E8, 0x00651F70);
 	CodePatch BitmapCtrlLineFix = { ptrOpenGLGuiIntScale, "", "\xED\x0D\xBE\xBA", 4, false }; //Fix Simgui::BitmapCtrl line artifacts when upscaling the OpenGL renderer
 
+	//IntroGUI to MainmenuGUI crash fix for OGL Upscaler
+	MultiPointer(ptrIntroToMain, 0, 0, 0, 0x00545635);
+	MultiPointer(ptrIntroToMainResume, 0, 0, 0, 0x0054563F);
+	CodePatch introtomaincrashfix = { ptrIntroToMain, "", "\xE9ITOM", 5, false };
+	NAKED void IntroToMainCrashFix()
+	{
+		__asm {
+			test eax, eax 
+			jno __crashEscape
+			mov dword ptr [eax + 0x2F4], 0x1FBDC
+			jmp[ptrIntroToMainResume] //Jump back into the native function
+			__crashEscape:
+				pop esi
+				pop ebx
+				retn
+		}
+	}
+
 	BuiltInFunction("OpenGL::Wireframe", _oglwf)
 	{
 		if (argc != 1)
@@ -213,6 +231,7 @@ namespace OpenGLFixes
 			//wglinfowindow.Apply(true);
 			windowproperiespatch.DoctorRelative((u32)WindowPropertiesPatch, 1).Apply(true);
 			BitmapCtrlLineFix.Apply(true);
+			introtomaincrashfix.DoctorRelative((u32)IntroToMainCrashFix, 1).Apply(true);
 			//goSplash640.Apply(true);
 			//goSplash480.Apply(true);
 			//tempPatch.Apply(true);
