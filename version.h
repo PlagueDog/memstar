@@ -25,7 +25,7 @@
 
 //#define VER_SPECIAL_STR             ""
 //#define VER_PRIVATE_STR             ""
-#define VER_COMMENT_STR             "Built on 2022-11-23"
+//#define VER_COMMENT_STR             "Built on 2024-6-23"
 
 // Required Information
 #define VER_FILEVERSION             1,1,0,0
@@ -36,9 +36,9 @@
 
 #define VER_COMPANYNAME_STR         "Starsiege Players Community"
 #define VER_PRODUCTNAME_STR         "mem.dll replacement for Starsiege"
-#define VER_FILEDESCRIPTION_STR     "Modloader mem.dll"
+#define VER_FILEDESCRIPTION_STR     "Nova mem.dll"
 #define VER_INTERNALNAME_STR        "memstar.dll"
-#define VER_LEGALCOPYRIGHT_STR      "Copyright (C) 2022 Starsiege Players Community, et al."
+#define VER_LEGALCOPYRIGHT_STR      "Copyright (C) 2024 Starsiege Players Community"
 #define VER_ORIGINALFILENAME_STR    "mem.dll"
 
 #define JOIN(a, b, c, d, e, f, g) JOIN_AGAIN(a, b, c, d, e, f, g)
