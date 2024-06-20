@@ -18,6 +18,32 @@ namespace ExeFixes {
 		HWND SS_HWND = reinterpret_cast<HWND>(GAME_HWND);
 		return SS_HWND;
 	}
+	
+	//BuiltInFunction("setWindowsCompat", _getWindowsCompat)
+	//{
+		//HKEY hKey;
+		//const char* keyPath = "\"HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers\"";
+		//char progPath[MAX_PATH];
+		//std::string(progPath, GetModuleFileName(NULL, progPath, MAX_PATH));
+		//char* args;
+		//strcpy(args, "reg add ");
+		//strcat(args, keyPath);
+		//strcat(args, " /v \"");
+		//strcat(args, progPath);
+		//strcat(args, "\" /d \"WIN7RTM\"");
+
+		//open the registry with key_write access
+		//int compatLayers = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyPath, 0, KEY_WRITE, &hKey);
+		//if (ERROR_SUCCESS == compatLayers)
+		//{
+			//system("reg add \"HKEY_LOCAL_MACHINE\\\\Software\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\AppCompatFlags\\\\Layers\" /v \"C:\\Dynamix\\\\Patch-DEV\\\\Starsiege_4.exe\" /d \"~ WIN7RTM\" /f");
+			//system("reg add \"HKEY_LOCAL_MACHINE\\\\Software\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\AppCompatFlags\\\\Layers\" /v \"C:\\Dynamix\\\\Patch-DEV\\\\Starsiege_4.exe\" /d \"~ HIGHDPIAWARE\" /f");
+			//system(args);
+			//RegCloseKey(hKey);
+		//}
+		//free(args);
+		//return 0;
+	//}
 
 	MultiPointer(ptrVersionInt, 0, 0, 0x006D726C, 0);
 	//BuiltInFunction("returnTest", _retT)
@@ -540,107 +566,18 @@ namespace ExeFixes {
 	MultiPointer(ptrGuiConsoleVertRetn, 0, 0, 0x5917A2, 0x00594FBE);
 	CodePatch simguiconsolevert = { ptrGuiConsoleVert, "", "\xE9SCVT", 5, false };
 
-	//Offset formula (Resolution-height) - 640 + 170 = 1:1 vertical offset of the console
-	NAKED void SimGuiConsoleVert_720p() {
-		__asm {
-			sub eax, edx
-			add eax, 0xFFFFFF05
-			jmp[ptrGuiConsoleVertRetn]
-		}
-	}
-
-	NAKED void SimGuiConsoleVert_800p() {
-		__asm {
-			sub eax, edx
-			add eax, 0xFFFFFEB5
-			jmp[ptrGuiConsoleVertRetn]
-		}
-	}
-
-	NAKED void SimGuiConsoleVert_864p() {
-		__asm {
-			sub eax, edx
-			add eax, 0xFFFFFE75
-			jmp[ptrGuiConsoleVertRetn]
-		}
-	}
-
-	NAKED void SimGuiConsoleVert_990p() {
-		__asm {
-			sub eax, edx
-			add eax, 0xFFFFFDF7
-			jmp[ptrGuiConsoleVertRetn]
-		}
-	}
-
-	NAKED void SimGuiConsoleVert_1080p() {
-		__asm {
-			sub eax, edx
-			add eax, 0xFFFFFD9D
-			jmp[ptrGuiConsoleVertRetn]
-		}
-	}
-
-	NAKED void SimGuiConsoleVert_1200p() {
-		__asm {
-			sub eax, edx
-			add eax, 0xFFFFFD25
-			jmp[ptrGuiConsoleVertRetn]
-		}
-	}
-
-	NAKED void SimGuiConsoleVert_1440p() {
-		__asm {
-			sub eax, edx
-			add eax, 0xFFFFFC35
-			jmp[ptrGuiConsoleVertRetn]
-		}
-	}
-
-	NAKED void SimGuiConsoleVert_1536p() {
-		__asm {
-			sub eax, edx
-			add eax, 0xFFFFFBD5
-			jmp[ptrGuiConsoleVertRetn]
-		}
-	}
-
-	NAKED void SimGuiConsoleVert_1620p() {
-		__asm {
-			sub eax, edx
-			add eax, 0xFFFFFB81
-			jmp[ptrGuiConsoleVertRetn]
-		}
-	}
-
-	NAKED void SimGuiConsoleVert_1800p() {
-		__asm {
-			sub eax, edx
-			add eax, 0xFFFFFACD
-			jmp[ptrGuiConsoleVertRetn]
-		}
-	}
-
-	NAKED void SimGuiConsoleVert_2160p() {
-		__asm {
-			sub eax, edx
-			add eax, 0xFFFFF965
-			jmp[ptrGuiConsoleVertRetn]
-		}
-	}
-
+	int consoleVert = -10;
 	NAKED void SimGuiConsoleVert_Default() {
 		__asm {
 			sub eax, edx
-			add eax, 0xFFFFFFF6
+			add eax, consoleVert //-10
 			jmp[ptrGuiConsoleVertRetn]
 		}
 	}
 
-	BuiltInFunction("Console::RenderOffsetReset", _cror)
+	void consoleVertOffset(int offset)
 	{
-		simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_Default, 1).Apply(true);
-		return 0;
+		consoleVert = offset;
 	}
 
 	BuiltInFunction("Console::RenderOffset", _cro)
@@ -649,19 +586,19 @@ namespace ExeFixes {
 		Fear::getScreenDimensions(&screen);
 		//Just need the height
 		int height = screen.y;
-
-		//Reversed height lookup incase the player is using a resolution height we don't have programmed. This will position the console partially in the middle of the window instead of being cut off on the bottom.
-		if (height <= 720) { simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_720p, 1).Apply(true); return 0; }
-		if (height <= 800) { simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_800p, 1).Apply(true); return 0; }
-		if (height <= 864) { simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_864p, 1).Apply(true); return 0; }
-		if (height <= 990) { simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_990p, 1).Apply(true); return 0; }
-		if (height <= 1080) { simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_1080p, 1).Apply(true); return 0; }
-		if (height <= 1200) { simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_1200p, 1).Apply(true); return 0; }
-		if (height <= 1440) { simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_1440p, 1).Apply(true); return 0; }
-		if (height <= 1536) { simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_1536p, 1).Apply(true); return 0; }
-		if (height <= 1620) { simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_1620p, 1).Apply(true); return 0; }
-		if (height <= 1800) { simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_1800p, 1).Apply(true); return 0; }
-		if (height <= 2160) { simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_2160p, 1).Apply(true); return 0; }
+		if (argc == 0)
+		{
+			consoleVertOffset(-10);
+		}
+		else if(atoi(argv[0]) == 0)
+		{
+			consoleVertOffset((-height) + 480 - 10);
+		}
+		else
+		{
+			consoleVertOffset(atoi(argv[0]));
+		}
+		simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_Default, 1).Apply(true);
 		return 0;
 	}
 
@@ -806,26 +743,22 @@ namespace ExeFixes {
 	}
 
 	//Catch Volumetric DML render crash
-	MultiPointer(ptrVolumetRend, 0, 0, 0, 0x0062E7CA);
-	MultiPointer(ptrVolumetRendCont, 0, 0, 0, 0x0062E7D5);
+	MultiPointer(ptrVolumetRend, 0, 0, 0, 0x0062E7C1);
+	MultiPointer(ptrVolumetRendDWORD, 0, 0, 0, 0x00728570);
+	MultiPointer(ptrVolumetRendResume, 0, 0, 0, 0x0062E7CF);
 	CodePatch volumetriccrashcatcher = { ptrVolumetRend, "", "\xE9VDCR", 5, false };
 	NAKED void VolumetricCrashCatcher() {
 		__asm {
-			//test edx, edx //Test for greater than 0xF7000000
-			//cmp edx, 0xF7000000
-			//ja __fixptr
-			//lea edx, [ecx + edx * 8]
-			lea edx, [ecx + edx * 8]
-			mov ecx, [edx]
-			mov [eax + 0x20], ecx
-			mov ecx, [edx + 4]
-			jmp[ptrVolumetRendCont]
-				//__fixptr:
-				//sub edx, 0xF7000000
-				//mov ecx, [edx - 0xF7000000]
-				//mov [eax + 0x20], ecx
-				//mov ecx, [edx - 0xF7000000 + 4]
-				//jmp[ptrVolumetRendCont]
+			mov edx, [edi+4]
+			mov eax, ptrVolumetRendDWORD
+			mov edx, [eax + ecx * 8 + 4]
+			mov ecx, [ebp - 0x10]
+			mov [ecx + 0x34], edx
+			mov eax, [ebp - 0x10]
+			//xor edx, edx
+			//mov [eax + 0x38], edx
+			//or dword ptr [ebx + 0x58], 2
+			jmp [ptrVolumetRendResume]
 		}
 	}
 
@@ -844,7 +777,7 @@ namespace ExeFixes {
 	NAKED void InvalidParentPartCrashCatcher() {
 		__asm {
 			test ecx, ecx //Test for 0x00000000 (Invalid part parent for mount)
-			jno __crashEscape
+			je __crashEscape
 			mov eax, ecx
 			mov ecx, [eax]
 			jmp[ptrVehicleMountConfigButtonResume] //Jump back into the native function
@@ -853,8 +786,171 @@ namespace ExeFixes {
 		}
 	}
 
+	//Fix the invalid damage part fix
+	MultiPointer(ptrVehicleMountConfigButtonFn02, 0, 0, 0x004EA7BA, 0x004ECC4E);
+	MultiPointer(ptrVehicleMountConfigButtonResume02, 0, 0, 0x004EA7C3, 0x004ECC57);
+	CodePatch invalidpartfixfix = { ptrVehicleMountConfigButtonFn02, "", "\xE9IPC1", 5, false };
+	NAKED void InvalidPartFixFix() {
+		__asm {
+			test eax, eax //Test for 0x00000000
+			je __crashEscape
+			mov edx, [eax + 0xC]
+			mov ecx, edx
+			not ecx
+			and edi, ecx
+			jmp[ptrVehicleMountConfigButtonResume02] //Jump back into the native function
+			__crashEscape:
+			jmp[ptrVehicleMountConfigButtonResume02]
+		}
+	}
+
+	MultiPointer(ptrGuiConsoleOpen, 0, 0, 0x0059D9EA, 0x005A1206);
+	MultiPointer(ptrGuiConsoleOpenJNZ, 0, 0, 0x0059DA20, 0x005A123C);
+	MultiPointer(ptrGuiConsoleOpenRetn, 0, 0, 0x0059D9F0, 0x005A120C);
+	CodePatch guiconsoleopen = { ptrGuiConsoleOpen, "", "\xE9GCOP", 5, false };
+	static const char* s_NovaConsoleOpen = "Nova::pushConsole();";
+	NAKED void GuiConsoleOpen() {
+		__asm {
+			push eax
+			mov eax, [s_NovaConsoleOpen]
+			push eax
+			call Console::eval
+			add esp, 0x8
+			mov dl, [ebx + 0x2B]
+			cmp dl, 1
+			jnz __jnz
+			jmp[ptrGuiConsoleOpenRetn]
+			__jnz:
+			jmp [ptrGuiConsoleOpenJNZ]
+		}
+	}
+
+	BuiltInFunction("Nova::Console::onOpen", _novaconsoleonopen)
+	{
+		Vector2i screen;
+		Fear::getScreenDimensions(&screen);
+		//Just need the height
+		int height = screen.y;
+		if (argc > 1)
+		{
+			consoleVertOffset(atoi(argv[0]));
+		}
+		else
+		{
+			consoleVertOffset((-height) + 480 - atoi(argv[0]));
+		}
+		simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_Default, 1).Apply(true);
+		return 0;
+	}
+
+
+	//Waitroomgui crash fix for when players load the waitroomgui in a team based server while being on the neutral team
+	MultiPointer(ptrTeamColorSel, 0, 0, 0, 0x00693F2D);
+	MultiPointer(ptrTeamColorSelResume, 0, 0, 0, 0x00693F33);
+	MultiPointer(ptrTeamColorSelJL, 0, 0, 0, 0x00693F39);
+	CodePatch teamselectioncrashfix = { ptrTeamColorSel, "", "\xE9TSCRF", 5, false };
+	NAKED void TeamSelectionCrashFix() {
+		__asm {
+			test edx, edx //Test for 0x00000000
+			je __skipBL
+			mov bl, [edx]
+			cmp al, 0x61
+			jl __jl
+			jmp[ptrTeamColorSelResume] //Jump back into the native function
+
+			__skipBL:
+			cmp al, 0x61
+				jl __jl
+
+				__jl:
+			jmp[ptrTeamColorSelJL]
+		}
+	}
+
+	//Interior property apply crash fix for opengl (Part 1)
+	MultiPointer(ptrInteriorRender01, 0, 0, 0, 0x0061D058);
+	MultiPointer(ptrInteriorRender01Resume, 0, 0, 0, 0x0061D061);
+	CodePatch interiorcrashpatch01 = { ptrInteriorRender01, "", "\xE9ICF1", 5, false };
+	NAKED void InteriorCrashPatch01() {
+		__asm {
+			mov ecx, [edx + 0x80]
+			test ecx, ecx //Test for 0x00000000
+			jz __jz
+			mov eax, [ecx + eax * 0x4]
+			jmp[ptrInteriorRender01Resume] //Jump back into the native function
+				__jz:
+			jmp[ptrInteriorRender01Resume]
+		}
+	}
+
+	//Interior property apply crash fix for opengl (Part 2)
+	MultiPointer(ptrInteriorRender02, 0, 0, 0, 0x0061D0F1);
+	MultiPointer(ptrInteriorRender02Resume, 0, 0, 0, 0x0061D0F7);
+	CodePatch interiorcrashpatch02 = { ptrInteriorRender02, "", "\xE9ICF2", 5, false };
+	NAKED void InteriorCrashPatch02() {
+		__asm {
+			test edx, edx //Test for 0x00000000
+			jz __jz
+			mov edx, [edx + 0xC]
+			mov edx, [edx + eax * 0x4]
+			jmp[ptrInteriorRender02Resume] //Jump back into the native function
+			__jz:
+			jmp[ptrInteriorRender02Resume]
+		}
+	}
+
+	//Interior property apply crash fix for opengl (Part 3)
+	MultiPointer(ptrInteriorRender03, 0, 0, 0, 0x0061D247);
+	MultiPointer(ptrInteriorRender03Resume, 0, 0, 0, 0x0061D24D);
+	CodePatch interiorcrashpatch03 = { ptrInteriorRender03, "", "\xE9ICF3", 5, false };
+	NAKED void InteriorCrashPatch03() {
+		__asm {
+			test edx, edx //Test for 0x00000000
+			jz __jz
+			mov ecx, [edx + 0xC]
+			mov edx, [ecx + eax * 0x4]
+			jmp[ptrInteriorRender03Resume] //Jump back into the native function
+			__jz:
+			jmp[ptrInteriorRender03Resume]
+		}
+	}
+
+
+	//No computer crash fix
+	MultiPointer(ptrComputerSounds, 0, 0, 0x004763A5, 0x00477F79);
+	MultiPointer(ptrComputerSoundsResume, 0, 0, 0x004763AE, 0x00477F82);
+	MultiPointer(ptrComputerSoundsPop, 0, 0, 0x004764A6, 0x0047807D);
+	CodePatch nocomputerfix = { ptrComputerSounds, "", "\xE9NCPF", 5, false };
+	NAKED void NoComputerFix() {
+		__asm {
+			mov edx, [ebx + 0x0AFC]
+			test edx, edx //Test for 0x00000000
+			jz __jz
+			mov ecx, [edx + 0x1C]
+			jmp[ptrComputerSoundsResume] //Jump back into the native function
+			__jz:
+			jmp[ptrComputerSoundsPop]
+		}
+	}
+
+	//Loading from WaitroomGUI to WaitroomGUI crash fix
+	MultiPointer(ptrWaitroomCrash, 0, 0, 0x00540B76, 0x005430A6);
+	MultiPointer(ptrWaitroomCrashResume, 0, 0, 0x00540B7C, 0x005430AC);
+	MultiPointer(ptrWaitroomCrashPop, 0, 0, 0x00540C04, 0x00543134);
+	CodePatch waitroomtowaitroomfix = { ptrWaitroomCrash, "", "\xE9WRLC", 5, false };
+	NAKED void WaitroomToWaitroomFix() {
+		__asm {
+			mov edx, [esi + 0x19C]
+			cmp edx, 0x9
+			je __je
+			jmp[ptrWaitroomCrashResume] //Jump back into the native function
+			__je:
+			jmp[ptrWaitroomCrashPop]
+		}
+	}
 	struct Init {
 		Init() {
+			//WindowsCompatMode();
 			if (VersionSnoop::GetVersion() == VERSION::vNotGame) {
 				return;
 			}
@@ -925,8 +1021,26 @@ namespace ExeFixes {
 
 			terraincrashcatcher.DoctorRelative((u32)TerrainCrashCatcher, 1).Apply(true);
 			invalidparentpartcrashcatcher.DoctorRelative((u32)InvalidParentPartCrashCatcher, 1).Apply(true);
+			invalidpartfixfix.DoctorRelative((u32)InvalidPartFixFix, 1).Apply(true);
 			//volumetriccrashcatcher.DoctorRelative((u32)VolumetricCrashCatcher, 1).Apply(true);
 			//recordcrashcatcher.DoctorRelative((u32)RecordCrashCatcher, 1).Apply(true);
+
+			//Console open
+			guiconsoleopen.DoctorRelative((u32)GuiConsoleOpen, 1).Apply(true);
+
+			//Neutral team crash fix
+			teamselectioncrashfix.DoctorRelative((u32)TeamSelectionCrashFix, 1).Apply(true);
+
+			//Interior apply crash fix (Editor)
+			interiorcrashpatch01.DoctorRelative((u32)InteriorCrashPatch01, 1).Apply(true);
+			interiorcrashpatch02.DoctorRelative((u32)InteriorCrashPatch02, 1).Apply(true);
+			interiorcrashpatch03.DoctorRelative((u32)InteriorCrashPatch03, 1).Apply(true);
+
+			//No computer fix
+			nocomputerfix.DoctorRelative((u32)NoComputerFix, 1).Apply(true);
+
+			//Waitroomgui to waitroomgui fix
+			waitroomtowaitroomfix.DoctorRelative((u32)WaitroomToWaitroomFix, 1).Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes
