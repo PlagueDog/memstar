@@ -230,11 +230,11 @@ namespace Console {
 	void OnStarted(bool active) {
 		VariableConstructor::Process();
 		ConsoleConstructor::Process();
-		Console::echo("[mem.dll] (Modloader) Initalized Successfully");
+		Console::echo("[mem.dll] (Nova) Initalized Successfully");
 		Console::echo("---------------------------------");
 		Console::execFunction(0, "Memstar::version");
 		Console::echo("---------------------------------");
-		Console::setVariable("$pref::OpenGL::NoPackedTextures", "false");
+		Console::setVariable("$pref::OpenGL::NoPackedTextures", "true");
 	}
 
 	struct Init {
