@@ -21,6 +21,9 @@ MultiPointer(ptrConsoleEval, 0, 0, 0, 0x005E6DF0);
 MultiPointer(ptrConsoleEval2, 0, 0, 0x005E387C, 0x005E7120);
 MultiPointer(_sprintf, 0, 0, 0, 0x006CD8B4);
 
+using namespace std;
+using namespace Console;
+
 char* despace(char* input)
 {
 	int i, j;
@@ -242,13 +245,117 @@ namespace Intercepts {
 		if (strlen(renderDevice))
 		{
 			std::string device_full = renderDevice;
+			if (device_full.find("OpenGL") != -1) { Console::setVariable("Nova::OpenGL::Info", device_full.c_str()); }
 			std::size_t trim_pos = device_full.find(":");
 			std::string device = device_full.erase(trim_pos, device_full.length());//Trim off the resolution mode list
 			if (device.find("Software") != -1) { Console::setVariable("Nova::SoftwareDevice", device.c_str());}
-			if (device.find("Glide") != -1) { Console::setVariable("Nova::GlideDevice", device.c_str());}
-			if (device.find("OpenGL") != -1){Console::setVariable("Nova::OpenGLDevice", device.c_str());}
+			else if (device.find("Glide") != -1) { Console::setVariable("Nova::GlideDevice", device.c_str());}
+			else if (device.find("OpenGL") != -1){Console::setVariable("Nova::OpenGLDevice", device.c_str());}
 		}
 		return "false";
+	}
+
+
+	MultiPointer(ptrMouseMove, 0, 0, 0x005C26A3, 0x005C5EBF);
+	MultiPointer(ptrMouseMoveResume, 0, 0, 0x005C26A9, 0x005C5EC5);
+	CodePatch getcursor = { ptrMouseMove, "", "\xE9GCPS", 5, false };
+	float gamecursor_x;
+	float gamecursor_y;
+	static const char* NovaOnMouseMove = "Nova::containCursor();Nova::onCursorMove();";
+	NAKED void GetCursor() {
+		__asm {
+			mov al, [edi + 0x1F8]
+			push eax
+			mov eax, dword ptr[edi + 0x1FC]
+			//jmp[ptrFloatTOInt]
+			mov gamecursor_x, eax
+			pop eax
+
+			push eax
+			mov eax, dword ptr[edi + 0x200]
+			//jmp[ptrFloatTOInt]
+			mov gamecursor_y, eax
+			pop eax
+
+			push eax
+			mov eax, [NovaOnMouseMove]
+			push eax
+			call Console::eval
+			add esp, 0x8
+
+			jmp[ptrMouseMoveResume]
+		}
+	}
+
+	BuiltInFunction("Nova::onCursorMove", _novaoncursormove) { return 0; }
+
+	float cursorX;
+	float cursorY;
+	void setCursorCoords(float x, float y)
+	{
+		cursorX = x;
+		cursorY = y;
+	}
+
+	MultiPointer(ptrSetCursorPos, 0, 0, 0x005C2790, 0x005C5FAC);
+	MultiPointer(ptrSetCursorPosResume, 0, 0, 0x005C27A4, 0x005C5FC0);
+	CodePatch setcursorloc = { ptrSetCursorPos, "", "\xE9SCLC", 5, false };
+	NAKED void SetCursorLoc() {
+		__asm {
+			cmp cursorX, 0
+			jnz adjust_X
+			mov edx, [edi + 0x1FC]
+			mov [esp + 0x8C - 0x7C], edx
+			jmp continue_Y
+
+			adjust_X:
+				mov edx, cursorX
+				mov [esp + 0x8C - 0x7C], edx
+				mov cursorX, 0
+			    jmp continue_Y
+			continue_Y :
+				cmp cursorY, 0
+				jnz adjust_Y
+				mov ecx, [edi + 0x200]
+				mov[esp + 0x8C - 0x78], ecx
+				jmp[ptrSetCursorPosResume]
+			adjust_y:
+				mov ecx, cursorY
+				mov[esp + 0x8C - 0x78], ecx
+				mov cursorY, 0
+				jmp[ptrSetCursorPosResume]
+
+		}
+	}
+
+	BuiltInFunction("Nova::setCursorLoc", _novasetcursorloc)
+	{ 
+		if (argc == 2)
+		{
+			setCursorCoords(atof(argv[0]), atof(argv[1]));
+			setcursorloc.DoctorRelative((u32)SetCursorLoc, 1).Apply(true);
+		}
+		return 0;
+	}
+
+
+	BuiltInFunction("Nova::gameCursorPos", _novacursorposition)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( x/y );", self);
+			return 0;
+		}
+		string axis = argv[0];
+		if (axis.compare("x") == 0 || axis.compare("X") == 0)
+		{
+			return tostring(gamecursor_x);
+		}
+		else if (axis.compare("y") == 0 || axis.compare("Y") == 0)
+		{
+			return tostring(gamecursor_y);
+		}
+		return 0;
 	}
 
 	struct Init 
@@ -280,6 +387,7 @@ namespace Intercepts {
 
 				//Input Event Calls
 				//onsim3Dmouseevent.DoctorRelative((u32)OnSim3DMouseEvent, 1).Apply(true);
+				getcursor.DoctorRelative((u32)GetCursor, 1).Apply(true);
 			}
 
 		}

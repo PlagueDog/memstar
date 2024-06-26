@@ -1196,6 +1196,22 @@ namespace ModloaderMain {
 		return 0;
 	}
 
+	MultiPointer(ptrCampaignInit, 0, 0, 0x00557F37, 0x0055AD73);
+	MultiPointer(ptrCampaignResume, 0, 0, 0x00557F4C, 0x0055AD88);
+	CodePatch campaigninit = { ptrCampaignInit, "", "\xE9_CPI", 5, false };
+	static const char* modloader_append_pilots = "exec($temp);modloader::appendPilotData();";
+	NAKED void CampaignInit() {
+		__asm {
+			push eax
+			mov eax, [modloader_append_pilots]
+			push eax
+			call Console::eval
+			add esp, 0x8
+			//pop eax
+			jmp[ptrCampaignResume]
+		}
+	}
+
 	struct Init {
 		Init() {
 			//Internal
@@ -1302,6 +1318,9 @@ namespace ModloaderMain {
 			CreateDirectory(".\\mods\\session", NULL);
 			CreateDirectory(".\\temp", NULL);
 			//CreateDirectory(".\\tdata", NULL);
+
+			//Modloader: Append pilot data to campaign
+			campaigninit.DoctorRelative((u32)CampaignInit, 1).Apply(true);
 		}
 	} init;
 	}

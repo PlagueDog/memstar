@@ -15,6 +15,7 @@ using namespace conversionFunctions;
 
 namespace ExtendedVariables
 {
+	MultiPointer(ptrFloatTOInt, 0, 0, 0, 0x00693F08);
 	//Big endian to little endian
 	string _BEtoLE(string& str)
 	{

@@ -934,17 +934,20 @@ namespace ExeFixes {
 	}
 
 	//Loading from WaitroomGUI to WaitroomGUI crash fix
-	MultiPointer(ptrWaitroomCrash, 0, 0, 0x00540B76, 0x005430A6);
-	MultiPointer(ptrWaitroomCrashResume, 0, 0, 0x00540B7C, 0x005430AC);
+	MultiPointer(ptrWaitroomCrash, 0, 0, 0x00540BA1, 0x005430D1);
+	MultiPointer(ptrWaitroomCrashResume, 0, 0, 0x00540BA9, 0x005430D9);
 	MultiPointer(ptrWaitroomCrashPop, 0, 0, 0x00540C04, 0x00543134);
 	CodePatch waitroomtowaitroomfix = { ptrWaitroomCrash, "", "\xE9WRLC", 5, false };
 	NAKED void WaitroomToWaitroomFix() {
 		__asm {
-			mov edx, [esi + 0x19C]
-			cmp edx, 0x9
-			je __je
+			mov edx, [eax]
+			test edx, edx
+			jz __jz
+			cmp [edx + 0x100], 0x70FE54
+			je __jz
+			call dword ptr [edx + 0x100]
 			jmp[ptrWaitroomCrashResume] //Jump back into the native function
-			__je:
+			__jz:
 			jmp[ptrWaitroomCrashPop]
 		}
 	}
@@ -1040,7 +1043,7 @@ namespace ExeFixes {
 			nocomputerfix.DoctorRelative((u32)NoComputerFix, 1).Apply(true);
 
 			//Waitroomgui to waitroomgui fix
-			waitroomtowaitroomfix.DoctorRelative((u32)WaitroomToWaitroomFix, 1).Apply(true);
+			//waitroomtowaitroomfix.DoctorRelative((u32)WaitroomToWaitroomFix, 1).Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes
