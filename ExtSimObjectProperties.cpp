@@ -74,28 +74,30 @@ namespace ExtendedVariables
 	//	return 0;
 	//}
 
-	MultiPointer(ptrgetenergy, 0, 0, 0, 0x0051B127);
-	MultiPointer(ptrEnergyResume, 0, 0, 0, 0x0051B12E);
+	MultiPointer(ptrgetenergy, 0, 0, 0, 0x0051B07B);
+	MultiPointer(ptrEnergyResume, 0, 0, 0, 0x0051B084);
 	CodePatch codepatch_getenergy = { ptrgetenergy, "", "\xE9GENG", 5, false };
-	int *energyValue;
+	float energyValue;
 	NAKED void getEnergy() {
 		__asm {
-			lea edx, [ebp - 0x130 ]
-			push edx
-			mov dword ptr energyValue, edx
+			push eax
+			mov eax, [ebp + 0x8]
+			mov energyValue, eax
+			pop eax
+			fmul [ebp + 0x8]
+			fstp [ebp + 0x8]
+			fld [ebp + 0x8]
 			jmp [ptrEnergyResume]
 		}
 	}
 
 	//WORK IN PROGRESS (I WANT TO SCREAM)
-	MultiPointer(ptrEnergy, 0, 0, 0, 0x00750EF0);
+	//MultiPointer(ptrEnergy, 0, 0, 0, 0x00750EF0);
 	BuiltInFunction("getEnergy", _getEnergy)
 	{
-	//int ptr1_data = *reinterpret_cast<int*>(&energyValue_hex);
-	//char* ptr1_string = reinterpret_cast<char*>(*&energyValue_hex);
 		if (energyValue)
 		{
-			echo("%s", energyValue);
+			echo("%f", energyValue);
 			return 0;
 		}
 		return 0;

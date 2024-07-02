@@ -109,13 +109,15 @@ namespace Terrain {
 	//	false
 	//};
 
-	MultiPointer(ptr_patchMipDetail, 0, 0, 0, 0x006020F8);
-	CodePatch terrainTileMipDetail = { ptr_patchMipDetail, "", "\x00\x00\x81\x3F", 4, false };
-	MultiPointer(ptr_patchFlatPaneMipDetail, 0, 0, 0, 0x00601AAE);
-	CodePatch terrainFlatPaneMipDetail = { ptr_patchFlatPaneMipDetail, "", "\xCD\xCC\xCC\x3D", 4, false };
-	MultiPointer(ptr_patchTerrainMaxTileRend, 0, 0, 0, 0x006031C4);
-	CodePatch terrainMaxTileRender = { ptr_patchTerrainMaxTileRend, "", "\x00\x00\x00\x44", 4, false };
 
+	//DEPRECATED
+	//MultiPointer(ptr_patchMipDetail, 0, 0, 0, 0x006020F8);
+	//CodePatch terrainTileMipDetail = { ptr_patchMipDetail, "", "\x00\x00\x81\x3F", 4, false };
+	//MultiPointer(ptr_patchFlatPaneMipDetail, 0, 0, 0, 0x00601AAE);
+	//CodePatch terrainFlatPaneMipDetail = { ptr_patchFlatPaneMipDetail, "", "\xCD\xCC\xCC\x3D", 4, false };
+	//MultiPointer(ptr_patchTerrainMaxTileRend, 0, 0, 0, 0x006031C4);
+	//CodePatch terrainMaxTileRender = { ptr_patchTerrainMaxTileRend, "", "\x00\x00\x00\x44", 4, false };
+	//
 	MultiPointer(ptr_patchForceTerrainRecache, 0, 0, 0, 0x006037D3);
 	CodePatch patchForceTerrainRecache = {
 		ptr_patchForceTerrainRecache,
@@ -124,7 +126,7 @@ namespace Terrain {
 		6,
 		false
 	};
-
+	
 	MultiPointer(ptr_patchLeaveTerrainRenderLevelNonZero, 0, 0, 0, 0x006039BF);
 	CodePatch patchLeaveTerrainRenderLevelNonZero = {
 		ptr_patchLeaveTerrainRenderLevelNonZero,
@@ -133,7 +135,7 @@ namespace Terrain {
 		5,
 		false
 	};
-
+	
 	MultiPointer(ptr_patchLeaveTerrainRenderLevelNonZeroLoop, 0, 0, 0, 0x00603829);
 	CodePatch patchLeaveTerrainRenderLevelNonZeroLoop = {
 		ptr_patchLeaveTerrainRenderLevelNonZeroLoop,
@@ -142,7 +144,7 @@ namespace Terrain {
 		5,
 		false
 	};
-
+	
 	MultiPointer(ptr_patchTerrainRenderLevelZeroLoop, 0, 0, 0, 0x006032E2);
 	CodePatch patchTerrainRenderLevelZeroLoop = {
 		ptr_patchTerrainRenderLevelZeroLoop,
@@ -151,6 +153,10 @@ namespace Terrain {
 		5,
 		false
 	};
+	MultiPointer(ptr_TerrainRenderOGLCheck, 0, 0, 0, 0x00583C05);
+	CodePatch patchOGL_to_Software_terrain_render = { ptr_TerrainRenderOGLCheck,"","\xEB",1,false };
+	MultiPointer(ptr_SoftwareTerrainGridRender, 0, 0, 0, 0x005F79E5);
+	CodePatch patchOGL_to_Software_grid_render = { ptr_SoftwareTerrainGridRender,"","\x0F\x85",2,false};
 
 	struct TerrainBlock {
 	};
@@ -178,7 +184,7 @@ namespace Terrain {
 	void forceTerrainRefresh() {
 		patchForceTerrainRecache.Apply(true);
 	}
-
+	
 	void revertTerrainRefresh() {
 		patchForceTerrainRecache.Apply(false);
 	}
@@ -668,19 +674,23 @@ namespace Terrain {
 	void Open() {
 		Callback::attach(Callback::OnOpenGL, OnOpenGL);
 
+
+		patchOGL_to_Software_terrain_render.Apply(true);
+		patchOGL_to_Software_grid_render.Apply(true);
+		//DEPRECATED
 		//patchMipBlt.DoctorRelative((u32)OnMipBlt, 1).Apply(true);
-		patchCreateFileFromGridFile.DoctorRelative((u32)OnCreateFileFromGridFile, 1).Apply(true);
+		//patchCreateFileFromGridFile.DoctorRelative((u32)OnCreateFileFromGridFile, 1).Apply(true);
 
 		//Mipmap fix
-		terrainTileMipDetail.Apply(true);
-		terrainFlatPaneMipDetail.Apply(true);
-		terrainMaxTileRender.Apply(true);
+		//terrainTileMipDetail.Apply(true);
+		//terrainFlatPaneMipDetail.Apply(true);
+		//terrainMaxTileRender.Apply(true);
 
 		//patchSubdivideTest.DoctorRelative((u32)OnSubdivideTest, 1).Apply(true);
-		//patchLeaveTerrainRenderLevelNonZero.DoctorRelative((u32)OnLeaveTerrainRenderLevelNonZero, 1).Apply(true);
-		//patchLeaveTerrainRenderLevelNonZeroLoop.DoctorRelative((u32)OnTerrainRenderLevelNonZeroLoop, 1).Apply(true);
+		patchLeaveTerrainRenderLevelNonZero.DoctorRelative((u32)OnLeaveTerrainRenderLevelNonZero, 1).Apply(true);
+		patchLeaveTerrainRenderLevelNonZeroLoop.DoctorRelative((u32)OnTerrainRenderLevelNonZeroLoop, 1).Apply(true);
 		patchTerrainRenderLevelZeroLoop.DoctorRelative((u32)OnRenderLevelZeroLoop, 1).Apply(true);
-		//fnFlushTextureCache = Patch::ReplaceHook((void*)ptr_OPENGL_FLUSH_TEXTURE_CACHE_VFT, OnFlushTextureCache);
+		fnFlushTextureCache = Patch::ReplaceHook((void*)ptr_OPENGL_FLUSH_TEXTURE_CACHE_VFT, OnFlushTextureCache);
 
 		Reset();
 	}

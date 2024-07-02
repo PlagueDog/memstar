@@ -158,6 +158,10 @@ namespace OpenGLFixes
 		}
 	}
 
+	//Use the software interior surface rendering instead of the OpenGL interior surface rendering
+	MultiPointer(ptrSoftwareInteriorRendering, 0, 0, 0, 0x0061C3C3);
+	CodePatch interiorsurfacerendering = { ptrSoftwareInteriorRendering, "", "\x74", 1, false };
+
 	BuiltInFunction("OpenGL::Wireframe", _oglwf)
 	{
 		if (argc != 1)
@@ -230,11 +234,12 @@ namespace OpenGLFixes
 			//WndInsertAfter0.Apply(true);
 			//wglinfowindow.Apply(true);
 			windowproperiespatch.DoctorRelative((u32)WindowPropertiesPatch, 1).Apply(true);
-			BitmapCtrlLineFix.Apply(true);
+			//BitmapCtrlLineFix.Apply(true);
 			introtomaincrashfix.DoctorRelative((u32)IntroToMainCrashFix, 1).Apply(true);
 			//goSplash640.Apply(true);
 			//goSplash480.Apply(true);
 			//tempPatch.Apply(true);
+			interiorsurfacerendering.Apply(true);
 		}
 	} init;
 };
