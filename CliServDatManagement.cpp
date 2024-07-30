@@ -33,9 +33,192 @@ bool isFile(const char* file)
 	return false;
 }
 
+//static const char* dirCustomVehicles = "vehicles\\*.veh";
+//static const char* dirStandardVehicles_S = "vehicles\\%s.fvh";
+//static const char* dirStandardVehicles = "vehicles\\*.fvh";
+//static const char* dirVehicleSaves = "vehicles\\%s";
+//static const char* dirVehicleDeletes = "vehicles\\%s.veh";
+//char* dirCustomVehicles;
+//char* dirStandardVehicles;
+//char* dirVehicleSaves;
+//char* dirVehicleDeletes;
+
 namespace clientDataHandler {
 
-	BuiltInFunction("setVehicleDir", _svd) {
+	//Path + %s.fvh
+	MultiPointer(ptrStandardVehicleFileLookup,	0, 0, 0x004A6A58, 0x004A8D74);
+	MultiPointer(ptrStandardVehicleFileLookupResume, 0, 0, 0x004A6A5E, 0x004A8D7A);
+	//CodePatch standardvehiclefilelookup = { ptrStandardVehicleFileLookup, "", "\xE9SVFL", 5, false };
+	//NAKED void StandardVehicleFileLookup() {
+	//	__asm {
+	//		push ebx
+	//		push dirStandardVehicles_S
+	//		jmp [ptrStandardVehicleFileLookupResume]
+	//	}
+	//}
+
+	//Path + *.veh/fvh
+	MultiPointer(ptrVehicleExtensionDirSwitchCase, 0, 0, 0x004F2CA4, 0x004F513C);
+	MultiPointer(ptrVehicleExtensionDirCaseResume, 0, 0, 0x004F2CB7, 0x004F514F);
+	//CodePatch vehicleextensiondirswitchcase = { ptrStandardVehicleFileLookup, "", "\xE9VEDS", 5, false };
+	//NAKED void VehicleExtensionDirSwitchCase() {
+	//	__asm {
+	//		mov dl, [esp + 0x270 - 0x270]
+	//		test dl, dl
+	//		jz __jz
+	//		mov ebp, dirCustomVehicles
+	//		jmp [ptrVehicleExtensionDirCaseResume]
+	//		__jz:
+	//			mov ebp, dirStandardVehicles
+	//	}
+	//}
+
+	MultiPointer(ptrVehicleSaveDir01, 0, 0, 0x00559411, 0x0055C24D);
+	MultiPointer(ptrVehicleSaveDirResume01, 0, 0, 0x00559417, 0x0055C253);
+	//CodePatch vehiclesavedir01 = { ptrVehicleSaveDir01, "", "\xE9VSD1", 5, false };
+	//NAKED void VehicleSaveDir01() {
+	//	__asm {
+	//		push edi
+	//		push dirVehicleSaves
+	//		jmp[ptrVehicleSaveDirResume01]
+	//	}
+	//}
+
+	MultiPointer(ptrVehicleSaveDir02, 0, 0, 0x0046937C, 0x0046ADA0);
+	MultiPointer(ptrVehicleSaveDirResume02, 0, 0, 0x00469382, 0x0046ADA6);
+	//CodePatch vehiclesavedir02 = { ptrVehicleSaveDir02, "", "\xE9VSD2", 5, false };
+	//NAKED void VehicleSaveDir02() {
+	//	__asm {
+	//		push edi
+	//		push dirVehicleSaves
+	//		jmp[ptrVehicleSaveDirResume02]
+	//	}
+	//}
+
+	MultiPointer(ptrVehicleSaveDir03, 0, 0, 0x004F1434, 0x004F38CC);
+	MultiPointer(ptrVehicleSaveDirResume03, 0, 0, 0x004F143A, 0x004F38D2);
+	CodePatch vehiclesavedir03 = { ptrVehicleSaveDir03, "", "\xE9VSD3", 5, false };
+	//NAKED void VehicleSaveDir03() {
+	//	__asm {
+	//		push eax
+	//		push dirVehicleSaves
+	//		jmp[ptrVehicleSaveDirResume03]
+	//	}
+	//}
+
+	MultiPointer(ptrVehicleDeleteDir, 0, 0, 0x004F2F96, 0x004F542E);
+	CodePatch vehicledeletedir = { ptrVehicleDeleteDir, "", "\xE9VDDR", 5, false };
+	//NAKED void VehicleDeleteDir() {
+	//	__asm {
+	//		push eax
+	//		push dirVehicleDeletes
+	//		jmp[ptrVehicleDeleteDir]
+	//	}
+	//}
+
+	//void setCustomVehicleDir(char* vehicles, char* saves, char* deletes)
+	//{
+	//	dirCustomVehicles = vehicles;
+	//	vehicleextensiondirswitchcase.DoctorRelative((u32)VehicleExtensionDirSwitchCase, 1).Apply(true);
+	//
+	//	dirVehicleSaves = saves;
+	//	vehiclesavedir01.DoctorRelative((u32)VehicleSaveDir01, 1).Apply(true);
+	//	vehiclesavedir02.DoctorRelative((u32)VehicleSaveDir02, 1).Apply(true);
+	//	vehiclesavedir03.DoctorRelative((u32)VehicleSaveDir03, 1).Apply(true);
+	//
+	//	dirVehicleDeletes = deletes;
+	//	vehicledeletedir.DoctorRelative((u32)VehicleDeleteDir, 1).Apply(true);
+	//}
+
+	//void setStandardVehicleDir(char* vehicles_S, char* vehicles)
+	//{
+	//	dirStandardVehicles_S = vehicles_S;
+	//	dirStandardVehicles = vehicles;
+	//	vehicleextensiondirswitchcase.DoctorRelative((u32)VehicleExtensionDirSwitchCase, 1).Apply(true);
+	//	standardvehiclefilelookup.DoctorRelative((u32)StandardVehicleFileLookup, 1).Apply(true);
+	//}
+
+	//BuiltInFunction("setCustomVehicleDir", _ssvd) {
+	//	if (argc != 1 || !strlen(argv[0]))
+	//	{
+	//		Console::echo("%s( dir );", self);
+	//		return 0;
+	//	}
+	//	string path = argv[0];
+	//	string ext = path.substr(path.size() - 4, path.size());
+	//	if (path.find(":") != -1 || path.find("..") != -1)
+	//	{
+	//		Console::echo("Cannot set a vehicle directory outside of the Starsiege directory.");
+	//		return "false";
+	//	}
+	//	char dir_vehicles[MAX_PATH];
+	//	char dir_saves[MAX_PATH];
+	//	char dir_deletes[MAX_PATH];
+	//	strcpy(dir_vehicles, argv[0]);
+	//	strcpy(dir_saves, argv[0]);
+	//	strcpy(dir_deletes, argv[0]);
+	//	strcat(dir_vehicles, "\\*.veh");
+	//	strcat(dir_saves, "\\%s");
+	//	strcat(dir_deletes, "\\%s.veh");
+	//	Console::echo("Custom vehicles directory set to \"%s\"", dir_vehicles);
+	//	Console::echo("Save directory set to \"%s\"", dir_saves);
+	//	Console::echo("Delete directory set to \"%s\"", dir_deletes);
+	//	setCustomVehicleDir(dir_vehicles, dir_saves, dir_deletes);
+	//	free(dir_vehicles);
+	//	free(dir_saves);
+	//	free(dir_deletes);
+	//	return "true";
+	//}
+
+	//BuiltInFunction("setStandardVehicleDir", _setstandardvehicledir) {
+	//	if (argc != 1 || !strlen(argv[0]))
+	//	{
+	//		Console::echo("%s( dir );", self);
+	//		return 0;
+	//	}
+	//	char dir_vehicles[MAX_PATH];
+	//	char dir_vehicles_S[MAX_PATH];
+	//	strcpy(dir_vehicles, argv[0]);
+	//	strcat(dir_vehicles, "\\*.fvh");
+	//	strcpy(dir_vehicles_S, argv[0]);
+	//	strcat(dir_vehicles_S, "\\%s.fvh");
+	//	setStandardVehicleDir(dir_vehicles_S, dir_vehicles);
+	//	free(dir_vehicles_S);
+	//	free(dir_vehicles);
+	//	return "true";
+	//}
+
+	MultiPointer(ptrGetVehicleName, 0, 0, 0, 0x004F500C);
+	MultiPointer(ptrGetVehicleNameResume, 0, 0, 0, 0x004F5012);
+	CodePatch grabdepotvehiclename = { ptrGetVehicleName, "", "\xE9GVNM", 5, false };
+	static const char* callgetdepotvehicle = "getDepotVehicle();";
+	char* vehicleName_;
+	NAKED void GrabDepotVehicleName() {
+		__asm {
+			push ebx
+			push esi
+			push edi
+			mov esi, edx
+			push esi
+			jmp [ptrGetVehicleNameResume]
+		}
+	}
+
+	//BuiltInFunction("getDepotVehicle", _getdepotvehicle)
+	//{
+	//	char vehiclename[127];
+	//	strcpy(vehiclename, "$Nova::depotVehicle = \"");
+	//	strcat(vehiclename, vehicleName_);
+	//	strcat(vehiclename, "\";");
+	//	Console::echo(vehicleName_);
+	//	Console::echo(vehiclename);
+	//	Console::eval(vehiclename);
+	//	free(vehiclename);
+	//	return 0;
+	//}
+
+	BuiltInFunction("setVehicleDir", _svd)
+	{
 		if (argc != 1 || !strlen(argv[0]))
 		{
 			Console::echo("%s( dir );", self);
@@ -52,8 +235,6 @@ namespace clientDataHandler {
 		char pathExt[MAX_PATH];
 		char pathExt2[MAX_PATH];
 		char pathExt3[MAX_PATH];
-		//strcpy(pathExt, "mods\\cache\\");
-		//strcat(pathExt, argv[0]);
 		strcpy(pathExt, argv[0]);
 		Console::setVariable("zzmodloader::VehicleDir", pathExt);
 		strcpy(pathExt2, pathExt);
@@ -63,41 +244,36 @@ namespace clientDataHandler {
 		strcat(pathExt3, "\\%s.veh");
 
 		int byteLength = strlen(pathExt) + 1;
-		//int byteLength2 = strlen(pathExt2) + 1;
 		int byteLength3 = strlen("mods\\session\\%s.fvh") + 1;
 		int byteLength4 = strlen("mods\\session\\*.fvh") + 1;
-		//int byteLength5 = strlen(pathExt3) + 1;
 
 		if (VersionSnoop::GetVersion() == VERSION::v001004)
 		{
 			//New factory vehicle lookup dir path
 			CodePatch genericCodePatch5 = { 0x006D79B2,"","mods\\session\\%s.fvh",byteLength3,false }; genericCodePatch5.Apply(true);
 			CodePatch genericCodePatch7 = { 0x004A8D75,"","\x68\xB2\x79\x6D",4,false }; genericCodePatch7.Apply(true);
-
-			//New factory vehicle lookup dir path PTR ("vehicles\\%s.fvh")
-			//CodePatch genericCodePatch7 = { 0x0055B5A0,"","\xC7\x44\x24\x08\xB2\x79\x6D",7,false }; genericCodePatch7.Apply(true);
-
+			
 			//vehicles\\*.fvh
 			CodePatch genericCodePatch4 = { 0x006D79EE,"","mods\\session\\*.fvh",byteLength4,false }; genericCodePatch4.Apply(true);
 			CodePatch genericCodePatch8 = { 0x004F514A,"","\xBD\xEE\x79\x6D",4,false }; genericCodePatch8.Apply(true);
-
+			
 			//New vehicle lookup dir path
 			CodePatch genericCodePatch0 = { 0x006D7900,"",pathExt,byteLength,false }; genericCodePatch0.Apply(true);
-
+			
 			//New vehicle lookup dir path PTR ("vehicles\\*.veh")
 			CodePatch genericCodePatch1 = { 0x004F5143,"","\xBD\x00\x79\x6D",4,false }; genericCodePatch1.Apply(true);
-
+			
 			//new vehicle save dir path
 			CodePatch genericCodePatch2 = { 0x006D793A,"",pathExt2,byteLength+4,false }; genericCodePatch2.Apply(true);
-
+			
 			//new vehicle save dir path PTR ("vehicles\\%s")
 			CodePatch genericCodePatch1a = { 0x0055C24E,"","\x68\x3A\x79\x6D",4,false }; genericCodePatch1a.Apply(true);
 			CodePatch genericCodePatch1b = { 0x0046ADA1,"","\x68\x3A\x79\x6D",4,false }; genericCodePatch1b.Apply(true);
 			CodePatch genericCodePatch3 = { 0x004F38CD,"","\x68\x3A\x79\x6D",4,false }; genericCodePatch3.Apply(true);
-
+			
 			//New vehicle delete dir path
 			CodePatch genericCodePatch9 = { 0x006D7976,"",pathExt3,byteLength+7,false }; genericCodePatch9.Apply(true);
-
+			
 			//New vehicle delete dir path PTR ("vehicles\\%s.veh")
 			CodePatch genericCodePatch1c = { 0x004F542F,"","\x68\x76\x79\x6D",4,false }; genericCodePatch1c.Apply(true);
 		}
@@ -106,31 +282,28 @@ namespace clientDataHandler {
 			//New factory vehicle lookup dir path
 			CodePatch genericCodePatch5 = { 0x006C788F,"","mods\\session\\%s.fvh",byteLength3,false }; genericCodePatch5.Apply(true);
 			CodePatch genericCodePatch7 = { 0x004A6A59,"","\x68\x8F\x78\x6C",4,false }; genericCodePatch7.Apply(true);
-
-			//New factory vehicle lookup dir path PTR ("vehicles\\%s.fvh")
-			//CodePatch genericCodePatch7 = { 0x0055B5A0,"","\xC7\x44\x24\x08\xB2\x79\x6D",7,false }; genericCodePatch7.Apply(true);
-
+			
 			//vehicles\\*.fvh
 			CodePatch genericCodePatch4 = { 0x006C78F3,"","mods\\session\\*.fvh",byteLength4,false }; genericCodePatch4.Apply(true);
 			CodePatch genericCodePatch8 = { 0x004F2CB2,"","\xBD\xF3\x78\x6C",4,false }; genericCodePatch8.Apply(true);
-
+			
 			//New vehicle lookup dir path
 			CodePatch genericCodePatch0 = { 0x006C7957,"",pathExt,byteLength,false }; genericCodePatch0.Apply(true);
-
+			
 			//New vehicle lookup dir path PTR ("vehicles\\*.veh")
 			CodePatch genericCodePatch1 = { 0x004F2CAB,"","\xBD\x57\x79\x6C",4,false }; genericCodePatch1.Apply(true);
-
+			
 			//new vehicle save dir path
 			CodePatch genericCodePatch2 = { 0x006C79BB,"",pathExt2,byteLength+4,false }; genericCodePatch2.Apply(true);
-
+			
 			//new vehicle save dir path PTR ("vehicles\\%s")
 			CodePatch genericCodePatch1a = { 0x00559412,"","\x68\xBB\x79\x6C",4,false }; genericCodePatch1a.Apply(true);
 			CodePatch genericCodePatch1b = { 0x0046937D,"","\x68\xBB\x79\x6C",4,false }; genericCodePatch1b.Apply(true);
 			CodePatch genericCodePatch3 = { 0x004F1435,"","\x68\xBB\x79\x6C",4,false }; genericCodePatch3.Apply(true);
-
+			
 			//New vehicle delete dir path
 			CodePatch genericCodePatch9 = { 0x006C7A1F,"",pathExt3,byteLength+7,false }; genericCodePatch9.Apply(true);
-
+			
 			//New vehicle delete dir path PTR ("vehicles\\%s.veh")
 			CodePatch genericCodePatch1c = { 0x004F2F97,"","\x68\x1F\x7A\x6C",4,false }; genericCodePatch1c.Apply(true);
 		}
@@ -445,7 +618,11 @@ namespace clientDataHandler {
 		return "true";
 	}
 
-
+	struct Init {
+	Init() {
+		//grabdepotvehiclename.DoctorRelative((u32)GrabDepotVehicleName, 1).Apply(true);
+		}
+	} init;
 }
 
 namespace serverDataHandler {
@@ -635,9 +812,4 @@ namespace serverDataHandler {
 		}
 		return "false";
 	}
-
-	//struct Init {
-	//	Init() {
-	//	}
-	//} init;
 }

@@ -11,6 +11,10 @@
 
 namespace ExeFixes {
 
+	//Unknown crash patches
+	MultiPointer(ptr_unkCrash01, 0, 0, 0x00624F01, 0x00633E41); //This one seems related to the hud scaling
+	CodePatch unkCrashPatch01 = { ptr_unkCrash01,"","\x72",1,false };
+
 	HWND getHWND() {
 		MultiPointer(ptrHWND, 0, 0, 0x00705C5C, 0x007160CC);
 		uintptr_t HWND_PTR = ptrHWND;
@@ -273,7 +277,9 @@ namespace ExeFixes {
 	NAKED void VolumetricFix() {
 		__asm {
 			lea edx, [ecx + edx * 0x8]
-			cmp byte ptr[edx], 0xF4D8A358
+			test esi, 0x2
+			je __errBypass
+			test esi, 0x3
 			je __errBypass
 			mov ecx, [edx]
 			mov[eax + 0x20], ecx
@@ -988,7 +994,7 @@ namespace ExeFixes {
 			mapviewObjectLatency.Apply(true);
 			mapviewInterfaceLatency.Apply(true);
 
-			OpenGLBitDepth.Apply(true);
+			//OpenGLBitDepth.Apply(true);
 			OpenGLWidthMin.Apply(true);
 			OpenGLWidthMax.Apply(true);
 			OpenGLHeightMin.Apply(true);
@@ -1020,7 +1026,7 @@ namespace ExeFixes {
 			//dinput8fix.Apply(true);
 
 			//Window Patches
-			windowstyle.DoctorRelative((u32)WindowStyle, 1).Apply(true);
+			//windowstyle.DoctorRelative((u32)WindowStyle, 1).Apply(true);
 
 			terraincrashcatcher.DoctorRelative((u32)TerrainCrashCatcher, 1).Apply(true);
 			invalidparentpartcrashcatcher.DoctorRelative((u32)InvalidParentPartCrashCatcher, 1).Apply(true);
@@ -1044,6 +1050,9 @@ namespace ExeFixes {
 
 			//Waitroomgui to waitroomgui fix
 			//waitroomtowaitroomfix.DoctorRelative((u32)WaitroomToWaitroomFix, 1).Apply(true);
+
+			//Patches for crashes I don't know what actual are the cause
+			unkCrashPatch01.Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes

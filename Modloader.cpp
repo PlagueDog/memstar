@@ -214,7 +214,7 @@ namespace ModloaderMain {
 		//	Console::echo("%s ( width/height, int);");
 		//	return 0;
 		//}
-		string buffer = hexToASCII(int2hex(atoi(argv[1]),1));
+		string buffer = hexToASCII2(int2hex(atoi(argv[1]),1));
 		char* result = const_cast<char*>(buffer.c_str());
 		if (type.compare("width") == 0)
 		{
@@ -228,6 +228,31 @@ namespace ModloaderMain {
 		//Console::echo(int2hex(atoi(argv[1]), 1));
 		return 0;
 	}
+
+	//MultiPointer(ptrSetSplash, 0, 0, 0, 0x0064B503);
+	//MultiPointer(ptrSetSplashResume, 0, 0, 0, 0x0064B512);
+	//CodePatch setsplashres = { ptrSetSplash, "", "\xE9SSPR", 5, false };
+	//int fullscreenWidth = 480;
+	//int fullscreenHeight = 640;
+	//NAKED void setSplashRes() {
+	//	__asm {
+	//		push edx
+	//		mov edx, fullscreenWidth
+	//		mov dword ptr[eax], edx
+	//		xor ecx, ecx
+	//		push edx
+	//		mov edx, fullscreenHeight
+	//		mov dword ptr[eax + 4], edx
+	//		pop edx
+	//		jmp[ptrSetSplashResume]
+	//	}
+	//}
+	//
+	//BuiltInFunction("setSplashRes", _setslpashres)
+	//{
+	//	setsplashres.DoctorRelative((u32)setSplashRes, 1).Apply(true);
+	//	return 0;
+	//}
 
 	BuiltInFunction("allowCloakWhenNoEnergy", _acwne) {
 		MultiPointer(ptrCloakEnergyCheck, 0, 0, 0x00410AB3, 0x004115EB);
@@ -435,13 +460,13 @@ namespace ModloaderMain {
 	}
 
 	//Render Height = -1.0 @ 480
-	MultiPointer(ptrOpenGLRenderHeight, 0, 0, 0, 0x0064C954);
+	MultiPointer(ptrOpenGLRenderHeight, 0, 0, 0x0063D9FC, 0x0064C954);
 
 	//Render Width = 1.0 @ 640
-	MultiPointer(ptrOpenGLRenderWidth, 0, 0, 0, 0x0064C959);
+	MultiPointer(ptrOpenGLRenderWidth, 0, 0, 0x0063DA01, 0x0064C959);
 
 	//Render Vertical Offset = -1.0 @ 640
-	MultiPointer(ptrOpenGLRenderVert, 0, 0, 0, 0x0064C900);
+	MultiPointer(ptrOpenGLRenderVert, 0, 0, 0x0063D9A8, 0x0064C900);
 
 	MultiPointer(ptrOGLshift, 0, 0, 0x0063D9AD, 0x0064C905);
 	BuiltInFunction("OpenGL::shiftGUI", _oglshgui) {
@@ -456,9 +481,83 @@ namespace ModloaderMain {
 		CodePatch genericCodePatch = { ptrOGLshift,"",hex2char_c,4,false }; genericCodePatch.Apply(true);
 		return "true";
 	}
-
-
 	MultiPointer(ptrOGLoffset, 0, 0, 0x0063DAFC, 0x0064CA54);
+
+	int canvasWidth = 640;
+	int canvasHeight = 480;
+	void getCanvasDimensions()
+	{
+		Vector2i canvas;
+		Fear::getScreenDimensions(&canvas);
+		canvasWidth = canvas.x;
+		canvasHeight = canvas.y;
+		//Console::echo("%d %d", canvasWidth, canvasHeight);
+	}
+	MultiPointer(ptrSimGUIBitmapCtrl_TexScale, 0, 0, 0x005CF0EE, 0x005D2992);
+	MultiPointer(ptrSimGUIBitmapCtrl_TexScaleResume, 0, 0, 0x005CF0FA, 0x005D299E);
+	CodePatch guibitmapctrl_tile = { ptrSimGUIBitmapCtrl_TexScale, "", "\xE9SGTS", 5, false };
+	NAKED void GuiBitmapCTRL_Tile() {
+		__asm {
+			add ecx, [ebx + 0x1A4]
+			cmp canvasWidth, ecx //Check BitmapCtrl WIDTH gainst canvas width
+			je __canvasWidthMatches
+			jmp __standardRoutine
+
+			__canvasWidthMatches:
+				mov ecx, 0
+				add esi, [ebx + 0x1A8]
+				cmp canvasHeight, esi //Check BitmapCtrl HEIGHT gainst canvas width
+				je __canvasDimensionsMatch
+				jmp __standardRoutine
+
+				__canvasDimensionsMatch: //Both axis match so scale the Bitmapctrl to 640x480
+				mov esi, 0
+				add ecx, 0x280
+				add esi, 0x1E0
+				jmp[ptrSimGUIBitmapCtrl_TexScaleResume]
+
+			__standardRoutine: //Dimensions did not much. Continue with standard routine
+				add ecx, [ebx + 0x1A4]
+				add esi, [ebx + 0x1A8]
+				jmp[ptrSimGUIBitmapCtrl_TexScaleResume]
+		}
+	}
+
+	NAKED void GuiBitmapCTRL_Tile_revert() {
+		__asm {
+			add ecx, [ebx + 0x1A4]
+			add esi, [ebx + 0x1A8]
+			jmp[ptrSimGUIBitmapCtrl_TexScaleResume]
+		}
+	}
+
+	BuiltInFunction("OpenGL::restoreBitmapCtrl", _openglshrinkbitmapctrl) {
+		guibitmapctrl_tile.DoctorRelative((u32)GuiBitmapCTRL_Tile_revert, 1).Apply(true);
+		return 0;
+	}
+	BuiltInFunction("OpenGL::patchBitmapCtrl", _openglunshrinkbitmapctrl) {
+		guibitmapctrl_tile.DoctorRelative((u32)GuiBitmapCTRL_Tile, 1).Apply(true);
+		return 0;
+	}
+	//TO DO (Implement new GUI upscaling method. Optimize GUI alteration for black bars and offseting. Remove storeobject() and loadobject() from methods.
+	//Flips the internal OpenGL scale so that it scales downward diagonally to the right instead of upward diagonally
+	//Doing this simplifies handling the upscaled GUI so that we only need to scale, shift, create a simgui::bitmapctrl, create a TScontrol, and move them behind the native gui shell objects
+	//We can also stop the hall of mirrors effect on the shift by setting $Gui::noPalTrans to false so that the screen refreshes on a palette change
+	BuiltInFunction("OpenGL::flipScaler", _openglflipscaler) {
+		getCanvasDimensions();
+		CodePatch genericCodePatch1 = { ptrOGLoffset,"","\x00\x00\x00\x00",4,false}; genericCodePatch1.Apply(true);
+		CodePatch genericCodePatch2 = { ptrOpenGLRenderVert,"","\x00\x00\x80\x3F",4,false}; genericCodePatch2.Apply(true);
+		guibitmapctrl_tile.DoctorRelative((u32)GuiBitmapCTRL_Tile, 1).Apply(true);
+		return 0;
+	}
+
+	BuiltInFunction("OpenGL::unflipScaler", _openglunflipscaler) {
+		CodePatch genericCodePatch1 = { ptrOGLoffset,"","\x00\x00\x00\x3F",4,false }; genericCodePatch1.Apply(true);
+		CodePatch genericCodePatch2 = { ptrOpenGLRenderVert,"","\x00\x00\x80\xBF",4,false }; genericCodePatch2.Apply(true);
+		guibitmapctrl_tile.DoctorRelative((u32)GuiBitmapCTRL_Tile_revert, 1).Apply(true);
+		return 0;
+	}
+
 	BuiltInFunction("OpenGL::offsetGUI", _oglogui) {
 		if (argc != 1)
 		{
@@ -1321,6 +1420,11 @@ namespace ModloaderMain {
 
 			//Modloader: Append pilot data to campaign
 			campaigninit.DoctorRelative((u32)CampaignInit, 1).Apply(true);
+
+			//For Upscaling OpenGL
+			//Tiles the Simgui::BitmapCTRL so that the background fits the upscale
+			//MOVE TO FUNCTIONS
+			//guibitmapctrl_tile.DoctorRelative((u32)GuiBitmapCTRL_Tile, 1).Apply(true);
 		}
 	} init;
 	}

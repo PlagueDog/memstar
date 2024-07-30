@@ -20,6 +20,7 @@ MultiPointer(ptrConsoleBuffer, 0, 0, 0, 0x00722FA4);
 MultiPointer(ptrConsoleEval, 0, 0, 0, 0x005E6DF0);
 MultiPointer(ptrConsoleEval2, 0, 0, 0x005E387C, 0x005E7120);
 MultiPointer(_sprintf, 0, 0, 0, 0x006CD8B4);
+MultiPointer(fnEcho, 0, 0, 0x005e3178, 0x005E6A1C);
 
 using namespace std;
 using namespace Console;
@@ -289,8 +290,8 @@ namespace Intercepts {
 
 	BuiltInFunction("Nova::onCursorMove", _novaoncursormove) { return 0; }
 
-	float cursorX;
-	float cursorY;
+	float cursorX = 320;
+	float cursorY = 240;
 	void setCursorCoords(float x, float y)
 	{
 		cursorX = x;
@@ -358,6 +359,88 @@ namespace Intercepts {
 		return 0;
 	}
 
+
+	MultiPointer(ptrGuiVehControllerSelectVehicle, 0, 0, 0x005C52CD, 0x004F4E93);
+	MultiPointer(ptrGuiVehControllerSelectVehicleResume, 0, 0, 0x005C52D9, 0x004F4E99);
+	static const char* NovaSelectCustomVehicle = "Nova::onSelectCustomVehicle();";
+	static const char* NovaSelectStandardVehicle = "Nova::onSelectStandardVehicle();";
+	CodePatch guivehcontrollerselectvehicle = { ptrGuiVehControllerSelectVehicle, "", "\xE9VEHS", 5, false };
+	NAKED void GuiVehControllerSelectVehicle() {
+		__asm {
+			mov al, [eax + 0x354]
+			test al, al
+			jz __jz
+			push eax
+			mov eax, [NovaSelectCustomVehicle]
+			push eax
+			call Console::eval
+			add esp, 0x8
+			jmp [ptrGuiVehControllerSelectVehicleResume]
+			__jz:
+				push eax
+				mov eax, [NovaSelectStandardVehicle]
+				push eax
+				call Console::eval
+				add esp, 0x8
+				jmp [ptrGuiVehControllerSelectVehicleResume]
+		}
+	}
+
+	MultiPointer(ptrPlayerMessageEveryone, 0, 0, 0, 0x0055DB13);
+	MultiPointer(ptrPlayerMessageEveryoneResume, 0, 0, 0, 0x0055DB79);
+	static const char* messageEventfn = "Nova::push::onPlayerMessage();";
+	static const char* msg_sprint = "%s %s->%s: %s";
+	CodePatch playeronmessage = { ptrPlayerMessageEveryone, "", "\xE9PONM", 5, false };
+	char* playerMessage;
+	char* playerName;
+	char* messageRecipient;
+	NAKED void playerOnMessage() {
+		__asm {
+			add ebx, 0x75
+			push ebx
+			mov playerMessage, ebx
+			push edi
+			mov messageRecipient, edi
+			push ebp
+			mov playerName, ebp
+			push esi
+
+			push [msg_sprint]
+
+			mov eax, [ptrConsoleBuffer]
+			push eax
+			call Console::echo
+			add esp, 0x18
+
+			push eax
+			mov eax, [messageEventfn]
+			push eax
+			call Console::eval
+			add esp, 0x8
+
+			jmp [ptrPlayerMessageEveryoneResume]
+		}
+	}
+
+	//This function calls player::onMessage with the playerName and their message as args
+	BuiltInFunction("Nova::push::onPlayerMessage", _novaplayermessage)
+	{
+		Console::echo("MSG: %s-> (%s): %s", playerName, messageRecipient, playerMessage);
+		char playerOnMessage_evalString[127];
+		strcpy(playerOnMessage_evalString, "player::onMessage(\"");
+		strcat(playerOnMessage_evalString, playerName);
+		strcat(playerOnMessage_evalString,  "\",\"");
+		strcat(playerOnMessage_evalString, playerMessage);
+		strcat(playerOnMessage_evalString, "\");");
+		//Final string -> player::onMessage("%playerName","%playerMessage");
+		eval(playerOnMessage_evalString);
+		free(playerOnMessage_evalString);
+		return "true";
+	}
+
+	//Create a empty player::onMessage(); initially
+	BuiltInFunction("player::onMessage", _playeronmessage){return 0;}
+
 	struct Init 
 	{
 		Init() 
@@ -388,6 +471,12 @@ namespace Intercepts {
 				//Input Event Calls
 				//onsim3Dmouseevent.DoctorRelative((u32)OnSim3DMouseEvent, 1).Apply(true);
 				getcursor.DoctorRelative((u32)GetCursor, 1).Apply(true);
+
+				//GuiVehCustController Vehicle Select Call
+				//guivehcontrollerselectvehicle.DoctorRelative((u32)GuiVehControllerSelectVehicle, 1).Apply(true);
+
+				//player::onMessage
+				playeronmessage.DoctorRelative((u32)playerOnMessage, 1).Apply(true);
 			}
 
 		}

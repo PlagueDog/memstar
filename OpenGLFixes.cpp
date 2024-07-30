@@ -234,7 +234,7 @@ namespace OpenGLFixes
 			//WndInsertAfter0.Apply(true);
 			//wglinfowindow.Apply(true);
 			windowproperiespatch.DoctorRelative((u32)WindowPropertiesPatch, 1).Apply(true);
-			//BitmapCtrlLineFix.Apply(true);
+			BitmapCtrlLineFix.Apply(true); //Hide seams in chunked bitmaps
 			introtomaincrashfix.DoctorRelative((u32)IntroToMainCrashFix, 1).Apply(true);
 			//goSplash640.Apply(true);
 			//goSplash480.Apply(true);

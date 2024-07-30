@@ -155,8 +155,43 @@ namespace Terrain {
 	};
 	MultiPointer(ptr_TerrainRenderOGLCheck, 0, 0, 0, 0x00583C05);
 	CodePatch patchOGL_to_Software_terrain_render = { ptr_TerrainRenderOGLCheck,"","\xEB",1,false };
-	MultiPointer(ptr_SoftwareTerrainGridRender, 0, 0, 0, 0x005F79E5);
-	CodePatch patchOGL_to_Software_grid_render = { ptr_SoftwareTerrainGridRender,"","\x0F\x85",2,false};
+	//MultiPointer(ptr_SoftwareTerrainGridRender, 0, 0, 0, 0x005F79E5);
+	//CodePatch patchOGL_to_Software_grid_render = { ptr_SoftwareTerrainGridRender,"","\x0F\x85",2,false};
+	MultiPointer(ptr_TerrainLowestMipCoeff, 0, 0, 0, 0x005FAA2C);
+	CodePatch patchOGL_to_Software_terrain_render_bad_mips = { ptr_TerrainLowestMipCoeff,"","\x00\x00\x00\x00",4,false };
+
+
+	//MultiPointer(ptrFlushTextureCacheFn, 0, 0, 0, 0x005AC3D6);
+	//MultiPointer(ptrFlushTextureCacheResume, 0, 0, 0, 0x005AC3E2);
+	//MultiPointer(struSimSet, 0, 0, 0, 0x0040273C);
+	//MultiPointer(struSimObject, 0, 0, 0, 0x004026D8);
+	//CodePatch badterrainmipshackfix = { ptrFlushTextureCacheFn, "", "\xE9TMFX", 5, false };
+	//static const char* internal_flushtextures = "Nova::INTERNAL::PatchTerrainRenderer();Schedule('Nova::INTERNAL::UnpatchTerrainRenderer();',1);";
+	//NAKED void BadTerrainMipsHackFix() {
+	//	__asm {
+	//		push eax
+	//		mov eax, [internal_flushtextures]
+	//		push eax
+	//		call Console::eval
+	//		add esp, 0x8
+	//		push 0
+	//		push struSimSet
+	//		push struSimObject
+	//		jmp [ptrFlushTextureCacheResume]
+	//	}
+	//}
+	//
+	//BuiltInFunction("Nova::INTERNAL::UnpatchTerrainRenderer", _novainternalunpatchterrainrenderer)
+	//{
+	//	unpatchOGL_to_Software_grid_render.Apply(true);
+	//	return "true";
+	//}
+	//
+	//BuiltInFunction("Nova::INTERNAL::PatchTerrainRenderer", _novainternalpatchterrainrenderer)
+	//{
+	//	patchOGL_to_Software_grid_render.Apply(true);
+	//	return "true";
+	//}
 
 	struct TerrainBlock {
 	};
@@ -676,7 +711,11 @@ namespace Terrain {
 
 
 		patchOGL_to_Software_terrain_render.Apply(true);
-		patchOGL_to_Software_grid_render.Apply(true);
+		patchOGL_to_Software_terrain_render_bad_mips.Apply(true);
+		//patchOGL_to_Software_grid_render.Apply(true);
+
+		//
+		//badterrainmipshackfix.DoctorRelative((u32)BadTerrainMipsHackFix, 1).Apply(true);
 		//DEPRECATED
 		//patchMipBlt.DoctorRelative((u32)OnMipBlt, 1).Apply(true);
 		//patchCreateFileFromGridFile.DoctorRelative((u32)OnCreateFileFromGridFile, 1).Apply(true);

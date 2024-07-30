@@ -6,6 +6,7 @@
 #define DLLAPI __declspec(dllexport)
 #define NAKED  __declspec(naked)
 #define INLINE __forceinline
+#define PSAPI_VERSION 2
 
 #include <windows.h>
 #include <Psapi.h>
