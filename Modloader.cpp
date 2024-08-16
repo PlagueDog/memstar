@@ -20,6 +20,7 @@
 using namespace std;
 using namespace Fear;
 
+MultiPointer(ptrMemLibModule, 0, 0, 0, 0x0044ABFC);
 namespace modloaderFunctions
 {
 //Big endian to little endian
@@ -120,10 +121,11 @@ char* int2hex(int input = 0, int endian = 0)
 char* flt2hex(float input = 0.00, int type = 0)
 {
 	const unsigned char* pf = reinterpret_cast<const unsigned char*>(&input);
-
+	
 	char hexString[MAX_PATH];
 	if (type == 0)
 	{
+		//Reverse
 		strcpy(hexString, int2hex(pf[3], 1));
 		strcat(hexString, int2hex(pf[2], 1));
 		strcat(hexString, int2hex(pf[1], 1));
@@ -137,6 +139,36 @@ char* flt2hex(float input = 0.00, int type = 0)
 		strcat(hexString, int2hex(pf[3], 1));
 	}
 	return hexString;
+}
+
+MultiPointer(ptrBayOpenTestBit, 0, 0, 0, 0x00445FD4);
+void patchBackBayEdit()
+{
+	CodePatch BayTestBit2 = { ptrBayOpenTestBit,"","\x83",1,false };
+	BayTestBit2.Apply(true);
+	Console::eval("deleteobject(bayObject);");
+}
+
+MultiPointer(ptrBayEditInit, 0, 0, 0, 0x00445FD9);
+MultiPointer(ptrBayEditInitResume, 0, 0, 0, 0x00445FE6);
+CodePatch bayeditjnb = { ptrBayEditInit,"","\xE9PBAY",5,false};
+NAKED void BayEditJNB() {
+	__asm {
+		push 0x190
+		call [ptrMemLibModule]
+		pop ecx
+		call [patchBackBayEdit]
+		jmp [ptrBayEditInitResume]
+	}
+}
+
+BuiltInFunction("Nova::EditAI", _novaeditai)
+{
+	Console::eval("newobject(bayObject,turret,1);");
+	CodePatch BayTestBit = { ptrBayOpenTestBit,"","\x84",1,false };
+	BayTestBit.Apply(true);
+	bayeditjnb.DoctorRelative((u32)BayEditJNB, 1).Apply(true);
+	return "true";
 }
 
 BuiltInFunction("Simgui::GuiBitmapCtrl::SetDefaultImage", _SGSDI)
@@ -472,12 +504,16 @@ namespace ModloaderMain {
 	BuiltInFunction("OpenGL::shiftGUI", _oglshgui) {
 		if (argc != 1)
 		{
-			Console::echo("%s( int/flt ); //Additive values shift the GUI to the right and vice versa. Default: -1", self);
+			Console::echo("%s( int/flt ); Additive values shift the GUI to the right and vice versa. Default Value: -1", self);
 			return 0;
 		}
-		char* flt2hex_c = flt2hex(atof(argv[0]), 1);
+		//char* flt2hex_c = flt2hex(atof(argv[0]), 1);
 		//Convert hex string to raw hex
-		char* hex2char_c = hex2char(flt2hex_c);
+		//char* hex2char_c = hex2char(flt2hex_c);
+
+		char* flt2hex_c = flt2hex(stof(argv[0]), 1);
+		string buffer = hexToASCII2(flt2hex_c);
+		char* hex2char_c = const_cast<char*>(buffer.c_str());
 		CodePatch genericCodePatch = { ptrOGLshift,"",hex2char_c,4,false }; genericCodePatch.Apply(true);
 		return "true";
 	}
@@ -558,50 +594,51 @@ namespace ModloaderMain {
 		return 0;
 	}
 
-	BuiltInFunction("OpenGL::offsetGUI", _oglogui) {
-		if (argc != 1)
-		{
-			Console::echo("%s( int/flt ); //Offsets the GUI vertically. Default: 0.5", self);
-			return 0;
-		}
-		char* flt2hex_c = flt2hex(atof(argv[0]), 1);
-		//Convert hex string to raw hex
-		char* hex2char_c = hex2char(flt2hex_c);
-		CodePatch genericCodePatch = { ptrOGLoffset,"",hex2char_c,4,false }; genericCodePatch.Apply(true);
-		return "true";
-	}
+	//DEPRECATED
+	//BuiltInFunction("OpenGL::offsetGUI", _oglogui) {
+	//	if (argc != 1)
+	//	{
+	//		Console::echo("%s( int/flt ); //Offsets the GUI vertically. Default: 0.5", self);
+	//		return 0;
+	//	}
+	//	char* flt2hex_c = flt2hex(atof(argv[0]), 1);
+	//	//Convert hex string to raw hex
+	//	char* hex2char_c = hex2char(flt2hex_c);
+	//	CodePatch genericCodePatch = { ptrOGLoffset,"",hex2char_c,4,false }; genericCodePatch.Apply(true);
+	//	return "true";
+	//}
 
-	BuiltInFunction("OpenGL::UpscaleGUI", _OpenGLUpscaleGUI) {
-
-		//Check args
-		if (argc != 2 || atoi(argv[0]) < 640 || atoi(argv[1]) < 480)
-		{
-			Console::echo("%s( width, height );", self);
-			return 0;
-		}
-		//char* relativeWidth = flt2hex((atof(argv[0])/640), 1);
-		char* relativeWidth = flt2hex((atof(argv[1])/atof(argv[0]), 1));
-		Console::echo("Width %s", relativeWidth);
-		char* relativeWidth_Hx = hex2char(relativeWidth);
-		//Patch in the new width
-		CodePatch genericCodePatch01 = { ptrOpenGLRenderWidth,"",relativeWidth_Hx,4,false }; genericCodePatch01.Apply(true);
-		free(relativeWidth_Hx);
-
-		char* relativeHeight = flt2hex(-(atof(argv[1])/480), 1);
-		Console::echo("Height %s", relativeHeight);
-		char* relativeHeight_Hx = hex2char(relativeHeight);
-		//Patch in the new height
-		CodePatch genericCodePatch02 = { ptrOpenGLRenderHeight,"",relativeHeight_Hx,4,false }; genericCodePatch02.Apply(true);
-		free(relativeHeight_Hx);
-
-		char* relativeVertOffset = flt2hex(-(atof(argv[1])/480), 1);
-		Console::echo("Offset %s", relativeVertOffset);
-		char* relativeVertOffset_Hx = hex2char(relativeVertOffset);
-		//Patch in the new vertical offset
-		CodePatch genericCodePatch03 = { ptrOpenGLRenderVert,"",relativeVertOffset_Hx,4,false }; genericCodePatch03.Apply(true);
-		free(relativeVertOffset_Hx);
-		return "true";
-	}
+	//BuiltInFunction("OpenGL::UpscaleGUI", _OpenGLUpscaleGUI) {
+	//
+	//	//Check args
+	//	if (argc != 2 || atoi(argv[0]) < 640 || atoi(argv[1]) < 480)
+	//	{
+	//		Console::echo("%s( width, height );", self);
+	//		return 0;
+	//	}
+	//	//char* relativeWidth = flt2hex((atof(argv[0])/640), 1);
+	//	char* relativeWidth = flt2hex((atof(argv[1])/atof(argv[0]), 1));
+	//	Console::echo("Width %s", relativeWidth);
+	//	char* relativeWidth_Hx = hex2char(relativeWidth);
+	//	//Patch in the new width
+	//	CodePatch genericCodePatch01 = { ptrOpenGLRenderWidth,"",relativeWidth_Hx,4,false }; genericCodePatch01.Apply(true);
+	//	free(relativeWidth_Hx);
+	//
+	//	char* relativeHeight = flt2hex(-(atof(argv[1])/480), 1);
+	//	Console::echo("Height %s", relativeHeight);
+	//	char* relativeHeight_Hx = hex2char(relativeHeight);
+	//	//Patch in the new height
+	//	CodePatch genericCodePatch02 = { ptrOpenGLRenderHeight,"",relativeHeight_Hx,4,false }; genericCodePatch02.Apply(true);
+	//	free(relativeHeight_Hx);
+	//
+	//	char* relativeVertOffset = flt2hex(-(atof(argv[1])/480), 1);
+	//	Console::echo("Offset %s", relativeVertOffset);
+	//	char* relativeVertOffset_Hx = hex2char(relativeVertOffset);
+	//	//Patch in the new vertical offset
+	//	CodePatch genericCodePatch03 = { ptrOpenGLRenderVert,"",relativeVertOffset_Hx,4,false }; genericCodePatch03.Apply(true);
+	//	free(relativeVertOffset_Hx);
+	//	return "true";
+	//}
 
 	MultiPointer(ptrOGLscale, 0, 0, 0x0063DAF8, 0x0064CA50);
 	BuiltInFunction("OpenGL::scaleGUI", _oglsgui) {
@@ -610,11 +647,15 @@ namespace ModloaderMain {
 			Console::echo("%s( int/flt ); //Changes the internal GUI rendering scale. Default: 2", self);
 			return 0;
 		}
-		float scale = atof(argv[0]);
-		char* scale_c = flt2hex(scale, 1);
-		char* scale_hString = hex2char(scale_c);
-
-		CodePatch GUIscalePatch = { ptrOGLscale,"",scale_hString,4,false }; GUIscalePatch.Apply(true);
+		//float scale = atof(argv[0]);
+		//char* scale_c = flt2hex(scale, 1);
+		//char* scale_hString = hex2char(scale_c);
+		float scale = stof(argv[0]);
+		char* flt2hex_c = flt2hex(scale, 1);
+		string buffer = hexToASCII2(flt2hex_c);
+		char* hex2char_c = const_cast<char*>(buffer.c_str());
+	
+		CodePatch GUIscalePatch = { ptrOGLscale,"",hex2char_c,4,false }; GUIscalePatch.Apply(true);
 		//Console::setVariable("Opengl::scaleGUI", scale_c);
 		return "true";
 	}
@@ -764,6 +805,10 @@ namespace ModloaderMain {
 	MultiPointer(ptrTScontrolFOV, 0, 0, 0, 0x005D90EC);
 	MultiPointer(ptrTScontrolViewPortTerrainCullingRange, 0, 0, 0, 0x0049FCBC);
 
+	MultiPointer(ptrInitFov, 0, 0, 0x004689F2, 0x0046A416);
+	MultiPointer(ptrZoomFov, 0, 0, 0x0046D827, 0x0046F349);
+	MultiPointer(ptrEditCameraFov, 0, 0, 0x0040D5F4, 0x0040D6FC);
+	MultiPointer(ptrTestZoomFov, 0, 0, 0x0046D827, 0x0046F349);
 	BuiltInFunction("fov", _fov) {
 		if (argc != 1)
 		{
@@ -775,52 +820,46 @@ namespace ModloaderMain {
 			Console::echo("%s( 50 - 175 );", self);
 			return "false";
 		}
-		//Convert the int input to radians
-		float radial = (atoi(argv[0]) * 3.14159265359 / 180) / 2;
-		//Convert float to hex string
-		char* flt2hex_c = flt2hex(radial, 1);
-		//Convert hex string to raw hex
-		char* hex2char_c = hex2char(flt2hex_c);
 
-		//Console::echo(rawHexString);
-		MultiPointer(ptrInitFov, 0, 0, 0x004689F2, 0x0046A416);
-		MultiPointer(ptrZoomFov, 0, 0, 0x0046D827, 0x0046F349);
-		MultiPointer(ptrEditCameraFov, 0, 0, 0x0040D5F4, 0x0040D6FC);
+		float radial = (stof(argv[0]) * 3.14159265359 / 180) / 2;
+		char* flt2hex_c = flt2hex(radial, 1);
+		string buffer = hexToASCII2(flt2hex_c);
+		char* hex2char_c = const_cast<char*>(buffer.c_str());
+
 		CodePatch initialFovPatch = { ptrInitFov,"",hex2char_c,4,false }; initialFovPatch.Apply(true);
 		CodePatch postZoomFovPatch = { ptrZoomFov,"",hex2char_c,4,false }; postZoomFovPatch.Apply(true);
 		CodePatch editCameraFovPatch = { ptrEditCameraFov,"",hex2char_c,4,false }; editCameraFovPatch.Apply(true);
 		Console::setVariable("client::fov", argv[0]);
 		Console::eval("export(\"client::*\", \"playerPrefs.cs\");");
-
 		return "true";
 	}
 	MultiPointer(ptr_patchMipDetail, 0, 0, 0, 0x006020F8);
 	MultiPointer(ptr_patchFlatPaneMipDetail, 0, 0, 0, 0x00601AAE);
-	BuiltInFunction("Nova::setTerrainDetail", _novasetterraindetail) {
-		if (argc != 1)
-		{
-			Console::echo("%s( 0 - 2.0 );", self);
-			return "false";
-		}
-		if (atof(argv[0]) < 0.1 && atof(argv[0]) > 2.0)
-		{
-			Console::echo("%s( 0 - 2.0 );", self);
-			return "false";
-		}
+	//BuiltInFunction("Nova::setTerrainDetail", _novasetterraindetail) {
+		//if (argc != 1)
+		//{
+			//Console::echo("%s( 0 - 2.0 );", self);
+			//return "false";
+		//}
+		//if (atof(argv[0]) < 0.1 && atof(argv[0]) > 2.0)
+		//{
+			//Console::echo("%s( 0 - 2.0 );", self);
+			//return "false";
+		//}
 		//Convert float to hex string
-		char* flt2hex_c = flt2hex(atof(argv[0]), 1);
-		char* flt2hex_c2 = flt2hex(-atof(argv[0]), 1);
+		//char* flt2hex_c = flt2hex(atof(argv[0]), 1);
+		//char* flt2hex_c2 = flt2hex(-atof(argv[0]), 1);
 		//Convert hex string to raw hex
-		char* hex2char_c = hex2char(flt2hex_c);
-		char* hex2char_c2 = hex2char(flt2hex_c);
+		//char* hex2char_c = hex2char(flt2hex_c);
+		//char* hex2char_c2 = hex2char(flt2hex_c);
 
-		CodePatch patch = { ptr_patchMipDetail,"",hex2char_c,4,false }; patch.Apply(true);
-		CodePatch patch2 = { ptr_patchFlatPaneMipDetail,"",hex2char_c2,false }; patch2.Apply(true);
+		//CodePatch patch = { ptr_patchMipDetail,"",hex2char_c,4,false }; patch.Apply(true);
+		//CodePatch patch2 = { ptr_patchFlatPaneMipDetail,"",hex2char_c2,false }; patch2.Apply(true);
 		//Console::setVariable("client::fov", argv[0]);
 		//Console::eval("export(\"client::*\", \"playerPrefs.cs\");");
 
-		return "true";
-	}
+		//return "true";
+	//}
 
 	BuiltInFunction("modloader::patchEvents", _mlpatchPlayerEvents) {
 

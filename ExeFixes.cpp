@@ -14,6 +14,8 @@ namespace ExeFixes {
 	//Unknown crash patches
 	MultiPointer(ptr_unkCrash01, 0, 0, 0x00624F01, 0x00633E41); //This one seems related to the hud scaling
 	CodePatch unkCrashPatch01 = { ptr_unkCrash01,"","\x72",1,false };
+	MultiPointer(ptr_unkCrash02, 0, 0, 0x00658178, 0x00667E90); //Multi-world loading crash
+	CodePatch unkCrashPatch02 = { ptr_unkCrash02,"","\xC3",1,false };
 
 	HWND getHWND() {
 		MultiPointer(ptrHWND, 0, 0, 0x00705C5C, 0x007160CC);
@@ -1051,8 +1053,9 @@ namespace ExeFixes {
 			//Waitroomgui to waitroomgui fix
 			//waitroomtowaitroomfix.DoctorRelative((u32)WaitroomToWaitroomFix, 1).Apply(true);
 
-			//Patches for crashes I don't know what actual are the cause
+			//Patches for crashes I don't know what the actual causes are
 			unkCrashPatch01.Apply(true);
+			unkCrashPatch02.Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes

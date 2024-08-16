@@ -221,6 +221,69 @@ namespace OpenGLFixes
 		return 0;
 	}
 
+	//OPENGL SCALING FUNCTIONS
+	//Scaling
+	MultiPointer(ptrGuiScale, 0, 0, 0x0063D9BE, 0x0064C916);
+	MultiPointer(ptrGuiScaleResume, 0, 0, 0x0063D9CD, 0x0064C92B);
+	//CodePatch setguiscale = { ptrGuiScale, "", "\xE9SGUS", 5, false };
+	//float guiScale = 2;
+	//NAKED void setGuiScale() {
+	//	__asm {
+	//		fdivr guiScale
+	//		add esp, 0FFFFFFFCh
+	//		fstp [esp + 0x14 - 0x14]
+	//		fild dword ptr [ebx + 0x3C]
+	//		fdivr guiScale
+	//		jmp[ptrGuiScaleResume]
+	//	}
+	//}
+	//
+	//void cmdSetGuiScale(float flt)
+	//{
+	//	guiScale = flt;
+	//	setguiscale.DoctorRelative((u32)setGuiScale, 1).Apply(true);
+	//}
+	//
+	//BuiltInFunction("OpenGL::scaleGUI", _openglscalegui) {
+	//	if (argc != 1 || atoi(argv[0]) < 2)
+	//	{
+	//		Console::echo("%s( int/flt ); Changes the internal GUI rendering scale. Min Value: 2", self);
+	//		return 0;
+	//	}
+	//	cmdSetGuiScale(atof(argv[0]));
+	//	return "true";
+	//}
+
+	//Shifting
+	MultiPointer(ptrGuiShift, 0, 0, 0x0063D9AC, 0x0064C904);
+	MultiPointer(ptrGuiShiftResume, 0, 0, 0x0063D9B6, 0x0064C90E);
+	MultiPointer(ptrShiftSub, 0, 0, 0x00647C50, 0x00657968);
+	//CodePatch setguishift = { ptrGuiShift, "", "\xE9SGSH", 5, false };
+	//float guiShift = -1;
+	//NAKED void setGuiShift() {
+	//	__asm {
+	//		push guiShift
+	//		call [ptrShiftSub]
+	//		jmp[ptrGuiShiftResume]
+	//	}
+	//}
+	//
+	//void cmdSetGuiShift(float flt)
+	//{
+	//	guiShift = flt;
+	//	setguishift.DoctorRelative((u32)setGuiShift, 1).Apply(true);
+	//}
+	//
+	//BuiltInFunction("OpenGL::shiftGUI", _openglshiftgui) {
+	//	if (argc != 1 || atoi(argv[0]) < -1)
+	//	{
+	//		Console::echo("%s( int/flt ); Shifts the internal GUI rendering to the right. Min Value: -1", self);
+	//		return 0;
+	//	}
+	//	cmdSetGuiShift(atof(argv[0]));
+	//	return "true";
+	//}
+
 	//CodePatch tempPatch = { 0x0065FF39, "", "\x0F\xFC\x65\x00", 4, false };
 	CodePatch tempPatch = { 0x0065FF39, "", "\x81\xED\x65\x00", 4, false };
 	CodePatch goSplash640 = { ptrSplash640, "", "\x70\x0D", 2, false };

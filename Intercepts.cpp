@@ -22,6 +22,13 @@ MultiPointer(ptrConsoleEval2, 0, 0, 0x005E387C, 0x005E7120);
 MultiPointer(_sprintf, 0, 0, 0, 0x006CD8B4);
 MultiPointer(fnEcho, 0, 0, 0x005e3178, 0x005E6A1C);
 
+MultiPointer(ptrClientVehicleSpawn, 0, 0, 0, 0x0046D69B);
+MultiPointer(ptrVehicleAnimationTime, 0, 0, 0, 0x004A40C4);
+MultiPointer(ptrVehicleSpeedCoeff, 0, 0, 0, 0x004A18A4);
+MultiPointer(ptrWorldBoundaryMin, 0, 0, 0, 0x004A0B9C);
+MultiPointer(ptrWorldBoundaryMax, 0, 0, 0, 0x004A0BA0);
+MultiPointer(fnCockpitShake, 0, 0, 0, 0x0046BE30);
+
 using namespace std;
 using namespace Console;
 
@@ -174,72 +181,68 @@ namespace Intercepts {
 	MultiPointer(ptrStatusPartDamageCalc, 0, 0, 0, 0x0046634A);
 	MultiPointer(ptrStatusPartDamageCalcResume, 0, 0, 0, 0x00466350);
 	MultiPointer(ptrStatusPart, 0, 0, 0, 0x006E8AAC);
-	CodePatch statuspartcalc = { ptrStatusPartDamageCalc, "", "\xE9SPDC", 5, false };
-	char* partName;
-	float partHealth;
-	float partMaxHealth;
-	static const char* NovaGetDamageStatus = "Nova::getDamageStatus();";
-	NAKED void statusPartCalc() {
-		__asm {
-			push eax
-			mov partName, eax // Part name
-			pop eax
-			fld dword ptr [ebx + 0x1C]
-			push eax
-			mov eax, dword ptr [ebx + 0x1C] //Current hit points (float)
-			mov partHealth, eax
-			pop eax
-			fdiv dword ptr[ebx + 0x18]
-			push eax
-			mov eax, dword ptr [ebx + 0x18] //Max hit points (float)
-			mov partMaxHealth, eax
-			pop eax
+	//CodePatch statuspartcalc = { ptrStatusPartDamageCalc, "", "\xE9SPDC", 5, false };
+	//char* partName;
+	//float partHealth;
+	//float partMaxHealth;
+	//static const char* NovaGetDamageStatus = "Nova::getDamageStatus();";
+	//NAKED void statusPartCalc() {
+	//	__asm {
+	//		push eax
+	//		mov partName, eax // Part name
+	//		pop eax
+	//		fld dword ptr [ebx + 0x1C]
+	//		push eax
+	//		mov eax, dword ptr [ebx + 0x1C] //Current hit points (float)
+	//		mov partHealth, eax
+	//		pop eax
+	//		fdiv dword ptr[ebx + 0x18]
+	//		push eax
+	//		mov eax, dword ptr [ebx + 0x18] //Max hit points (float)
+	//		mov partMaxHealth, eax
+	//		pop eax
+	//
+	//		push eax
+	//		mov eax, [NovaGetDamageStatus]
+	//		push eax
+	//		call Console::eval
+	//		add esp, 0x8
+	//		mov eax, [esp + 0x1C + 0x1C]
+	//
+	//		jmp[ptrStatusPartDamageCalcResume]
+	//	}
+	//}
 
-			push eax
-			mov eax, [NovaGetDamageStatus]
-			push eax
-			call Console::eval
-			add esp, 0x8
-			mov eax, [esp + 0x1C + 0x1C]
-
-			jmp[ptrStatusPartDamageCalcResume]
-		}
-	}
-
-	BuiltInFunction("Nova::getDamageStatus", _novaecho)
-	{
-		//Console::echo("%s (%3.0f / %3.0f)", partName, partHealth, partMaxHealth);
-		if (strlen(partName))
-		{
-			char partNameAssign[127];
-			char partHealthAssign[127];
-			float partCurrentHealth = (partHealth / partMaxHealth) * 100;
-			//char* arrayIndex;
-			//
-			//strcat("Stat[", tostring(partArrayIndex));
-			//strcat(partNameFormatted, "]");
-
-			//Assign part name to array
-			strcpy(partNameAssign, "$damStat[$damStatArr++, name] = '");
-			strcat(partNameAssign, partName);
-			strcat(partNameAssign, "';");
-			Console::eval(partNameAssign);
-			free(partNameAssign);
-
-			//Assign part health to array
-			strcpy(partHealthAssign, "$damStat[$damStatArr, health] = '");
-			strcat(partHealthAssign, tostring(partCurrentHealth));
-			strcat(partHealthAssign, "';");
-			Console::eval(partHealthAssign);
-			//Console::echo(partNameFormatted);
-			free(partHealthAssign);
-		}
-		//free(arrayIndex);
-		//Console::echo(partName);
-		//Console::echo(tostring(partHealth));
-		//Console::echo(tostring(partMaxHealth));
-		return 0;
-	}
+	//BuiltInFunction("Nova::getDamageStatus", _novaecho)
+	//{
+	//	//Console::echo("%s (%3.0f / %3.0f)", partName, partHealth, partMaxHealth);
+	//	if (strlen(partName))
+	//	{
+	//		char partNameAssign[127];
+	//		char partHealthAssign[127];
+	//		float partCurrentHealth = (partHealth / partMaxHealth) * 100;
+	//
+	//		//Assign part name to array
+	//		strcpy(partNameAssign, "$damStat[$damStatArr++, name] = '");
+	//		strcat(partNameAssign, partName);
+	//		strcat(partNameAssign, "';");
+	//		Console::eval(partNameAssign);
+	//		free(partNameAssign);
+	//
+	//		//Assign part health to array
+	//		strcpy(partHealthAssign, "$damStat[$damStatArr, health] = '");
+	//		strcat(partHealthAssign, tostring(partCurrentHealth));
+	//		strcat(partHealthAssign, "';");
+	//		Console::eval(partHealthAssign);
+	//		//Console::echo(partNameFormatted);
+	//		free(partHealthAssign);
+	//	}
+	//	//free(arrayIndex);
+	//	//Console::echo(partName);
+	//	//Console::echo(tostring(partHealth));
+	//	//Console::echo(tostring(partMaxHealth));
+	//	return 0;
+	//}
 
 	BuiltInFunction("Nova::getRenderDevices", _getRenderDevices)
 	{
