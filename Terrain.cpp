@@ -158,7 +158,7 @@ namespace Terrain {
 	//MultiPointer(ptr_SoftwareTerrainGridRender, 0, 0, 0, 0x005F79E5);
 	//CodePatch patchOGL_to_Software_grid_render = { ptr_SoftwareTerrainGridRender,"","\x0F\x85",2,false};
 	MultiPointer(ptr_TerrainLowestMipCoeff, 0, 0, 0, 0x005FAA2C);
-	CodePatch patchOGL_to_Software_terrain_render_bad_mips = { ptr_TerrainLowestMipCoeff,"","\x00\x00\x00\x00",4,false };
+	CodePatch patchOGL_to_Software_terrain_render_bad_mips = { ptr_TerrainLowestMipCoeff,"","\x00\x00\x40\x3F",4,false };
 
 
 	//MultiPointer(ptrFlushTextureCacheFn, 0, 0, 0, 0x005AC3D6);
@@ -700,7 +700,7 @@ namespace Terrain {
 		}
 
 		tiles.Clear();
-		uniqueStamp = GetTickCount64();
+		uniqueStamp = GetTickCount();
 		BaseAddr = NULL;
 		texImageMatch = false;
 		texSubImageMatch = false;
