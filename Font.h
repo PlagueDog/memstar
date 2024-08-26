@@ -79,7 +79,7 @@ public:
 		Smooth,
 	};
 
-	Font() : mLoaded(false), mLastUsed(GetTickCount64()), mCreatedDC(false) { }
+	Font() : mLoaded(false), mLastUsed(GetTickCount()), mCreatedDC(false) { }
 	~Font() { Close(); }
 
 	void Close();
@@ -87,7 +87,7 @@ public:
 	void Draw(const char* str, int x, int y);
 	int LastUsed() { return (mLastUsed); }
 	Vector2i StringDimensions(const char* str);
-	void UpdateLastUsed() { mLastUsed = (GetTickCount64()); }
+	void UpdateLastUsed() { mLastUsed = (GetTickCount()); }
 
 private:
 	bool CreateLetter(Letter& l, char ch);
