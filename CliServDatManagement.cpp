@@ -45,6 +45,33 @@ bool isFile(const char* file)
 
 namespace clientDataHandler {
 
+	BuiltInFunction("Nova::findInDefaultPrefs", _NovafindInDefaultPrefs)
+	{
+		if (!isFile("defaultPrefs.cs"))
+		{
+			Console::echo("defaultPrefs.cs File not found.");
+			return 0;
+		}
+
+		//Don't read the file as binary
+		std::ifstream fin("defaultPrefs.cs", std::ios::in);
+		//Find functions that require a client reload
+		std::vector<std::string> field{ argv[0] };
+
+		// Read complete file
+		std::string fileContent(std::istreambuf_iterator<char>(fin), {});
+
+		// Search for the lookup strings
+		for (const std::string& l : field)
+		{
+			if (std::search(fileContent.begin(), fileContent.end(), l.begin(), l.end()) != fileContent.end())
+			{
+				return "true";
+			}
+		}
+		return "false";
+	}
+
 	//Path + %s.fvh
 	MultiPointer(ptrStandardVehicleFileLookup,	0, 0, 0x004A6A58, 0x004A8D74);
 	MultiPointer(ptrStandardVehicleFileLookupResume, 0, 0, 0x004A6A5E, 0x004A8D7A);
