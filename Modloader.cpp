@@ -260,7 +260,6 @@ namespace ModloaderMain {
 		//Console::echo(int2hex(atoi(argv[1]), 1));
 		return 0;
 	}
-
 	//MultiPointer(ptrSetSplash, 0, 0, 0, 0x0064B503);
 	//MultiPointer(ptrSetSplashResume, 0, 0, 0, 0x0064B512);
 	//CodePatch setsplashres = { ptrSetSplash, "", "\xE9SSPR", 5, false };
@@ -286,7 +285,7 @@ namespace ModloaderMain {
 	//	return 0;
 	//}
 
-	BuiltInFunction("allowCloakWhenNoEnergy", _acwne) {
+	BuiltInFunction("Nova::remainCloakedWhenNoEnergy", _acwne) {
 		MultiPointer(ptrCloakEnergyCheck, 0, 0, 0x00410AB3, 0x004115EB);
 		if (!argv[0])
 		{
