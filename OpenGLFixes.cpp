@@ -6,10 +6,18 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "Strings.h"
+#include <sstream>
+#include <iostream>
+#include <fstream>
 #include <string>
+#include <vector>
+#include <iterator>
+#include <algorithm>
 #include "Fear.h"
 
 using namespace Fear;
+using namespace std;
+
 namespace OpenGLFixes
 {
 	BuiltInFunction("OpenGL::WindowLoseFocusMinimize", _oglwlfm)
@@ -284,18 +292,50 @@ namespace OpenGLFixes
 	//	return "true";
 	//}
 
+	MultiPointer(ptrOpenGL_dwFlags, 0, 0, 0, 0x0064BA89);
+	MultiPointer(ptrOpenGL_dwFlags_resume, 0, 0, 0, 0x0064BA95);
+	CodePatch gdi_opengl = { ptrOpenGL_dwFlags, "", "\xE9OGLF", 5, false };
+	//NAKED void GDI_OpenGL() {
+	//	__asm {
+	//		mov edx, 0x14 // PFD_DRAW_TO_WINDOW (0x4) | PFD_SUPPORT_GDI (0x10)
+	//		jmp [ptrOpenGL_dwFlags_resume]
+	//	}
+	//}
+	//
+	//BuiltInVariable("pref::UseGDI", bool, prefusegdi, false);
+	////And our function to toggle GDI
+	//BuiltInFunction("Nova::UseGDI", _novatogglegdi)
+	//{
+	//	if (!argv[0])
+	//	{
+	//		argv[0] = "false";
+	//	}
+	//	const char* arg0 = argv[0];
+	//	std::string boolean = arg0;
+	//	if (boolean.compare("false") == 0 || boolean.compare("False") == 0 || boolean.compare("0") == 0)
+	//	{
+	//		Console::eval("deleteVariables(\"pref::UseGDI\");");
+	//	}
+	//	if (boolean.compare("true") == 0 || boolean.compare("True") == 0 || boolean.compare("1") == 0)
+	//	{
+	//		Console::setVariable("pref::UseGDI", "True");
+	//	}
+	//	Console::eval("export('pref::*', 'defaultPrefs.cs');");
+	//	return "true";
+	//}
+
 	//CodePatch tempPatch = { 0x0065FF39, "", "\x0F\xFC\x65\x00", 4, false };
 	CodePatch tempPatch = { 0x0065FF39, "", "\x81\xED\x65\x00", 4, false };
 	CodePatch goSplash640 = { ptrSplash640, "", "\x70\x0D", 2, false };
 	CodePatch goSplash480 = { ptrSplash480, "", "\xA0\x05", 2, false };
-	CodePatch wglinfowindow = { 0x0064B674, "", "\xEB", 1, false };
+	CodePatch wglinfowindow_bypass = { 0x0064B674, "", "\xEB", 1, false };
 	struct Init {
 		Init() {
 			//GuiLoadLoad0.Apply(true);
 			//GuiLoadLoad1.Apply(true);
 			//GuiLoadLoad2.Apply(true);
 			//WndInsertAfter0.Apply(true);
-			//wglinfowindow.Apply(true);
+			//wglinfowindow_bypass.Apply(true);
 			windowproperiespatch.DoctorRelative((u32)WindowPropertiesPatch, 1).Apply(true);
 			BitmapCtrlLineFix.Apply(true); //Hide seams in chunked bitmaps
 			introtomaincrashfix.DoctorRelative((u32)IntroToMainCrashFix, 1).Apply(true);
