@@ -469,7 +469,7 @@ namespace Intercepts {
 				listdevices.DoctorRelative((u32)ListDevices, 1).Apply(true);
 
 				//dumpDamage Patches
-				statuspartcalc.DoctorRelative((u32)statusPartCalc, 1).Apply(true);
+				//statuspartcalc.DoctorRelative((u32)statusPartCalc, 1).Apply(true);
 
 				//Input Event Calls
 				//onsim3Dmouseevent.DoctorRelative((u32)OnSim3DMouseEvent, 1).Apply(true);
@@ -480,6 +480,9 @@ namespace Intercepts {
 
 				//player::onMessage
 				playeronmessage.DoctorRelative((u32)playerOnMessage, 1).Apply(true);
+
+				//OpenGL DEV
+				//openglmodeextend.DoctorRelative((u32)OpenGLModeExtend, 1).Apply(true);
 			}
 
 		}
