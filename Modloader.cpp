@@ -1356,7 +1356,7 @@ namespace ModloaderMain {
 
 			if(VersionSnoop::GetVersion() == VERSION::v001004)
 			{
-				constructorBypass01.Apply(true);
+				//constructorBypass01.Apply(true); //No longer used
 				constructorBypass02.Apply(true);
 				constructorBypass03.Apply(true);
 			}
