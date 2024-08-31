@@ -129,6 +129,7 @@
     <ClCompile Include="PlayGui.cpp" />
     <ClCompile Include="Replacer.cpp" />
     <ClCompile Include="ScriptGL.cpp" />
+    <ClCompile Include="NovaCore.cpp" />
     <ClCompile Include="StringFunctions.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="Texture.cpp" />
