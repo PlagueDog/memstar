@@ -19,68 +19,45 @@ namespace Console {
 
 	MultiPointer(fnAddFunction, 0, 0, 0x005e34dc, 0x005E6D80);
 	void addFunction(const char* name, void* cb) {
-		if (VersionSnoop::GetVersion() == VERSION::v001004)
-		{
-			__asm {
-				push[cb]
-				push 0
-				mov ecx, [name]
-				xor edx, edx
-				mov eax, ds: [CONSOLE_PTR_1004]
-				call[fnAddFunction]
-			}
-		}
-		else
-		{
-			__asm {
-				push[cb]
-				push 0
-				mov ecx, [name]
-				xor edx, edx
-				mov eax, ds: [CONSOLE_PTR_1003]
-				call[fnAddFunction]
-			}
+		__asm {
+			push[cb]
+			push 0
+			mov ecx, [name]
+			xor edx, edx
+			mov eax, ptrConsole
+			mov eax, ds: [eax]
+			call[fnAddFunction]
 		}
 	}
 
 	MultiPointer(fnAddVariable, 0, 0, 0x005e3474, 0x005E6D18);
 	void addVariable(const char* name, const void* address, const VariableType var_type) {
-		if (VersionSnoop::GetVersion() == VERSION::v001004)
-		{
-			__asm {
-				push[var_type]
-				push[address]
-				mov ecx, [name]
-				xor edx, edx
-				mov eax, ds: [CONSOLE_PTR_1004]
-				call[fnAddVariable]
-			}
-		}
-		else
-		{
-			__asm {
-				push[var_type]
-				push[address]
-				mov ecx, [name]
-				xor edx, edx
-				mov eax, ds: [CONSOLE_PTR_1003]
-				call[fnAddVariable]
-			}
+		__asm {
+			push[var_type]
+			push[address]
+			mov ecx, [name]
+			xor edx, edx
+			mov eax, ptrConsole
+			mov eax, ds: [eax]
+			call[fnAddVariable]
 		}
 	}
 
 	MultiPointer(fnDBEcho, 0x005d3a44, 0x005d4b1c, 0x005e2900, 0x005e61a4);
 	NAKED void dbecho(u32 level, const char* fmt, ...) {
+		u32 ptrHold;
 		__asm {
 			pop[dummy]
-			xor esi, esi
+			mov ptrHold, esi
 			mov esi, ptrConsole
-			push dword ptr ds:[esi]
+			push dword ptr ds : [esi]
+			mov esi, ptrHold
 			call[fnDBEcho]
 			add esp, 4
 			jmp[dummy]
 		}
 	}
+
 
 	MultiPointer(fnEcho, 0, 0, 0x005e3178, 0x005E6A1C);
 	NAKED void echo(const char* fmt, ...) {
@@ -108,93 +85,50 @@ namespace Console {
 
 	MultiPointer(fnExecFunction, 0, 0, 0x005e362c, 0x005E6ED0);
 	NAKED const char* execFunction(u32 argc, char* function, ...) {
-		if (VersionSnoop::GetVersion() == VERSION::v001004)
-		{
-			__asm {
-				pop[dummy2]
-				push dword ptr ds : [CONSOLE_PTR_1004]
-				inc dword ptr[esp + 0x4] // argc
-				call[fnExecFunction]
-				add esp, 4
-				jmp[dummy2]
-			}
-		}
-		else
-		{
-			__asm {
-				pop[dummy2]
-				push dword ptr ds : [CONSOLE_PTR_1003]
-				inc dword ptr[esp + 0x4] // argc
-				call[fnExecFunction]
-				add esp, 4
-				jmp[dummy2]
-			}
+		u32 ptrHold;
+		__asm {
+			pop[dummy2]
+			mov ptrHold, esi
+			mov esi, ptrConsole
+			push dword ptr ds : [esi]
+			mov esi, ptrHold
+			inc dword ptr[esp + 0x4] // argc
+			call[fnExecFunction]
+			add esp, 4
+			jmp[dummy2]
 		}
 	}
 
 	MultiPointer(fnEval, 0, 0, 0x005e354c, 0x005E6DF0);
 	void eval(const char* cmd) {
-		if (VersionSnoop::GetVersion() == VERSION::v001004)
-		{
-			__asm {
-				push 0
-				push 0
-				mov edx, [cmd]
-				xor ecx, ecx
-				mov eax, ds: [CONSOLE_PTR_1004]
-				call[fnEval]
-			}
-		}
-		else
-		{
-			__asm {
-				push 0
-				push 0
-				mov edx, [cmd]
-				xor ecx, ecx
-				mov eax, ds: [CONSOLE_PTR_1003]
-				call[fnEval]
-			}
+		__asm {
+			push 0
+			push 0
+			mov eax, ptrConsole
+			mov eax, ds: [eax]
+			xor ecx, ecx
+			mov edx, [cmd]
+			call[fnEval]
 		}
 	}
 
 	MultiPointer(fnFunctionExists, 0, 0, 0x005e387c, 0x005E7120);
 	bool functionExists(const char* name) {
-		if (VersionSnoop::GetVersion() == VERSION::v001004)
-		{
-			__asm {
-				mov edx, [name]
-				mov eax, ds: [CONSOLE_PTR_1004]
-				call[fnFunctionExists]
-			}
-		}
-		else
-		{
-			__asm {
-				mov edx, [name]
-				mov eax, ds: [CONSOLE_PTR_1003]
-				call[fnFunctionExists]
-			}
+		__asm {
+			mov eax, ptrConsole
+			mov eax, ds: [eax]
+			mov edx, [name]
+			call[fnFunctionExists]
 		}
 	}
 
 	MultiPointer(fnGetVariable, 0, 0, 0x005e3394, 0x005E6C38);
 	const char* getVariable(const char* name) {
-		if (VersionSnoop::GetVersion() == VERSION::v001004)
-		{
-			__asm {
-				mov eax, ds: [CONSOLE_PTR_1004]
-				mov edx, [name]
-				call[fnGetVariable]
-			}
-		}
-		else
-		{
-			__asm {
-				mov eax, ds: [CONSOLE_PTR_1003]
-				mov edx, [name]
-				call[fnGetVariable]
-			}
+		__asm {
+			mov eax, ptrConsole
+			mov eax, ds: [eax]
+			mov edx, [name]
+			call[fnGetVariable]
 		}
 	}
 
@@ -202,29 +136,12 @@ namespace Console {
 	MultiPointer(ptrSetVariable, 0, 0, 0x00712b34, 0x00722FA4);
 	void setVariable(const char* name, const char* value) {
 		__asm {
-			mov eax, ds: [ptrSetVariable]
-			mov edx, [name]
+			mov eax, ptrConsole
+			mov eax, ds: [eax]
 			mov ecx, [value]
+			mov edx, [name]
 			call[fnSetVariable]
 		}
-		//if (VersionSnoop::GetVersion() == VERSION::v001004)
-		//{
-		//	__asm {
-		//		mov eax, ds: [CONSOLE_PTR_1004]
-		//		mov edx, [name]
-		//		mov ecx, [value]
-		//		call[fnSetVariable]
-		//	}
-		//}
-		//else
-		//{
-		//	__asm {
-		//		mov eax, ds: [CONSOLE_PTR_1003]
-		//		mov edx, [name]
-		//		mov ecx, [value]
-		//		call[fnSetVariable]
-		//	}
-		//}
 	}
 
 	void OnStarted(bool active) {
