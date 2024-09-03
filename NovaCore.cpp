@@ -29,7 +29,9 @@ namespace NovaCore
 		Console::eval("IDSTR_MISSING_FILE_TITLE = 00131400,\"Missing File\";");
 		Console::eval("IDSTR_MISSING_FILE_ERROR = 00131401,\"%s\";");
 		Console::eval("if(!isFile(\"Nova.vol\")){checkForFile(\"Unable to find Nova.vol\\nIt is required with the current mem.dll being used.\");}");
+		Console::eval("newObject(cDel,ESCSDelegate,false,LOOPBACK,0);");
 		Console::eval("newobject(NovaVol, simVolume, \"Nova.vol\");");
+		Console::eval("newObject(simCanvas,SimGui::Canvas,Starsiege,640,480,true,1);");
 		Console::eval("exec(\"Nova_Start.cs\");");
 	}
 
