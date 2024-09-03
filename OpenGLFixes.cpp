@@ -75,29 +75,6 @@ namespace OpenGLFixes
 		return 0;
 	}
 
-	MultiPointer(ptrSplash480, 0, 0, 0x0063C5CE, 0x0064B50E);
-	MultiPointer(ptrSplash640, 0, 0, 0x0063C5C5, 0x0064B505);
-	BuiltInFunction("disableSplash640x480", _ds640x480)
-	{
-		const char* str = argv[0];
-		std::string arg1 = str;
-		if (arg1.compare("true") == 0)
-		{
-			CodePatch goSplash640 = { ptrSplash640, "", "\x81\x02", 2, false };
-			CodePatch goSplash480 = { ptrSplash480, "", "\xE1\x01", 2, false };
-			goSplash640.Apply(true);
-			goSplash480.Apply(true);
-		}
-		else
-		{
-			CodePatch goSplash640 = { ptrSplash640, "", "\x80\x02", 2, false };
-			CodePatch goSplash480 = { ptrSplash480, "", "\xE0\x01", 2, false };
-			goSplash640.Apply(true);
-			goSplash480.Apply(true);
-		}
-		return 0;
-	}
-
 	static char* guiloadL = "guiload(*100014);#";
 	MultiPointer(ptrLoadingGuiPatch0, 0, 0, 0x006F6BD0, 0x00706E5C);
 	MultiPointer(ptrLoadingGuiPatch1, 0, 0, 0x006F94D3, 0x007097B3);
@@ -326,8 +303,6 @@ namespace OpenGLFixes
 
 	//CodePatch tempPatch = { 0x0065FF39, "", "\x0F\xFC\x65\x00", 4, false };
 	CodePatch tempPatch = { 0x0065FF39, "", "\x81\xED\x65\x00", 4, false };
-	CodePatch goSplash640 = { ptrSplash640, "", "\x70\x0D", 2, false };
-	CodePatch goSplash480 = { ptrSplash480, "", "\xA0\x05", 2, false };
 	CodePatch wglinfowindow_bypass = { 0x0064B674, "", "\xEB", 1, false };
 	struct Init {
 		Init() {
