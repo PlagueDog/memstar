@@ -1454,7 +1454,7 @@ namespace ModloaderMain {
 			CreateDirectory(".\\mods\\cache", NULL);
 			CreateDirectory(".\\mods\\session", NULL);
 			CreateDirectory(".\\temp", NULL);
-			//CreateDirectory(".\\tdata", NULL);
+			CreateDirectory(".\\savedGames", NULL);
 
 			//Modloader: Append pilot data to campaign
 			campaigninit.DoctorRelative((u32)CampaignInit, 1).Apply(true);
