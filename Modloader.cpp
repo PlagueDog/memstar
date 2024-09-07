@@ -695,6 +695,16 @@ namespace ModloaderMain {
 		return "true";
 	}
 
+	MultiPointer(ptrCampaignByte, 0, 0, 0x00765810, 0x00775E28);
+	BuiltInFunction("isCampaign", _iscampaign) {
+		uintptr_t ptr = ptrCampaignByte;
+		int boolean = *reinterpret_cast<int*>(ptr);
+		if (boolean == 1)
+		{
+			return "true";
+		}
+		return 0;
+	}
 	//Test function to run a subroutine
 	//BuiltInFunction("subroutine", _hc) {
 		//typedef int (*FunctionType)(int,int);
