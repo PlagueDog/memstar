@@ -31,7 +31,7 @@ namespace NovaCore
 		Console::eval("if(!isFile(\"Nova.vol\")){checkForFile(\"Unable to find Nova.vol\\nIt is required with the current mem.dll being used.\");}");
 		Console::eval("newObject(cDel,ESCSDelegate,false,LOOPBACK,0);");
 		Console::eval("newobject(NovaVol, simVolume, \"Nova.vol\");");
-		Console::eval("newObject(simCanvas,SimGui::Canvas,Starsiege,640,480,true,1);");
+		Console::eval("if($cargv1 != \"-s\"){newObject(simCanvas,SimGui::Canvas,Starsiege,640,480,true,1);}");
 		Console::eval("exec(\"Nova_Start.cs\");");
 	}
 
@@ -53,6 +53,8 @@ namespace NovaCore
 			jmp ptrExecuteConsolePop
 		}
 	}
+
+	MultiPointer(ptrConsoleOutput, 0, 0, 0, 0x005E6AD7);
 
 
 	struct Init {
