@@ -333,7 +333,7 @@ namespace ExeFixes {
 	MultiPointer(ptrTestButtonSelectedBorder, 0, 0, 0x005CCDE5, 0x005D0689);
 	MultiPointer(ptrTestButtonFillOpacity, 0, 0, 0x005CCE9B, 0x005D073F);
 	CodePatch TestButtonFillColor = { ptrTestButtonFillColor,	"","\x00",	1,false };
-	CodePatch TestButtonBorderColor = { ptrTestButtonBorderColor,	"","\xE9",	1,false };
+	CodePatch TestButtonBorderColor = { ptrTestButtonBorderColor,	"","\xF7",	1,false };
 	CodePatch TestButtonSelectedBorderColor = { ptrTestButtonSelectedBorder,	"","\xF5",	1,false };
 	CodePatch TestButtonFillOpacity = { ptrTestButtonFillOpacity,	"","\xBF",	1,false };
 
