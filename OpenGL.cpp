@@ -158,6 +158,9 @@ namespace OpenGL {
 		}
 	}
 
+	//Use alternative interior surface rendering instead of the OpenGL interior surface rendering
+	MultiPointer(ptrSoftwareInteriorRendering, 0, 0, 0, 0x0061C3C3);
+
 	BOOL __stdcall wglMakeCurrent(HDC hdc, HGLRC hglrc) {
 		glActive = (hglrc != NULL);
 
@@ -181,8 +184,14 @@ namespace OpenGL {
 		Console::setVariable("$pref::Opengl::NoPackedTextures", "false"); //Set to false. Causes crashes on minimize
 		Console::setVariable("$pref::OpenGL::Use32BitTex", "false"); // Set to false. Incompatible with hud scaling
 
+		CodePatch interiorsurfacerendering = { ptrSoftwareInteriorRendering, "", "\x74", 1, false };
+		interiorsurfacerendering.Apply(true);
+
 		if (!glActive)
 		{
+			//Switch the alternative interior surfacing rendering back else we crash Software/Glide modes
+			CodePatch interiorsurfacerendering = { ptrSoftwareInteriorRendering, "", "\x75", 1, false };
+			interiorsurfacerendering.Apply(true);
 			Console::setVariable("Opengl::Active", "false");
 		}
 
