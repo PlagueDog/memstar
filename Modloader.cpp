@@ -232,6 +232,13 @@ namespace ModloaderMain {
 }
 	MultiPointer(ptrSplash480, 0, 0, 0x0063C5CE, 0x0064B50E);
 	MultiPointer(ptrSplash640, 0, 0, 0x0063C5C5, 0x0064B505);
+
+	MultiPointer(ptrExtSplash640_1, 0, 0, 0x006485AE, 0x006582C6);
+	MultiPointer(ptrExtSplash640_2, 0, 0, 0x006485CA, 0x006582E2);
+
+	MultiPointer(ptrExtSplash480_1, 0, 0, 0x006485B5, 0x006582CD);
+	MultiPointer(ptrExtSplash480_2, 0, 0, 0x006485D1, 0x006582E9);
+
 	BuiltInFunction("setSplash640x480", _ss640x480)
 	{
 		if (argc != 2 || atoi(argv[1]) < 1 )
@@ -251,10 +258,14 @@ namespace ModloaderMain {
 		if (type.compare("width") == 0)
 		{
 			CodePatch goSplash640 = { ptrSplash640, "", result, 2, false };goSplash640.Apply(true);
+			CodePatch goExtSplash640_1 = { ptrExtSplash640_1, "", result, 2, false };goExtSplash640_1.Apply(true);
+			CodePatch goExtSplash640_2 = { ptrExtSplash640_2, "", result, 2, false };goExtSplash640_2.Apply(true);
 		}
 		else if (type.compare("height") == 0)
 		{
 			CodePatch goSplash480 = { ptrSplash480, "", result, 2, false };goSplash480.Apply(true);
+			CodePatch goExtSplash480_1 = { ptrExtSplash480_1, "", result, 2, false }; goExtSplash480_1.Apply(true);
+			CodePatch goExtSplash480_2 = { ptrExtSplash480_2, "", result, 2, false }; goExtSplash480_2.Apply(true);
 		}
 		//Console::echo(result);
 		//Console::echo(int2hex(atoi(argv[1]), 1));
@@ -392,13 +403,14 @@ namespace ModloaderMain {
 		GetWindowRect(getGameHWND(), &window);
 		int x = window.left;
 		int y = window.top;
-		if (atoi(argv[0]) == 1)
-		{
-			return tostring(x);
-		}
-		else
+		std::string arg1 = argv[0];
+		if (arg1.compare("x"))
 		{
 			return tostring(y);
+		}
+		if (arg1.compare("y"))
+		{
+			return tostring(x);
 		}
 		return 0;
 	}
@@ -821,12 +833,12 @@ namespace ModloaderMain {
 	BuiltInFunction("fov", _fov) {
 		if (argc != 1)
 		{
-			Console::echo("%s( 50 - 175 );", self);
+			Console::echo("%s( 50 - 120 );", self);
 			return "false";
 		}
-		if (atoi(argv[0]) < 50 && atoi(argv[0]) > 175)
+		if (atoi(argv[0]) < 50 && atoi(argv[0]) > 120)
 		{
-			Console::echo("%s( 50 - 175 );", self);
+			Console::echo("%s( 50 - 120 );", self);
 			return "false";
 		}
 
@@ -1242,32 +1254,20 @@ namespace ModloaderMain {
 	MultiPointer(ptrVarRefBefAssignVerb, 0, 0, 0x00712ECB, 0x0072333B);
 	CodePatch VarRefBefAssignVerb_patch = { ptrVarRefBefAssignVerb, "", "%s referenced before it has been assigned", 41, false };
 
-	BuiltInFunction("OpenGL::windowedFullscreen", _oglwf)
-	{
-		const char* str = argv[0];
-		std::string arg1 = str;
-		//Vector2i screen;
-		//Fear::getScreenDimensions(&screen);
-		//HWND windowHandle = FindWindowA(NULL, "Starsiege");
-		MultiPointer(ptrOGLFullScreen1, 0, 0, 0x0063CE88, 0x0064BDC8);
-		MultiPointer(ptrOGLFullScreen2, 0, 0, 0x0063CEEA, 0x0064BE2A);
-		if (arg1.compare("false") == 0)
-		{
-			CodePatch genericCodePatch = { ptrOGLFullScreen1,"","\xF0",1,false };
-			genericCodePatch.Apply(true);
-			CodePatch genericCodePatch0 = { ptrOGLFullScreen2,"","\x04",1,false };
-			genericCodePatch0.Apply(true);
-		}
-		else
-		{
-			CodePatch genericCodePatch = { ptrOGLFullScreen1,"","\x00",1,false };
-			genericCodePatch.Apply(true);
-			CodePatch genericCodePatch0 = { ptrOGLFullScreen2,"","\x0A",1,false };
-			genericCodePatch0.Apply(true);
-			//SetWindowPos(windowHandle, HWND_TOP, 0, 0, screen.x, screen.y, 0);
-		}
-		return "true";
-	}
+	//BuiltInFunction("patchWindowedOGL", _pwogl)
+	//{
+	//	const char* str = argv[0];
+	//	std::string arg1 = str;
+	//	if (arg1.compare("true") == 0)
+	//	{
+	//		patchchangedisplaysettings.DoctorRelative((u32)patchChangeDisplaySettings, 1).Apply(true);
+	//	}
+	//	else if (arg1.compare("false") == 0)
+	//	{
+	//		patchchangedisplaysettings.DoctorRelative((u32)unpatchChangeDisplaySettings, 1).Apply(true);
+	//	}
+	//	return 0;
+	//}
 
 	void LeftClick()
 	{
