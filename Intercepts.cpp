@@ -20,6 +20,7 @@ MultiPointer(ptrConsoleBuffer, 0, 0, 0, 0x00722FA4);
 MultiPointer(ptrConsoleEval, 0, 0, 0, 0x005E6DF0);
 MultiPointer(ptrConsoleEval2, 0, 0, 0x005E387C, 0x005E7120);
 MultiPointer(_sprintf, 0, 0, 0, 0x006CD8B4);
+MultiPointer(_strlen, 0, 0, 0x006B8DE4, 0x006C8E5C);
 MultiPointer(fnEcho, 0, 0, 0x005e3178, 0x005E6A1C);
 
 MultiPointer(ptrClientVehicleSpawn, 0, 0, 0, 0x0046D69B);
@@ -362,35 +363,73 @@ namespace Intercepts {
 		return 0;
 	}
 
+	//BuiltInFunction("Nova::onLoadVehicle", _novaonloadvehicle){return "true";}
+	//MultiPointer(ptrGuiVehControllerLoadVehicle, 0, 0, 0, 0x004F4ECE);
+	//MultiPointer(ptrTextWrap, 0, 0, 0, 0x004F3B20);
+	//MultiPointer(ptrVehicleViewStatusDisp, 0, 0, 0, 0x004F4770);
+	//static const char* NovaLoadVehicle = "Nova::onLoadVehicle();";
+	//char* clientVehicle = "NONE";
+	//CodePatch guivehcontrollerloadvehicle = { ptrGuiVehControllerLoadVehicle, "", "\xE9VEHL", 5, false };
+	//NAKED void GuiVehControllerLoadVehicle() {
+	//	__asm {
+	//		mov edx, edi
+	//		mov clientVehicle, edx
+	//		mov eax, ebx
+	//		call ptrTextWrap
+	//		mov eax, ebx
+	//		call ptrVehicleViewStatusDisp
+	//		add esp, 0x100
+	//
+	//		//Call our function
+	//		push eax
+	//		mov eax, [NovaLoadVehicle]
+	//		push eax
+	//		call Console::eval
+	//		add esp, 0x8
+	//
+	//		pop ebp
+	//		pop edi
+	//		pop esi
+	//		pop ebx
+	//		retn
+	//	}
+	//}
 
-	MultiPointer(ptrGuiVehControllerSelectVehicle, 0, 0, 0x005C52CD, 0x004F4E93);
-	MultiPointer(ptrGuiVehControllerSelectVehicleResume, 0, 0, 0x005C52D9, 0x004F4E99);
-	static const char* NovaSelectCustomVehicle = "Nova::onSelectCustomVehicle();";
-	static const char* NovaSelectStandardVehicle = "Nova::onSelectStandardVehicle();";
-	CodePatch guivehcontrollerselectvehicle = { ptrGuiVehControllerSelectVehicle, "", "\xE9VEHS", 5, false };
-	NAKED void GuiVehControllerSelectVehicle() {
+	void fnVehicleFileLookup()
+	{
+		Console::eval("Nova::onVehicleFileLookup();");
+	}
+
+	BuiltInFunction("Nova::onVehicleFileLookup", _novaonVehicleFileLookup) { return "true"; }
+	MultiPointer(ptrGuiVehControllerFileLookup, 0, 0, 0x004F2B40, 0x004F4FD8);
+	MultiPointer(ptrGuiVehControllerLoadFileNameResume, 0, 0, 0x004F2B49, 0x004F4FE1);
+	static const char* NovaLoadVehicle = "Nova::onVehicleFileLookup();";
+	char* clientVehicleFile = "NONE";
+	CodePatch vehiclefilelookup = { ptrGuiVehControllerFileLookup, "", "\xE9VFLU", 5, false };
+	NAKED void VehicleFileLookup() {
 		__asm {
-			mov al, [eax + 0x354]
-			test al, al
-			jz __jz
-			push eax
-			mov eax, [NovaSelectCustomVehicle]
-			push eax
-			call Console::eval
-			add esp, 0x8
-			jmp [ptrGuiVehControllerSelectVehicleResume]
-			__jz:
-				push eax
-				mov eax, [NovaSelectStandardVehicle]
-				push eax
-				call Console::eval
-				add esp, 0x8
-				jmp [ptrGuiVehControllerSelectVehicleResume]
+			push ebx
+			mov ebx, edx
+			mov clientVehicleFile, ebx
+			call fnVehicleFileLookup
+			push ebx
+			call _strlen
+			jmp ptrGuiVehControllerLoadFileNameResume
 		}
 	}
 
-	MultiPointer(ptrPlayerMessageEveryone, 0, 0, 0, 0x0055DB13);
-	MultiPointer(ptrPlayerMessageEveryoneResume, 0, 0, 0, 0x0055DB79);
+	char* getLoadedVehicle()
+	{
+		return clientVehicleFile;
+	}
+
+	BuiltInFunction("Nova::getLoadedVehicleFileName", _novagetloadedvehiclename)
+	{
+		return clientVehicleFile;
+	}
+
+	MultiPointer(ptrPlayerMessageEveryone, 0, 0, 0x0055ACD7, 0x0055DB13);
+	MultiPointer(ptrPlayerMessageEveryoneResume, 0, 0, 0x0055AD3D, 0x0055DB79);
 	static const char* messageEventfn = "Nova::push::onPlayerMessage();";
 	static const char* msg_sprint = "%s %s->%s: %s";
 	CodePatch playeronmessage = { ptrPlayerMessageEveryone, "", "\xE9PONM", 5, false };
@@ -407,12 +446,13 @@ namespace Intercepts {
 			push ebp
 			mov playerName, ebp
 			push esi
-
+			
 			push [msg_sprint]
-
+			
 			mov eax, [ptrConsoleBuffer]
 			push eax
 			call Console::echo
+			//call fnEcho
 			add esp, 0x18
 
 			push eax
@@ -448,8 +488,6 @@ namespace Intercepts {
 	{
 		Init() 
 		{
-			if (std::filesystem::exists("Nova.vol"))
-			{
 				//////////////////////////////////////////////////
 				// Gui onOpen & onClose patches
 				/////////////////////////////////////////////////
@@ -476,14 +514,14 @@ namespace Intercepts {
 				getcursor.DoctorRelative((u32)GetCursor, 1).Apply(true);
 
 				//GuiVehCustController Vehicle Select Call
-				//guivehcontrollerselectvehicle.DoctorRelative((u32)GuiVehControllerSelectVehicle, 1).Apply(true);
+				//guivehcontrollerloadvehicle.DoctorRelative((u32)GuiVehControllerLoadVehicle, 1).Apply(true);
+				vehiclefilelookup.DoctorRelative((u32)VehicleFileLookup, 1).Apply(true);
 
 				//player::onMessage
 				playeronmessage.DoctorRelative((u32)playerOnMessage, 1).Apply(true);
 
 				//OpenGL DEV
 				//openglmodeextend.DoctorRelative((u32)OpenGLModeExtend, 1).Apply(true);
-			}
 
 		}
 	} init;
