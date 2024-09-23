@@ -20,24 +20,64 @@ using namespace std;
 
 namespace OpenGLFixes
 {
-	BuiltInFunction("OpenGL::WindowLoseFocusMinimize", _oglwlfm)
+	HWND getHWND() {
+		MultiPointer(ptrHWND, 0, 0, 0x00705C5C, 0x007160CC);
+		uintptr_t HWND_PTR = ptrHWND;
+		int GAME_HWND = *reinterpret_cast<int*>(HWND_PTR);
+		HWND SS_HWND = reinterpret_cast<HWND>(GAME_HWND);
+		return SS_HWND;
+	}
+
+	void SetWindowPriority()
+	{
+		//SetWindowPos(getHWND(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+		SetWindowPos(getHWND(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE );
+		//ShowWindow(getHWND(), SW_RESTORE);
+	}
+
+	MultiPointer(ptrMinimizeWindowCall, 0, 0, 0x005777E5, 0x0057A9ED);
+	MultiPointer(ptrMinimizeWindowCallRetn, 0, 0, 0x00577812, 0x0057AA1A);
+	CodePatch minimizecallintercept = { ptrMinimizeWindowCall, "", "\xE9MWCL", 5, false };
+	NAKED void MinimizeCallIntercept()
+	{
+		__asm {
+			call SetWindowPriority
+			jmp ptrMinimizeWindowCallRetn
+		}
+	}
+
+	MultiPointer(ptrMinimizeWindowMessage, 0, 0, 0x005777FD, 0x0057AA05);
+	BuiltInFunction("Canvas::autoMinimize", canvasautominimize)
 	{
 		const char* str = argv[0];
 		std::string arg1 = str;
-		MultiPointer(ptrWindowMessage, 0, 0, 0x005777FD, 0x0057AA05);
-		if (arg1.compare("true") == 0)
+		if (arg1.compare("false") == 0)
 		{
-			CodePatch WindowMinimizeOnLoseFocus = { ptrWindowMessage,"","\x20",1,false };
+			CodePatch WindowMinimizeOnLoseFocus = { ptrMinimizeWindowMessage,"","\x20",1,false };
 			WindowMinimizeOnLoseFocus.Apply(true);
 		}
-		else
+		else if (arg1.compare("true") == 0)
 		{
-			CodePatch WindowMinimizeOnLoseFocus = { ptrWindowMessage,"","\x30",1,false };
+			CodePatch WindowMinimizeOnLoseFocus = { ptrMinimizeWindowMessage,"","\x30",1,false };
 			WindowMinimizeOnLoseFocus.Apply(true);
 		}
 		return 0;
 	}
-	 
+
+	BuiltInFunction("Nova::getDesktopResolution", _novagetdesktopresolution)
+	{
+		RECT desktop;
+		const HWND hDesktop = GetDesktopWindow();
+		GetWindowRect(hDesktop, &desktop);
+		int width = desktop.right;
+		int height = desktop.bottom;
+		char res[16];
+		strcpy(res, tostring(width));
+		strcat(res, "x");
+		strcat(res, tostring(height));
+		return res;
+	}
+
 	MultiPointer(ptrChangeDisplaySettings, 0, 0, 0x0063CEF0, 0x0064BE30);
 	MultiPointer(ptrChangeDisplaySettingsByte, 0, 0, 0x0083BC04, 0x008528BC);
 	MultiPointer(ptrChangeDisplaySettingsCont, 0, 0, 0x0063CEFC, 0x0064BE3C);
@@ -47,7 +87,7 @@ namespace OpenGLFixes
 		__asm {
 			call ChangeDisplaySettingsW
 			mov ptrChangeDisplaySettingsByte, 1
-			jmp [ptrChangeDisplaySettingsCont]
+			jmp[ptrChangeDisplaySettingsCont]
 		}
 	}
 
@@ -60,19 +100,37 @@ namespace OpenGLFixes
 		}
 	}
 
-	BuiltInFunction("patchWindowedOGL", _pwogl)
+	MultiPointer(ptrOGLFullScreen1, 0, 0, 0x0063CE88, 0x0064BDC8);
+	MultiPointer(ptrOGLFullScreen2, 0, 0, 0x0063CEEA, 0x0064BE2A);
+	BuiltInFunction("OpenGL::windowedFullscreen", _openglwindowedfullscreen)
 	{
 		const char* str = argv[0];
 		std::string arg1 = str;
-		if (arg1.compare("true") == 0)
+		//Vector2i screen;
+		//Fear::getScreenDimensions(&screen);
+		//HWND windowHandle = FindWindowA(NULL, "Starsiege");
+		if (arg1.compare("false") == 0)
 		{
-			patchchangedisplaysettings.DoctorRelative((u32)patchChangeDisplaySettings, 1).Apply(true);
-		}
-		else if (arg1.compare("false") == 0)
-		{
+			CodePatch WindowMinimizeOnLoseFocus = { ptrMinimizeWindowMessage,"","\x20",1,false };
+			WindowMinimizeOnLoseFocus.Apply(true);
+			CodePatch genericCodePatch = { ptrOGLFullScreen1,"","\xF0",1,false };
+			genericCodePatch.Apply(true);
+			CodePatch genericCodePatch0 = { ptrOGLFullScreen2,"","\x04",1,false };
+			genericCodePatch0.Apply(true);
 			patchchangedisplaysettings.DoctorRelative((u32)unpatchChangeDisplaySettings, 1).Apply(true);
 		}
-		return 0;
+		else if (arg1.compare("true") == 0)
+		{
+			CodePatch WindowMinimizeOnLoseFocus = { ptrMinimizeWindowMessage,"","\x30",1,false };
+			WindowMinimizeOnLoseFocus.Apply(true);
+			CodePatch genericCodePatch = { ptrOGLFullScreen1,"","\x00",1,false };
+			genericCodePatch.Apply(true);
+			CodePatch genericCodePatch0 = { ptrOGLFullScreen2,"","\x0A",1,false };
+			genericCodePatch0.Apply(true);
+			patchchangedisplaysettings.DoctorRelative((u32)patchChangeDisplaySettings, 1).Apply(true);
+			//SetWindowPos(windowHandle, HWND_TOP, 0, 0, screen.x, screen.y, 0);
+		}
+		return "true";
 	}
 
 	static char* guiloadL = "guiload(*100014);#";
@@ -142,10 +200,6 @@ namespace OpenGLFixes
 				retn
 		}
 	}
-
-	//Use the software interior surface rendering instead of the OpenGL interior surface rendering
-	MultiPointer(ptrSoftwareInteriorRendering, 0, 0, 0, 0x0061C3C3);
-	CodePatch interiorsurfacerendering = { ptrSoftwareInteriorRendering, "", "\x74", 1, false };
 
 	BuiltInFunction("OpenGL::Wireframe", _oglwf)
 	{
@@ -314,10 +368,10 @@ namespace OpenGLFixes
 			windowproperiespatch.DoctorRelative((u32)WindowPropertiesPatch, 1).Apply(true);
 			BitmapCtrlLineFix.Apply(true); //Hide seams in chunked bitmaps
 			introtomaincrashfix.DoctorRelative((u32)IntroToMainCrashFix, 1).Apply(true);
+			minimizecallintercept.DoctorRelative((u32)MinimizeCallIntercept, 1).Apply(true);
 			//goSplash640.Apply(true);
 			//goSplash480.Apply(true);
 			//tempPatch.Apply(true);
-			interiorsurfacerendering.Apply(true);
 		}
 	} init;
 };
