@@ -35,6 +35,22 @@ namespace NovaCore
 		Console::eval("exec(\"Nova_Start.cs\");");
 	}
 
+	HWND getHWND() {
+		MultiPointer(ptrHWND, 0, 0, 0x00705C5C, 0x007160CC);
+		uintptr_t HWND_PTR = ptrHWND;
+		int GAME_HWND = *reinterpret_cast<int*>(HWND_PTR);
+		HWND SS_HWND = reinterpret_cast<HWND>(GAME_HWND);
+		return SS_HWND;
+	}
+
+	//Sets the game window priority to the bottom
+	BuiltInFunction("Nova::sendWindowToBack", _novasendWindowToBack)
+	{
+		SetWindowPos(getHWND(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+		ShowWindow(getHWND(), SW_RESTORE);
+		return 0;
+	}
+
 	MultiPointer(ptrExecuteConsole, 0, 0, 0x00402050, 0x00402057);
 	MultiPointer(ptrExecuteConsolePop, 0, 0, 0x00402067, 0x00402075);
 	MultiPointer(ptrConstructorByte, 0, 0, 0, 0x006D9058);
