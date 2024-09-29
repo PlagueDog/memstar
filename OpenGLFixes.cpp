@@ -28,11 +28,20 @@ namespace OpenGLFixes
 		return SS_HWND;
 	}
 
+	BuiltInVariable("pref::WIN_POS_X", int, prefwinposx, 0);
+	BuiltInVariable("pref::WIN_POS_Y", int, prefwinposy, 0);
+	BuiltInFunction("Nova::handleLoseFocus", novahandlelosefocus) { return 0; }
 	void SetWindowPriority()
 	{
+		RECT window;
+		GetWindowRect(getHWND(), &window);
+		int x = window.left;
+		int y = window.top;
+		Console::eval("bind(mouse,xaxis,TO,\"Nova::handleLoseFocus();Nova::sendWindowToFront();unbind(mouse,xaxis,make);\"); ");
 		//SetWindowPos(getHWND(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-		SetWindowPos(getHWND(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE );
+		SetWindowPos(getHWND(), HWND_NOTOPMOST, x, y, 0, 0, SWP_NOSIZE );
 		//ShowWindow(getHWND(), SW_RESTORE);
+		//Console::eval("Nova::handleLoseFocus();");
 	}
 
 	MultiPointer(ptrMinimizeWindowCall, 0, 0, 0x005777E5, 0x0057A9ED);
@@ -117,7 +126,7 @@ namespace OpenGLFixes
 			genericCodePatch.Apply(true);
 			CodePatch genericCodePatch0 = { ptrOGLFullScreen2,"","\x04",1,false };
 			genericCodePatch0.Apply(true);
-			patchchangedisplaysettings.DoctorRelative((u32)unpatchChangeDisplaySettings, 1).Apply(true);
+			//patchchangedisplaysettings.DoctorRelative((u32)unpatchChangeDisplaySettings, 1).Apply(true);
 		}
 		else if (arg1.compare("true") == 0)
 		{
@@ -127,7 +136,7 @@ namespace OpenGLFixes
 			genericCodePatch.Apply(true);
 			CodePatch genericCodePatch0 = { ptrOGLFullScreen2,"","\x0A",1,false };
 			genericCodePatch0.Apply(true);
-			patchchangedisplaysettings.DoctorRelative((u32)patchChangeDisplaySettings, 1).Apply(true);
+			//patchchangedisplaysettings.DoctorRelative((u32)patchChangeDisplaySettings, 1).Apply(true);
 			//SetWindowPos(windowHandle, HWND_TOP, 0, 0, screen.x, screen.y, 0);
 		}
 		return "true";

@@ -181,8 +181,9 @@ namespace OpenGL {
 
 		Console::echo("OpenGL is %s", glActive ? "active" : "not active");
 		Console::setVariable("Opengl::Active", "true");
-		Console::setVariable("$pref::Opengl::NoPackedTextures", "false"); //Set to false. Causes crashes on minimize
-		Console::setVariable("$pref::OpenGL::Use32BitTex", "false"); // Set to false. Incompatible with hud scaling
+		Console::setVariable("pref::Opengl::NoPackedTextures", "true"); //Set to false. Causes crashes on minimize
+		Console::setVariable("pref::Opengl::NoPalettedTextures", "true");
+		Console::setVariable("pref::OpenGL::Use32BitTex", "true"); // Set to false. Incompatible with hud scaling
 
 		CodePatch interiorsurfacerendering = { ptrSoftwareInteriorRendering, "", "\x74", 1, false };
 		interiorsurfacerendering.Apply(true);

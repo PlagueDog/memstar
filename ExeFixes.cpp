@@ -25,6 +25,7 @@ namespace ExeFixes {
 		return SS_HWND;
 	}
 	
+	MultiPointer(ptrPacketSizeSet, 0, 0, 0x00624F01, 0x00460A78);
 	//BuiltInFunction("setWindowsCompat", _getWindowsCompat)
 	//{
 		//HKEY hKey;
@@ -122,10 +123,10 @@ namespace ExeFixes {
 	}
 	CodePatch OpenGLBitDepth = { ptrOGLBitDepth,"","\x20",1,false };
 
-	CodePatch OpenGLWidthMin = { ptrOGLWidthMin,"","\x3D\x40\x01",3,false };
+	//CodePatch OpenGLWidthMin = { ptrOGLWidthMin,"","\x3D\x40\x01",3,false };
 	//CodePatch OpenGLWidthMax = { ptrOGLWidthMax,"","\x3D\x00\x0A",3,false };
 	CodePatch OpenGLWidthMax = { ptrOGLWidthMax,"","\x3D\x00\x1E",3,false };
-	CodePatch OpenGLHeightMin = { ptrOGLHeightMin,"","\x81\xFA\xF0\x00",4,false };
+	//CodePatch OpenGLHeightMin = { ptrOGLHeightMin,"","\x81\xFA\xF0\x00",4,false };
 	//CodePatch OpenGLHeightMax = { ptrOGLHeightMax,"","\x81\xF9\xA0\x05",4,false };
 	CodePatch OpenGLHeightMax = { ptrOGLHeightMax,"","\x81\xF9\x00\x1E",4,false };
 
@@ -348,7 +349,7 @@ namespace ExeFixes {
 	//Lensflare Bitmap(s) Width
 	MultiPointer(ptrLensflareBitmapWidth, 0, 0, 0x006A4CA0, 0x006B4CA8);
 	
-	BuiltInFunction("Mem::AdjustLensflareBitmaps", _memalb)
+	BuiltInFunction("Nova::AdjustLensflareBitmaps", _novaadjustlensflarebitmaps)
 	{
 		Vector2i screen;
 		Fear::getScreenDimensions(&screen);
@@ -407,7 +408,7 @@ namespace ExeFixes {
 	MultiPointer(ptrShadowResLOD3, 0, 0, 0x00673888, 0x00683754);
 	MultiPointer(ptrShadowResLOD4, 0, 0, 0x00673898, 0x00683764);
 
-	BuiltInFunction("Mem::EnableHiresShadows", _memehs)
+	BuiltInFunction("Nova::EnableHiresShadows", _memehs)
 	{
 		CodePatch hiresShadowsPatch0 = { ptrShadowResLOD0, "", "\x00\x01", 2, false }; hiresShadowsPatch0.Apply(true);
 		CodePatch hiresShadowsBlurPatch0 = { ptrShadowResLOD0_Blur, "", "\x05", 1, false }; hiresShadowsBlurPatch0.Apply(true);
@@ -419,7 +420,7 @@ namespace ExeFixes {
 		return 0;
 	}
 
-	BuiltInFunction("Mem::DisableHiresShadows", _memdhs)
+	BuiltInFunction("Nova::DisableHiresShadows", _memdhs)
 	{
 		CodePatch hiresShadowsPatch0 = { ptrShadowResLOD0, "", "\x40\x00", 2, false }; hiresShadowsPatch0.Apply(true);
 		CodePatch hiresShadowsBlurPatch0 = { ptrShadowResLOD0_Blur, "", "\x17", 1, false }; hiresShadowsBlurPatch0.Apply(true);
@@ -639,10 +640,10 @@ namespace ExeFixes {
 	//CodePatch RainfallDropletSize1 = { ptrRainDropletSize1, "", "\xCD\xCC\xFC\x3D", 4, false };
 	//CodePatch RainfallDropletSize2 = { ptrRainDropletSize2, "", "\x9A\x99\xFC\x3E", 4, false };
 	//CodePatch RainfallDropletSize3 = { ptrRainDropletSize3, "", "\xCD\xCC\xFC\x3E", 4, false };
-	BuiltInFunction("Mem::enableFarWeather", _memefw)
+	BuiltInFunction("Nova::enableFarWeather", _memefw)
 	{
 		CodePatch SnowfallMaxIntensity = { ptrSnowfallMaxIntensity, "", "\x00\x00\x48\x42", 4, false };
-		CodePatch SnowfallMaxFlakes = { ptrSnowfallMaxFlakes, "", "\x00\xB1\x00\x00", 4, false };
+		CodePatch SnowfallMaxFlakes = { ptrSnowfallMaxFlakes, "", "\x00\xA0\x00\x00", 4, false };
 		CodePatch SnowfallRadius = { ptrSnowfallRenderRadius, "", "\x00\x00\x40\x44", 4, false };
 		//SNOW
 		SnowfallMaxFlakes.Apply(true);
@@ -650,8 +651,8 @@ namespace ExeFixes {
 		SnowfallRadius.Apply(true);
 
 		CodePatch RainfallRenderRadius = { ptrRainfallRenderRadius, "", "\x00\x00\x00\x44", 4, false };
-		CodePatch RainfallMaxDroplets = { ptrRainfallMaxDroplets, "", "\x00\x10\x00\x00", 4, false }; //Anything higher than 4096 will halt the game
-		CodePatch RainfallSpeed = { ptrRainfallSpeed, "", "\x00\x00\x00\xC3", 4, false };
+		CodePatch RainfallMaxDroplets = { ptrRainfallMaxDroplets, "", "\x00\xA0\x00\x00", 4, false }; //Anything higher than 4096 will halt the game
+		CodePatch RainfallSpeed = { ptrRainfallSpeed, "", "\x00\x00\x80\xC3", 4, false };
 		//RAIN
 		RainfallRenderRadius.Apply(true);
 		RainfallSpeed.Apply(true);
@@ -660,7 +661,7 @@ namespace ExeFixes {
 		return 0;
 	}
 
-	BuiltInFunction("Mem::disableFarWeather", _memdfw)
+	BuiltInFunction("Nova::disableFarWeather", _memdfw)
 	{
 		CodePatch SnowfallMaxIntensity = { ptrSnowfallMaxIntensity, "", "\x00\x00\x80\x3F", 4, false };
 		CodePatch SnowfallMaxFlakes = { ptrSnowfallMaxFlakes, "", "\x00\x10\x00\x00", 4, false };
@@ -671,7 +672,7 @@ namespace ExeFixes {
 		SnowfallRadius.Apply(true);
 
 		CodePatch RainfallRenderRadius = { ptrRainfallRenderRadius, "", "\x00\x00\xDC\x42", 4, false };
-		CodePatch RainfallMaxDroplets = { ptrRainfallMaxDroplets, "", "\x00\xB1\x00\x00", 4, false };
+		CodePatch RainfallMaxDroplets = { ptrRainfallMaxDroplets, "", "\x00\x10\x00\x00", 4, false };
 		CodePatch RainfallSpeed = { ptrRainfallSpeed, "", "\x00\x00\xAA\xC2", 4, false };
 		//RAIN
 		RainfallRenderRadius.Apply(true);
@@ -681,7 +682,7 @@ namespace ExeFixes {
 		return 0;
 	}
 
-	MultiPointer(ptrMaxAnimationsTSS, 0, 0, 0, 0x0073DB78);
+	MultiPointer(ptrMaxAnimationsDTS, 0, 0, 0, 0x0073DB78);
 
 	//Hud Transparency
 	MultiPointer(ptrHudTransparency, 0, 0, 0, 0x00654FEB);
@@ -997,10 +998,10 @@ namespace ExeFixes {
 			mapviewInterfaceLatency.Apply(true);
 
 			//OpenGLBitDepth.Apply(true);
-			OpenGLWidthMin.Apply(true);
-			OpenGLWidthMax.Apply(true);
-			OpenGLHeightMin.Apply(true);
-			OpenGLHeightMax.Apply(true);
+			//OpenGLWidthMin.Apply(true);
+			//OpenGLWidthMax.Apply(true);
+			//OpenGLHeightMin.Apply(true);
+			//OpenGLHeightMax.Apply(true);
 			SoftwareResWidthCap.Apply(true);
 			SoftwareResHeightCap.Apply(true);
 

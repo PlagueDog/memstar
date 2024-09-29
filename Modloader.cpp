@@ -141,6 +141,32 @@ char* flt2hex(float input = 0.00, int type = 0)
 	return hexString;
 }
 
+//OpenGL
+MultiPointer(ptrOGLWidthMin, 0, 0, 0x0063C80C, 0x0064B74C);
+MultiPointer(ptrOGLWidthMax, 0, 0, 0x0063C817, 0x0064B757);
+MultiPointer(ptrOGLHeightMin, 0, 0, 0x0063C827, 0x0064B767);
+MultiPointer(ptrOGLHeightMax, 0, 0, 0x0063C837, 0x0064B777);
+void OpenGLenumDesktopModes()
+{
+	RECT desktop;
+	const HWND hDesktop = GetDesktopWindow();
+	GetWindowRect(hDesktop, &desktop);
+	int width = desktop.right;
+	int height = desktop.bottom;
+
+	string OGLwidthBuffer = hexToASCII2(int2hex(width, 1));
+	char* OGLwidthResult = const_cast<char*>(OGLwidthBuffer.c_str());
+
+	CodePatch OpenGLWidthMax = { ptrOGLWidthMax,"",OGLwidthResult,4,false };
+
+	string OGLheightBuffer = hexToASCII2(int2hex(height, 1));
+	char* OGLheightResult = const_cast<char*>(OGLheightBuffer.c_str());
+	CodePatch OpenGLHeightMax = { ptrOGLHeightMax,"",OGLheightResult,4,false };
+
+	OpenGLWidthMax.Apply(true);
+	OpenGLHeightMax.Apply(true);
+}
+
 MultiPointer(ptrBayOpenTestBit, 0, 0, 0, 0x00445FD4);
 void patchBackBayEdit()
 {
@@ -365,10 +391,9 @@ namespace ModloaderMain {
 
 	BuiltInFunction("enableWindowBorder", _ewb) {
 		LONG lStyle = GetWindowLong(getGameHWND(), GWL_STYLE);
-		//lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
-		//SetWindowLong(FindWindowA(NULL, "Starsiege"), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU);
 		lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
-		SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU);
+		//SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU);
+		SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME | WS_SYSMENU);
 		return "true";
 	}
 
@@ -528,6 +553,8 @@ namespace ModloaderMain {
 		CodePatch genericCodePatch = { ptrOGLshift,"",hex2char_c,4,false }; genericCodePatch.Apply(true);
 		return "true";
 	}
+
+	MultiPointer(ptrOpenGLRenderAltVert, 0, 0, 0x0063D9A8, 0x0064C900);
 	MultiPointer(ptrOGLoffset, 0, 0, 0x0063DAFC, 0x0064CA54);
 
 	int canvasWidth = 640;
@@ -947,13 +974,12 @@ namespace ModloaderMain {
 	}
 
 	BuiltInFunction("quitGame", _quitGame) {
-		//exit(0);
 		PostQuitMessage(0);
 		return "true";
 	}
 
 	BuiltInVariable("pref::NoCockpitFadein", bool, prefCockpitFadein, true);
-	BuiltInFunction("modloader::toggleCockpitFadein", _tcf) {
+	BuiltInFunction("Nova::toggleCockpitFadeIn", _tcf) {
 		MultiPointer(ptrSimFadein01, 0, 0, 0x0045AA7E, 0x0045BF42);
 		MultiPointer(ptrSimFadein02, 0, 0, 0x0045AA97, 0x0045BF5B);
 		if (!prefCockpitFadein)
@@ -1084,7 +1110,7 @@ namespace ModloaderMain {
 	CodePatch packetSize_patch = {
 		ptrPacketSize,
 		"",
-		"\xB9\xE8\x03",
+		"\xB9\x09\x01",
 		3,
 		false
 	};
@@ -1100,13 +1126,13 @@ namespace ModloaderMain {
 		false
 	};
 
-	//Packet rate loopback. This is the serverside packetRate. Set to 1000
-	MultiPointer(ptrLoopbackPacketRate, 0, 0, 0x0045F434, 0x00460A8C);
+	//Packet rate loopback. This is the serverside packetRate. Set to 512
+	MultiPointer(ptrLoopbackPacketRate, 0, 0, 0x0045F440, 0x00460A98);
 	CodePatch loopback_packetRate_patch = {
 		 ptrLoopbackPacketRate,
 		 "",
-		 "\x89\x83\xE8\x03\x00\x00\xBA\x1A\x76\x6E\x00\xB9\xE8\x03\x00\x00",
-		 16,
+		 "\x00\x02\x00\x00",
+		 4,
 		 false
 	};
 
@@ -1441,7 +1467,7 @@ namespace ModloaderMain {
 			packetRateDefault_patch.Apply(true);
 			packetRateDefaultMax_patch.Apply(true);
 			loopback_packetRate_patch.Apply(true);
-			packetSize_patch.Apply(true);
+			//packetSize_patch.Apply(true);
 			ignoreMissingServerVolume_patch.Apply(true);
 			invalidPackets1_patch.Apply(true);
 			invalidPackets2_patch.Apply(true);
@@ -1473,6 +1499,9 @@ namespace ModloaderMain {
 			//Tiles the Simgui::BitmapCTRL so that the background fits the upscale
 			//MOVE TO FUNCTIONS
 			//guibitmapctrl_tile.DoctorRelative((u32)GuiBitmapCTRL_Tile, 1).Apply(true);
+
+			//Enumerate OpenGL resolutions up to the desktop resolution
+			OpenGLenumDesktopModes();
 		}
 	} init;
 	}
