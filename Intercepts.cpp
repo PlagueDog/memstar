@@ -491,6 +491,11 @@ namespace Intercepts {
 	//Create a empty player::onMessage(); initially
 	BuiltInFunction("player::onMessage", _playeronmessage){return 0;}
 
+	BuiltInFunction("Nova::CursorPatch", _novacursorpatch)
+	{ 
+		getcursor.DoctorRelative((u32)GetCursor, 1).Apply(true);
+		return "true";
+	}
 	struct Init 
 	{
 		Init() 
@@ -518,7 +523,6 @@ namespace Intercepts {
 
 				//Input Event Calls
 				//onsim3Dmouseevent.DoctorRelative((u32)OnSim3DMouseEvent, 1).Apply(true);
-				getcursor.DoctorRelative((u32)GetCursor, 1).Apply(true);
 
 				//GuiVehCustController Vehicle Select Call
 				//guivehcontrollerloadvehicle.DoctorRelative((u32)GuiVehControllerLoadVehicle, 1).Apply(true);
