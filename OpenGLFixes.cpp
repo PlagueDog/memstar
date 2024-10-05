@@ -367,6 +367,13 @@ namespace OpenGLFixes
 	//CodePatch tempPatch = { 0x0065FF39, "", "\x0F\xFC\x65\x00", 4, false };
 	CodePatch tempPatch = { 0x0065FF39, "", "\x81\xED\x65\x00", 4, false };
 	CodePatch wglinfowindow_bypass = { 0x0064B674, "", "\xEB", 1, false };
+
+
+
+	//Use alternative interior surface rendering instead of the OpenGL interior surface rendering
+	MultiPointer(ptrSoftwareInteriorRendering, 0, 0, 0, 0x0061C3C3);
+	CodePatch interiorsurfacerendering = { ptrSoftwareInteriorRendering, "", "\x74", 1, false };
+
 	struct Init {
 		Init() {
 			//GuiLoadLoad0.Apply(true);
@@ -376,7 +383,7 @@ namespace OpenGLFixes
 			//wglinfowindow_bypass.Apply(true);
 			windowproperiespatch.DoctorRelative((u32)WindowPropertiesPatch, 1).Apply(true);
 			BitmapCtrlLineFix.Apply(true); //Hide seams in chunked bitmaps
-			introtomaincrashfix.DoctorRelative((u32)IntroToMainCrashFix, 1).Apply(true);
+			//introtomaincrashfix.DoctorRelative((u32)IntroToMainCrashFix, 1).Apply(true);
 			minimizecallintercept.DoctorRelative((u32)MinimizeCallIntercept, 1).Apply(true);
 			//goSplash640.Apply(true);
 			//goSplash480.Apply(true);

@@ -53,7 +53,8 @@ namespace NovaCore
 
 	BuiltInFunction("Nova::sendWindowToFront", _novasendWindowToFront)
 	{
-		SetWindowPos(getHWND(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		//SetWindowPos(getHWND(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		SetWindowPos(getHWND(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 		//ShowWindow(getHWND(), SW_RESTORE);
 		return 0;
 	}

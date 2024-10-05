@@ -261,11 +261,17 @@ namespace Intercepts {
 	}
 
 
+	float gamecursor_x;
+	float gamecursor_y;
+	void SetCursorLocationVars()
+	{
+		Console::setVariable("Nova::cursorLocX", tostring(gamecursor_x));
+		Console::setVariable("Nova::cursorLocY", tostring(gamecursor_y));
+	}
+
 	MultiPointer(ptrMouseMove, 0, 0, 0x005C26A3, 0x005C5EBF);
 	MultiPointer(ptrMouseMoveResume, 0, 0, 0x005C26A9, 0x005C5EC5);
 	CodePatch getcursor = { ptrMouseMove, "", "\xE9GCPS", 5, false };
-	float gamecursor_x;
-	float gamecursor_y;
 	static const char* NovaOnMouseMove = "Nova::containCursor();Nova::onCursorMove();";
 	NAKED void GetCursor() {
 		__asm {
@@ -281,6 +287,7 @@ namespace Intercepts {
 			//jmp[ptrFloatTOInt]
 			mov gamecursor_y, eax
 			pop eax
+			call SetCursorLocationVars
 
 			push eax
 			mov eax, [NovaOnMouseMove]
@@ -344,24 +351,24 @@ namespace Intercepts {
 	}
 
 
-	BuiltInFunction("Nova::gameCursorPos", _novacursorposition)
-	{
-		if (argc != 1)
-		{
-			Console::echo("%s( x/y );", self);
-			return 0;
-		}
-		string axis = argv[0];
-		if (axis.compare("x") == 0 || axis.compare("X") == 0)
-		{
-			return tostring(gamecursor_x);
-		}
-		else if (axis.compare("y") == 0 || axis.compare("Y") == 0)
-		{
-			return tostring(gamecursor_y);
-		}
-		return 0;
-	}
+	//BuiltInFunction("Nova::gameCursorPos", _novacursorposition)
+	//{
+	//	if (argc != 1)
+	//	{
+	//		Console::echo("%s( x/y );", self);
+	//		return 0;
+	//	}
+	//	string axis = argv[0];
+	//	if (axis.compare("x") == 0 || axis.compare("X") == 0)
+	//	{
+	//		return tostring(gamecursor_x);
+	//	}
+	//	else if (axis.compare("y") == 0 || axis.compare("Y") == 0)
+	//	{
+	//		return tostring(gamecursor_y);
+	//	}
+	//	return 0;
+	//}
 
 	//BuiltInFunction("Nova::onLoadVehicle", _novaonloadvehicle){return "true";}
 	//MultiPointer(ptrGuiVehControllerLoadVehicle, 0, 0, 0, 0x004F4ECE);
