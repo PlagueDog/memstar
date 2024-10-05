@@ -960,6 +960,8 @@ namespace ExeFixes {
 			jmp[ptrWaitroomCrashPop]
 		}
 	}
+
+	MultiPointer(ptrVehicleSpeedCoeff, 0, 0, 0, 0x00598EA4);
 	struct Init {
 		Init() {
 			//WindowsCompatMode();
