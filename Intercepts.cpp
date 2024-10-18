@@ -29,6 +29,8 @@ MultiPointer(ptrVehicleSpeedCoeff, 0, 0, 0, 0x004A18A4);
 MultiPointer(ptrWorldBoundaryMin, 0, 0, 0, 0x004A0B9C);
 MultiPointer(ptrWorldBoundaryMax, 0, 0, 0, 0x004A0BA0);
 MultiPointer(fnCockpitShake, 0, 0, 0, 0x0046BE30);
+MultiPointer(ptrMouseLeftClick, 0, 0, 0, 0x005C6738);
+MultiPointer(ptrMouseRightClick, 0, 0, 0, 0x005C6898);
 
 using namespace std;
 using namespace Console;
@@ -267,12 +269,14 @@ namespace Intercepts {
 	{
 		Console::setVariable("Nova::cursorLocX", tostring(gamecursor_x));
 		Console::setVariable("Nova::cursorLocY", tostring(gamecursor_y));
+		Console::execFunction(0, "Nova::containCursor");
+		Console::execFunction(0, "Nova::onCursorMove");
 	}
 
 	MultiPointer(ptrMouseMove, 0, 0, 0x005C26A3, 0x005C5EBF);
 	MultiPointer(ptrMouseMoveResume, 0, 0, 0x005C26A9, 0x005C5EC5);
 	CodePatch getcursor = { ptrMouseMove, "", "\xE9GCPS", 5, false };
-	static const char* NovaOnMouseMove = "Nova::containCursor();Nova::onCursorMove();";
+	//static const char* NovaOnMouseMove = "Nova::containCursor();Nova::onCursorMove();";
 	NAKED void GetCursor() {
 		__asm {
 			mov al, [edi + 0x1F8]
@@ -289,11 +293,11 @@ namespace Intercepts {
 			pop eax
 			call SetCursorLocationVars
 
-			push eax
-			mov eax, [NovaOnMouseMove]
-			push eax
-			call Console::eval
-			add esp, 0x8
+			//push eax
+			//mov eax, [NovaOnMouseMove]
+			//push eax
+			//call Console::eval
+			//add esp, 0x8
 
 			jmp[ptrMouseMoveResume]
 		}
