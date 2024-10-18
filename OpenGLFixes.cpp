@@ -20,6 +20,12 @@ using namespace std;
 
 namespace OpenGLFixes
 {
+
+	//Patch to handle custom opengl32.dll's
+	MultiPointer(wglGetDefaultProcAddress, 0, 0, 0x0071B86F, 0x0072BE5B);
+	CodePatch wglGetDefaultProcAddressPatch = { wglGetDefaultProcAddress, "", "glGetTexLevelParameteriv", 24, false };
+
+
 	HWND getHWND() {
 		MultiPointer(ptrHWND, 0, 0, 0x00705C5C, 0x007160CC);
 		uintptr_t HWND_PTR = ptrHWND;
@@ -331,13 +337,28 @@ namespace OpenGLFixes
 	//	cmdSetGuiShift(atof(argv[0]));
 	//	return "true";
 	//}
+	//u32 PFD_OGL_BITS = 0x24;
 
-	MultiPointer(ptrOpenGL_dwFlags, 0, 0, 0, 0x0064BA89);
-	MultiPointer(ptrOpenGL_dwFlags_resume, 0, 0, 0, 0x0064BA95);
-	CodePatch gdi_opengl = { ptrOpenGL_dwFlags, "", "\xE9OGLF", 5, false };
+	//void GDIvarBool()
+	//{
+	//	string GDIvar = Console::getVariable("pref::UseGDI");
+	//	if (GDIvar.compare("true") == 0 || GDIvar.compare("1") == 0)
+	//	{
+	//		PFD_OGL_BITS = 0x14;
+	//	}
+	//	else
+	//	{
+	//		PFD_OGL_BITS = 0x24;
+	//	}
+	//}
+
+	//MultiPointer(ptrOpenGL_dwFlags, 0, 0, 0, 0x0064BA89);
+	//MultiPointer(ptrOpenGL_dwFlags_resume, 0, 0, 0, 0x0064BA95);
+	//CodePatch gdi_opengl = { ptrOpenGL_dwFlags, "", "\xE9OGLF", 5, false };
 	//NAKED void GDI_OpenGL() {
 	//	__asm {
-	//		mov edx, 0x14 // PFD_DRAW_TO_WINDOW (0x4) | PFD_SUPPORT_GDI (0x10)
+	//		call GDIvarBool
+	//		mov edx, PFD_OGL_BITS // PFD_DRAW_TO_WINDOW (0x4) | PFD_SUPPORT_GDI (0x10)
 	//		jmp [ptrOpenGL_dwFlags_resume]
 	//	}
 	//}
@@ -369,13 +390,13 @@ namespace OpenGLFixes
 	CodePatch wglinfowindow_bypass = { 0x0064B674, "", "\xEB", 1, false };
 
 
-
 	//Use alternative interior surface rendering instead of the OpenGL interior surface rendering
 	MultiPointer(ptrSoftwareInteriorRendering, 0, 0, 0, 0x0061C3C3);
 	CodePatch interiorsurfacerendering = { ptrSoftwareInteriorRendering, "", "\x74", 1, false };
 
 	struct Init {
 		Init() {
+			wglGetDefaultProcAddressPatch.Apply(true);
 			//GuiLoadLoad0.Apply(true);
 			//GuiLoadLoad1.Apply(true);
 			//GuiLoadLoad2.Apply(true);
@@ -388,6 +409,7 @@ namespace OpenGLFixes
 			//goSplash640.Apply(true);
 			//goSplash480.Apply(true);
 			//tempPatch.Apply(true);
+			//gdi_opengl.DoctorRelative((u32)GDI_OpenGL, 1).Apply(true);
 		}
 	} init;
 };
