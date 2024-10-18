@@ -153,8 +153,6 @@ namespace Terrain {
 		5,
 		false
 	};
-	MultiPointer(ptr_TerrainRenderOGLCheck, 0, 0, 0, 0x00583C05);
-	CodePatch patchOGL_to_Software_terrain_render = { ptr_TerrainRenderOGLCheck,"","\xEB",1,false };
 	//MultiPointer(ptr_SoftwareTerrainGridRender, 0, 0, 0, 0x005F79E5);
 	//CodePatch patchOGL_to_Software_grid_render = { ptr_SoftwareTerrainGridRender,"","\x0F\x85",2,false};
 	MultiPointer(ptr_TerrainLowestMipCoeff, 0, 0, 0, 0x005FAA2C);
@@ -710,8 +708,8 @@ namespace Terrain {
 		Callback::attach(Callback::OnOpenGL, OnOpenGL);
 
 
-		patchOGL_to_Software_terrain_render.Apply(true);
-		patchOGL_to_Software_terrain_render_bad_mips.Apply(true);
+		//patchOGL_to_Software_terrain_render.Apply(true);
+		//patchOGL_to_Software_terrain_render_bad_mips.Apply(true);
 		//patchOGL_to_Software_grid_render.Apply(true);
 
 		//
@@ -726,9 +724,9 @@ namespace Terrain {
 		//terrainMaxTileRender.Apply(true);
 
 		//patchSubdivideTest.DoctorRelative((u32)OnSubdivideTest, 1).Apply(true);
-		patchLeaveTerrainRenderLevelNonZero.DoctorRelative((u32)OnLeaveTerrainRenderLevelNonZero, 1).Apply(true);
-		patchLeaveTerrainRenderLevelNonZeroLoop.DoctorRelative((u32)OnTerrainRenderLevelNonZeroLoop, 1).Apply(true);
-		patchTerrainRenderLevelZeroLoop.DoctorRelative((u32)OnRenderLevelZeroLoop, 1).Apply(true);
+		//patchLeaveTerrainRenderLevelNonZero.DoctorRelative((u32)OnLeaveTerrainRenderLevelNonZero, 1).Apply(true);
+		//patchLeaveTerrainRenderLevelNonZeroLoop.DoctorRelative((u32)OnTerrainRenderLevelNonZeroLoop, 1).Apply(true);
+		//patchTerrainRenderLevelZeroLoop.DoctorRelative((u32)OnRenderLevelZeroLoop, 1).Apply(true);
 		fnFlushTextureCache = Patch::ReplaceHook((void*)ptr_OPENGL_FLUSH_TEXTURE_CACHE_VFT, OnFlushTextureCache);
 
 		Reset();
