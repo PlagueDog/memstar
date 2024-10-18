@@ -18,6 +18,7 @@
 #include <dirent.h>
 #include "VersionSnoop.h"
 #include <bitset>
+#include <cmath>
 
 using namespace std;
 using namespace Fear;
@@ -57,6 +58,28 @@ namespace NovaCore
 		SetWindowPos(getHWND(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 		//ShowWindow(getHWND(), SW_RESTORE);
 		return 0;
+	}
+
+	MultiPointer(ptr_TerrainRenderOGLCheck, 0, 0, 0, 0x00583C05);
+	BuiltInFunction("Nova::terrainFix", _novaterrainfix)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s(bool);", self);
+			return 0;
+		}
+		std::string arg1 = argv[0];
+		if (arg1.compare("true") == 0 || arg1.compare("1") == 0)
+		{
+			CodePatch patchOGL_to_Software_terrain_render = { ptr_TerrainRenderOGLCheck,"","\xEB",1,false };
+			patchOGL_to_Software_terrain_render.Apply(true);
+		}
+		else
+		{
+			CodePatch patchOGL_to_Software_terrain_render = { ptr_TerrainRenderOGLCheck,"","\x74",1,false };
+			patchOGL_to_Software_terrain_render.Apply(true);
+		}
+		return "true";
 	}
 
 	MultiPointer(ptrExecuteConsole, 0, 0, 0x00402050, 0x00402057);
