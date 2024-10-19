@@ -25,6 +25,24 @@ using namespace Fear;
 
 namespace NovaCore
 {
+	std::string getEnvVar(const char* var)
+	{
+		const DWORD size = GetEnvironmentVariable(var, nullptr, 0);
+		std::string value(size, 0);
+		if (!value.empty())
+		{
+			GetEnvironmentVariable(var, &value.front(), size);
+			value.pop_back();
+		}
+		return value;
+	}
+
+	BuiltInFunction("Nova::getCompatLayer", _novagetcompatlayer)
+	{
+		char* compatLayer = const_cast<char*>(getEnvVar("__COMPAT_LAYER").c_str());
+		return compatLayer;
+	}
+
 	void executeNova()
 	{
 		Console::eval("IDSTR_MISSING_FILE_TITLE = 00131400,\"Missing File\";");
@@ -80,6 +98,67 @@ namespace NovaCore
 			patchOGL_to_Software_terrain_render.Apply(true);
 		}
 		return "true";
+	}
+
+	bool is_number(const std::string& s)
+	{
+		std::string::const_iterator it = s.begin();
+		while (it != s.end() && std::isdigit(*it)) ++it;
+		return !s.empty() && it == s.end();
+	}
+
+	BuiltInFunction("cos", _cos)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( radians );", self);
+		}
+		return tostring(cos(atof(argv[0])));
+	}
+
+	BuiltInFunction("sin", _sin)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( radians );", self);
+		}
+		return tostring(sin(atof(argv[0])));
+	}
+
+	BuiltInFunction("tan", _tan)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( radians );", self);
+		}
+		return tostring(tan(atof(argv[0])));
+	}
+
+	BuiltInFunction("round", _round)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( float );", self);
+		}
+		return tostring(round(atof(argv[0])));
+	}
+
+	BuiltInFunction("fmod", _fmod)
+	{
+		if (argc != 2)
+		{
+			Console::echo("%s( float, float );", self);
+		}
+		return tostring(fmod(atof(argv[0]),atof(argv[1])));
+	}
+
+	BuiltInFunction("trunc", _trunc)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( float );", self);
+		}
+		return tostring(trunc(atof(argv[0])));
 	}
 
 	MultiPointer(ptrExecuteConsole, 0, 0, 0x00402050, 0x00402057);
