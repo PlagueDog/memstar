@@ -28,7 +28,7 @@ MultiPointer(ptrVehicleAnimationTime, 0, 0, 0, 0x004A40C4);
 MultiPointer(ptrVehicleSpeedCoeff, 0, 0, 0, 0x004A18A4);
 MultiPointer(ptrWorldBoundaryMin, 0, 0, 0, 0x004A0B9C);
 MultiPointer(ptrWorldBoundaryMax, 0, 0, 0, 0x004A0BA0);
-MultiPointer(fnCockpitShake, 0, 0, 0, 0x0046BE30);
+
 MultiPointer(ptrMouseLeftClick, 0, 0, 0, 0x005C6738);
 MultiPointer(ptrMouseRightClick, 0, 0, 0, 0x005C6898);
 
