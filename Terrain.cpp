@@ -153,8 +153,8 @@ namespace Terrain {
 		5,
 		false
 	};
-	//MultiPointer(ptr_SoftwareTerrainGridRender, 0, 0, 0, 0x005F79E5);
-	//CodePatch patchOGL_to_Software_grid_render = { ptr_SoftwareTerrainGridRender,"","\x0F\x85",2,false};
+	MultiPointer(ptr_SoftwareTerrainGridRender, 0, 0, 0, 0x005F79E5);
+	CodePatch patchOGL_to_Software_grid_render = { ptr_SoftwareTerrainGridRender,"","\x0F\x85",2,false};
 	MultiPointer(ptr_TerrainLowestMipCoeff, 0, 0, 0, 0x005FAA2C);
 	CodePatch patchOGL_to_Software_terrain_render_bad_mips = { ptr_TerrainLowestMipCoeff,"","\x00\x00\x40\x3F",4,false };
 
@@ -704,13 +704,17 @@ namespace Terrain {
 		texSubImageMatch = false;
 	}
 
+	MultiPointer(ptrFixedTerrainDetail, 0, 0, 0x005804A9, 0x00583BCC);
+	CodePatch fixedTerrainDetail = { ptrFixedTerrainDetail, "", "\x90\x90", 2, false };
+
 	void Open() {
 		Callback::attach(Callback::OnOpenGL, OnOpenGL);
 
-
+		fixedTerrainDetail.Apply(true);
+		//fixedTerrainDetailValue.Apply(true);
 		//patchOGL_to_Software_terrain_render.Apply(true);
 		//patchOGL_to_Software_terrain_render_bad_mips.Apply(true);
-		//patchOGL_to_Software_grid_render.Apply(true);
+		patchOGL_to_Software_grid_render.Apply(true);
 
 		//
 		//badterrainmipshackfix.DoctorRelative((u32)BadTerrainMipsHackFix, 1).Apply(true);
@@ -727,7 +731,7 @@ namespace Terrain {
 		//patchLeaveTerrainRenderLevelNonZero.DoctorRelative((u32)OnLeaveTerrainRenderLevelNonZero, 1).Apply(true);
 		//patchLeaveTerrainRenderLevelNonZeroLoop.DoctorRelative((u32)OnTerrainRenderLevelNonZeroLoop, 1).Apply(true);
 		//patchTerrainRenderLevelZeroLoop.DoctorRelative((u32)OnRenderLevelZeroLoop, 1).Apply(true);
-		fnFlushTextureCache = Patch::ReplaceHook((void*)ptr_OPENGL_FLUSH_TEXTURE_CACHE_VFT, OnFlushTextureCache);
+		//fnFlushTextureCache = Patch::ReplaceHook((void*)ptr_OPENGL_FLUSH_TEXTURE_CACHE_VFT, OnFlushTextureCache);
 
 		Reset();
 	}
