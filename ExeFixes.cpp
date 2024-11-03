@@ -961,7 +961,17 @@ namespace ExeFixes {
 		}
 	}
 
-	MultiPointer(ptrVehicleSpeedCoeff, 0, 0, 0, 0x00598EA4);
+
+	MultiPointer(ptrDamageStatusUpdateDelay, 0, 0, 0x006F0680, 0x00700908);
+	MultiPointer(ptrTargetDamageStatusUpdateDelay, 0, 0, 0x006F069C, 0x00700924);
+	MultiPointer(ptrStatusRotateInc, 0, 0, 0x00524EB8, 0x00527358);
+	CodePatch DamageStatDelay = { ptrDamageStatusUpdateDelay, "", "\x00\x00\x00\x00\x00", 5, false };
+	CodePatch TargetDamageStatDelay = { ptrTargetDamageStatusUpdateDelay, "", "\x00\x00\x00\x00\x00", 5, false };
+	CodePatch StatusRotateAmount = { ptrStatusRotateInc, "", "\x8F\xC2\x75\x3C", 4, false };
+	
+	MultiPointer(ptrRadarUpdateRate, 0, 0, 0x006F05F8, 0x00700880);
+	CodePatch RadarUpdateRate = { ptrRadarUpdateRate, "", "\x00", 1, false };
+
 	struct Init {
 		Init() {
 			//WindowsCompatMode();
@@ -1059,6 +1069,11 @@ namespace ExeFixes {
 			//Patches for crashes I don't know what the actual causes are
 			unkCrashPatch01.Apply(true);
 			unkCrashPatch02.Apply(true);
+
+			//Update Frequency of damage displays
+			DamageStatDelay.Apply(true);
+			TargetDamageStatDelay.Apply(true);
+			StatusRotateAmount.Apply(true);//Slow down the rotation to align with the uncapped status display fps
 		}
 	} init;
 }; // namespace ExeFixes
