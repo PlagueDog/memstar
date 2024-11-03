@@ -34,6 +34,13 @@ string BEtoLE(string& str)
 	return it;
 }
 
+bool is_number(const std::string& s)
+{
+	std::string::const_iterator it = s.begin();
+	while (it != s.end() && std::isdigit(*it)) ++it;
+	return !s.empty() && it == s.end();
+}
+
 char* hexToASCII3(char* input)
 {
 	// initialize the ASCII code string as empty.
@@ -772,6 +779,24 @@ namespace ModloaderMain {
 	//Allows Glide to run at 1280x1024 in windowed mode.
 	//"\xC7\x02\x00\x05\x00\x00\xC7\x42\x04\x00\x04",
 
+	MultiPointer(ptrFixedTerrainDetailFloat, 0, 0, 0x005804AC, 0x00583BCF);
+	BuiltInFunction("Nova::setTerrainDetail", _novasetterraindetail)
+	{
+		if (argc != 1 || !is_number(argv[0]))
+		{
+			Console::echo("%s( int );", self);
+			return 0;
+		}
+
+		char* flt2hex_c = flt2hex(stof(argv[0]), 1);
+		string buffer = hexToASCII2(flt2hex_c);
+		char* hex2char_c = const_cast<char*>(buffer.c_str());
+		CodePatch terrainDetailValue = { ptrFixedTerrainDetailFloat, "", hex2char_c, 4, false };
+		terrainDetailValue.Apply(true);
+		Console::setVariable("pref::terrainDetail", tostring(trunc(atof(argv[0]))));
+		return "true";
+	}
+
 	MultiPointer(ptrWinMaxWinSize, 0, 0, 0x005740FF, 0x00577307);
 	CodePatch canvasWindowMaxWindowedSize_patch = {
 		ptrWinMaxWinSize,
@@ -813,6 +838,46 @@ namespace ModloaderMain {
 	////////////////////////////////////////////////////////
 	// GAMEPLAY
 	////////////////////////////////////////////////////////
+	MultiPointer(ptrAllowVehicleBypass1, 0, 0, 0, 0x00413BDD);
+	MultiPointer(ptrAllowVehicleBypass2, 0, 0, 0, 0x00413BFA);
+	CodePatch allowVehiclePatch1 = { ptrAllowVehicleBypass1, "", "\x90\x90", 2, false };
+	CodePatch allowVehiclePatch2 = { ptrAllowVehicleBypass2, "", "\x89", 1, false };
+
+	MultiPointer(ptrVehicleSpeedCoeff, 0, 0, 0x00595688, 0x00598EA4);
+	BuiltInFunction("Nova::setVehicleSpeedCoeff", _novasetvehiclespeedcoeff) {
+		if (argc != 1)
+		{
+			Console::echo("%s( int/float );", self);
+			return "false";
+		}
+
+		float input = stof(argv[0]);
+		char* flt2hex_c = flt2hex(input, 1);
+		string buffer = hexToASCII2(flt2hex_c);
+		char* hex2char_c = const_cast<char*>(buffer.c_str());
+
+		CodePatch speedCoeffPatch = { ptrVehicleSpeedCoeff,"",hex2char_c,4,false }; speedCoeffPatch.Apply(true);
+		return "true";
+	}
+
+	MultiPointer(fnCockpitShake, 0, 0, 0x0046A40C, 0x0046BE30);
+	BuiltInFunction("Nova::toggleCockpitShake", _novatogglecockpitshake)
+	{
+		std::string var = Console::getVariable("pref::cockpitShake");
+		if (var.compare("1") == 0)
+		{
+			CodePatch cockpitShake = { fnCockpitShake, "", "\x53", 1, false };
+			cockpitShake.Apply(true);
+		}
+		else
+		{
+			CodePatch cockpitShake = { fnCockpitShake, "", "\xC3", 1, false };
+			cockpitShake.Apply(true);
+		}
+		return "true";
+	}
+
+
 	//Increases the weapon shot cap to 12 up from 3
 	MultiPointer(ptrMaxWeapShots, 0, 0, 0x00415134, 0x00417372);
 	CodePatch weaponShotCap_patch = {
@@ -1385,6 +1450,24 @@ namespace ModloaderMain {
 		}
 	}
 
+	MultiPointer(ptrVehicleCollMeshRender, 0, 0, 0x004836EF, 0x00485923);
+	BuiltInFunction("Nova::toggleCollisionMesh", _novatogglecollisionmesh)
+	{
+		std::string var = Console::getVariable("pref::collisionMesh");
+		if (var.compare("1") == 0)
+		{
+			CodePatch coll0Mesh = { ptrVehicleCollMeshRender, "", "\x75", 1, false };
+			coll0Mesh.Apply(true);
+		}
+		else
+		{
+			CodePatch coll0Mesh = { ptrVehicleCollMeshRender, "", "\x74", 1, false };
+			coll0Mesh.Apply(true);
+		}
+		//Console::eval("$pref::collisionMesh^=1;");
+		return "true";
+	}
+
 	struct Init {
 		Init() {
 			//Internal
@@ -1476,6 +1559,9 @@ namespace ModloaderMain {
 
 			//Gameplay
 			weaponShotCap_patch.Apply(true);
+				//Allow AllowVehicle(); clientSide for 1.004r
+			allowVehiclePatch1.Apply(true);
+			allowVehiclePatch2.Apply(true);
 
 			if (VersionSnoop::GetVersion() == VERSION::v001004)
 			{
