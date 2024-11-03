@@ -19,12 +19,13 @@
 #include "VersionSnoop.h"
 #include <bitset>
 #include <cmath>
+#include <VersionHelpers.h>
 
 using namespace std;
 using namespace Fear;
-
 namespace NovaCore
 {
+
 	std::string getEnvVar(const char* var)
 	{
 		const DWORD size = GetEnvironmentVariable(var, nullptr, 0);
@@ -43,6 +44,17 @@ namespace NovaCore
 		return compatLayer;
 	}
 
+	BuiltInFunction("Nova::IsWindows10OrGreater", _novaiswindows10orgreater)
+	{
+		if (IsWindows10OrGreater())
+		{
+			return "true";
+		}
+		else
+		{
+			return 0;
+		}
+	}
 	void executeNova()
 	{
 		Console::eval("IDSTR_MISSING_FILE_TITLE = 00131400,\"Missing File\";");
@@ -78,27 +90,29 @@ namespace NovaCore
 		return 0;
 	}
 
+
+	//We now just use the software grid renderer
 	MultiPointer(ptr_TerrainRenderOGLCheck, 0, 0, 0, 0x00583C05);
-	BuiltInFunction("Nova::terrainFix", _novaterrainfix)
-	{
-		if (argc != 1)
-		{
-			Console::echo("%s(bool);", self);
-			return 0;
-		}
-		std::string arg1 = argv[0];
-		if (arg1.compare("true") == 0 || arg1.compare("1") == 0)
-		{
-			CodePatch patchOGL_to_Software_terrain_render = { ptr_TerrainRenderOGLCheck,"","\xEB",1,false };
-			patchOGL_to_Software_terrain_render.Apply(true);
-		}
-		else
-		{
-			CodePatch patchOGL_to_Software_terrain_render = { ptr_TerrainRenderOGLCheck,"","\x74",1,false };
-			patchOGL_to_Software_terrain_render.Apply(true);
-		}
-		return "true";
-	}
+	//BuiltInFunction("Nova::terrainFix", _novaterrainfix)
+	//{
+	//	if (argc != 1)
+	//	{
+	//		Console::echo("%s(bool);", self);
+	//		return 0;
+	//	}
+	//	std::string arg1 = argv[0];
+	//	if (arg1.compare("true") == 0 || arg1.compare("1") == 0)
+	//	{
+	//		CodePatch patchOGL_to_Software_terrain_render = { ptr_TerrainRenderOGLCheck,"","\xEB",1,false };
+	//		patchOGL_to_Software_terrain_render.Apply(true);
+	//	}
+	//	else
+	//	{
+	//		CodePatch patchOGL_to_Software_terrain_render = { ptr_TerrainRenderOGLCheck,"","\x74",1,false };
+	//		patchOGL_to_Software_terrain_render.Apply(true);
+	//	}
+	//	return "true";
+	//}
 
 	bool is_number(const std::string& s)
 	{
@@ -182,6 +196,16 @@ namespace NovaCore
 
 	MultiPointer(ptrConsoleOutput, 0, 0, 0, 0x005E6AD7);
 
+	MultiPointer(ptrSwitchToWindowed, 0, 0, 0x00578313, 0x0057B51B);
+	CodePatch disableWindowed = { ptrSwitchToWindowed, "", "\xEB", 1, false };
+	BuiltInFunction("Nova::disableWindowed", _novadisabledwindowed)
+	{
+		std::string var = Console::getVariable("pref::GWC::SIM_FS_MODE");
+		if (var.compare("Upscaled") == 0)
+		{
+			disableWindowed.Apply(true);
+		}
+	}
 
 	struct Init {
 		Init() {
