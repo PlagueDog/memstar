@@ -20,6 +20,7 @@
 #include <bitset>
 #include <cmath>
 #include <VersionHelpers.h>
+#include <WinBase.h>
 
 using namespace std;
 using namespace Fear;
@@ -207,6 +208,149 @@ namespace NovaCore
 		}
 	}
 
+
+	MultiPointer(ptrbadweapon1, 0, 0, 0x00499977, 0x0049BC83);
+	MultiPointer(ptrbadweapon2, 0, 0, 0x0049998B, 0x0049BC97);
+	MultiPointer(ptrbadweapon3, 0, 0, 0x004999B1, 0x0049BCBD);
+	MultiPointer(ptrbadweapon4, 0, 0, 0x00499AF7, 0x0049BE03);
+	MultiPointer(ptrbadweapon5, 0, 0, 0x0049679A, 0x004989EE);
+	MultiPointer(ptrbadweapon6, 0, 0, 0x00499B3A, 0x0049BE46);
+	CodePatch badweapon1 = { ptrbadweapon1,"","\x90\x90\x90\x90\x90\x90",6,false };
+	CodePatch badweapon2 = { ptrbadweapon2,"","\x90\x90\x90\x90\x90\x90\x90",7,false };
+	CodePatch badweapon3 = { ptrbadweapon3,"","\x90\x90\x90\x90\x90\x90",6,false };
+	CodePatch badweapon4 = { ptrbadweapon4,"","\x90\x90\x90\x90\x90\x90\x90",7,false };
+	CodePatch badweapon5 = { ptrbadweapon5,"","\x90\x90\x90\x90\x90\x90",6,false };
+	CodePatch badweapon6 = { ptrbadweapon6,"","\x90\x90\x90\x90\x90\x90\x90",7,false };
+
+	CodePatch goodweapon1 = { ptrbadweapon1,"","\x8A\x81\xAC\x00\x00\x00",6,false };
+	CodePatch goodweapon2 = { ptrbadweapon2,"","\x0F\xBE\x81\xD7\x00\x00\x00",7,false };
+	CodePatch goodweapon3 = { ptrbadweapon3,"","\x8B\x8A\x34\x01\x00\x00",6,false };
+	CodePatch goodweapon4 = { ptrbadweapon4,"","\x0F\xBE\x86\xD4\x00\x00\x00",7,false };
+	CodePatch goodweapon5 = { ptrbadweapon5,"","\x8B\x8A\xA4\x00\x00\x00",6,false };
+	CodePatch goodweapon6 = { ptrbadweapon6,"","\x0F\xBE\x88\xD4\x00\x00\x00",7,false };
+	void PatchBadWeaponCreation()
+	{
+		badweapon1.Apply(true);
+		badweapon2.Apply(true);
+		badweapon3.Apply(true);
+		badweapon4.Apply(true);
+		badweapon5.Apply(true);
+		badweapon6.Apply(true);
+	}
+
+	void RestoreGoodWeaponCreation()
+	{
+		goodweapon1.Apply(true);
+		goodweapon2.Apply(true);
+		goodweapon3.Apply(true);
+		goodweapon4.Apply(true);
+		goodweapon5.Apply(true);
+		goodweapon6.Apply(true);
+	}
+	///
+	/// Bad Weapon Handling
+	///
+	MultiPointer(ptrClientBadWeapon, 0, 0, 0x00499920, 0x0049BC2C);
+	MultiPointer(ptrClientBadWeaponResume, 0, 0, 0x00499926, 0x0049BC32);
+
+	MultiPointer(ptrClientEndWeapon, 0, 0, 0x0049712D, 0x00499381);
+	MultiPointer(ptrClientEndWeaponResume, 0, 0, 0x00497133, 0x00499387);
+	CodePatch weaponinit = {ptrClientBadWeapon,"","\xE9WIN1",5,false};
+	CodePatch weaponinitend = {ptrClientEndWeapon,"","\xE9WIN2",5,false};
+	
+	NAKED void WeaponInit() {
+		__asm {
+			cmp ecx, NULL
+			je __je
+			mov eax, [ecx + 0x130]
+			jmp ptrClientBadWeaponResume
+			__je:
+				call PatchBadWeaponCreation
+				jmp ptrClientBadWeaponResume
+		}
+	}
+
+	NAKED void WeaponInitEnd() {
+		__asm {
+			cmp eax, NULL
+			je __je
+			mov eax, [eax + 0x0A0]
+			jmp ptrClientEndWeaponResume
+			__je :
+				call RestoreGoodWeaponCreation
+				jmp ptrClientEndWeaponResume
+		}
+	}
+	///
+	///
+	///
+
+
+	///
+	/// Handle modded client vehicles that the server does not have
+	///
+	MultiPointer(ptrClientVehicleCreate, 0, 0, 0x004694C1, 0x0046AEE5);
+	MultiPointer(ptrClientVehicleCreateResume, 0, 0, 0x004694D6, 0x0046AEFA);
+	MultiPointer(ptrClientVehicleCreatePop, 0, 0, 0x00469608, 0x0046B02C);
+	CodePatch clientvehiclecreate = { ptrClientVehicleCreate,"","\xE9_CVR",5,false };
+	NAKED void ClientVehicleCreate() {
+		__asm {
+			cmp eax, NULL
+			je __je
+			fld dword ptr[eax + 0x58]
+			fadd dword ptr[ebx + 0x414]
+			fstp dword ptr[ebx + 0x414]
+			mov eax, [ebx + 0x200]
+			jmp ptrClientVehicleCreateResume
+			__je:
+			jmp ptrClientVehicleCreatePop
+		}
+	}
+
+	MultiPointer(ptrClientVehicleDrop, 0, 0, 0x00479D72, 0x0047A4FA);
+	MultiPointer(ptrClientVehicleDropResume, 0, 0, 0x00479D81, 0x0047A509);
+	MultiPointer(ptrClientVehicleDropPop, 0, 0, 0x00479E95, 0x0047A61D);
+	CodePatch clientvehicledrop = { ptrClientVehicleDrop,"","\xE9_CVD",5,false };
+	float vehicleMassMathFloat1 = 0.050000001;
+	float vehicleMassMathFloat2 = 10.0;
+	NAKED void ClientVehicleDrop() {
+		__asm {
+			cmp eax, NULL
+			je __je
+			fld dword ptr[eax + 0x5C]
+			fadd vehicleMassMathFloat1
+			fmul vehicleMassMathFloat2
+			jmp ptrClientVehicleDropResume
+			__je:
+			jmp ptrClientVehicleDropPop
+		}
+	}
+
+	MultiPointer(ptrClientBadVehicle, 0, 0, 0x004F193D, 0x004F3DD5);
+	MultiPointer(ptrClientBadVehicleResume, 0, 0, 0x004F1943, 0x004F3DDB);
+	MultiPointer(ptrClientBadVehiclePop, 0, 0, 0x004F197E, 0x004F3E16);
+	CodePatch clientbadvehicle = { ptrClientBadVehicle,"","\xE9_CBV",5,false };
+	NAKED void ClientBadVehicle() {
+		__asm {
+			cmp eax, NULL
+			je __je
+			mov dl, [eax + 0x17C]
+			jmp ptrClientBadVehicleResume
+			__je :
+			jmp ptrClientBadVehiclePop
+		}
+	}
+
+	///
+	/// Disable number of vehicles/components checks
+	///
+	MultiPointer(ptrNumWeaponsCheck, 0, 0, 0x0045E008, 0x0045F500);
+	MultiPointer(ptrNumVehiclesCheck, 0, 0, 0x0045DFD2, 0x0045F4CA);
+	MultiPointer(ptrNumComponentsCheck, 0, 0, 0x0045E03E, 0x0045F536);
+	CodePatch numberweaponscheck = { ptrNumWeaponsCheck,"","\xEB",1,false };
+	CodePatch numbervehiclescheck = { ptrNumVehiclesCheck,"","\xEB",1,false };
+	CodePatch numbercomponentscheck = { ptrNumComponentsCheck,"","\xEB",1,false };
+
 	struct Init {
 		Init() {
 
@@ -216,6 +360,14 @@ namespace NovaCore
 			if (VersionSnoop::GetVersion() == VERSION::v001003) {
 				clientinitredirect.DoctorRelative((u32)ClientInitRedirect_1003r, 1).Apply(true);
 			}
+			weaponinit.DoctorRelative((u32)WeaponInit, 1).Apply(true);
+			weaponinitend.DoctorRelative((u32)WeaponInitEnd, 1).Apply(true);
+			clientvehiclecreate.DoctorRelative((u32)ClientVehicleCreate, 1).Apply(true);
+			clientvehicledrop.DoctorRelative((u32)ClientVehicleDrop, 1).Apply(true);
+			clientbadvehicle.DoctorRelative((u32)ClientBadVehicle, 1).Apply(true);
+			numberweaponscheck.Apply(true);
+			numbervehiclescheck.Apply(true);
+			numbercomponentscheck.Apply(true);
 		}
 	} init;
 }
