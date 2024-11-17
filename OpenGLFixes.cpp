@@ -170,7 +170,7 @@ namespace OpenGLFixes
 	//Wireframing
 	//MultiPointer(ptrTerrainOpenGLDraw_TEX0, 0, 0, 0, 0x00652B7C);
 	//MultiPointer(ptrTerrainOpenGLDraw_TEX1, 0, 0, 0, 0x00652B84);
-	MultiPointer(ptrTerrainOpenGLDraw, 0, 0, 0, 0x00652BA4);
+	MultiPointer(ptrTerrainOpenGLDraw, 0, 0, 0, 0x006524BF);
 	//1.0003r <Terrain and Interior are tied to the same GLenabled
 	MultiPointer(ptrTerrIntOpenGLDraw, 0, 0, 0x00642E96, NULL);
 
