@@ -695,7 +695,7 @@ namespace ModloaderMain {
 		//float scale = atof(argv[0]);
 		//char* scale_c = flt2hex(scale, 1);
 		//char* scale_hString = hex2char(scale_c);
-		float scale = stof(argv[0]);
+		float scale = stof(argv[0])+0.00001;
 		char* flt2hex_c = flt2hex(scale, 1);
 		string buffer = hexToASCII2(flt2hex_c);
 		char* hex2char_c = const_cast<char*>(buffer.c_str());
@@ -838,6 +838,13 @@ namespace ModloaderMain {
 	////////////////////////////////////////////////////////
 	// GAMEPLAY
 	////////////////////////////////////////////////////////
+	MultiPointer(ptrHardPointScale, 0, 0, 0, 0x00498628);
+	MultiPointer(ptrDTSCreationScale, 0, 0, 0, 0x0063DC60); //The scale for dts shape objects upon spawning in world
+
+
+	MultiPointer(ptrFlyerElevationControl, 0, 0, 0x004386E8, 0x00439BA0);
+	CodePatch playerFlyerElevationControl = { ptrFlyerElevationControl, "", "\x00", 2, false };
+
 	MultiPointer(ptrAllowVehicleBypass1, 0, 0, 0, 0x00413BDD);
 	MultiPointer(ptrAllowVehicleBypass2, 0, 0, 0, 0x00413BFA);
 	CodePatch allowVehiclePatch1 = { ptrAllowVehicleBypass1, "", "\x90\x90", 2, false };
@@ -1078,6 +1085,46 @@ namespace ModloaderMain {
 	////////////////////////////////////////////////////////
 	// NETWORKING
 	////////////////////////////////////////////////////////
+	//MultiPointer(ptrWeaponCount, 0, 0, 0x00738864, 0x00748E7C);
+	//BuiltInFunction("Nova::getWeaponIDcount", _NovagetweaponIDcount)
+	//{
+	//	uintptr_t ptr = ptrWeaponCount;
+	//	int value = *reinterpret_cast<int*>(ptr);
+	//	return tostring(value);
+	//}
+	//
+	//MultiPointer(ptrIntMountCount, 0, 0, 0, 0x00746634);
+	//BuiltInFunction("Nova::getIntMountIDcount", _NovageintmountIDcount)
+	//{
+	//	uintptr_t ptr = ptrIntMountCount;
+	//	int value = *reinterpret_cast<int*>(ptr);
+	//	return tostring(value);
+	//}
+	//
+	//MultiPointer(ptrTankCount, 0, 0, 0, 0x00746A54);
+	//BuiltInFunction("Nova::getTankIDcount", _NovagettankIDcount) //Includes drones
+	//{
+	//	uintptr_t ptr = ptrTankCount;
+	//	int value = *reinterpret_cast<int*>(ptr);
+	//	return tostring(value);
+	//}
+	//
+	//MultiPointer(ptrFlyerCount, 0, 0, 0, 0x00746A74);
+	//BuiltInFunction("Nova::getFlyerIDcount", _NovagetflyerIDcount)
+	//{
+	//	uintptr_t ptr = ptrFlyerCount;
+	//	int value = *reinterpret_cast<int*>(ptr);
+	//	return tostring(value);
+	//}
+	//
+	//MultiPointer(ptrHercCount, 0, 0, 0, 0x00747E1C);
+	//BuiltInFunction("Nova::getHercIDcount", _NovagethercIDcount)
+	//{
+	//	uintptr_t ptr = ptrHercCount;
+	//	int value = *reinterpret_cast<int*>(ptr);
+	//	return tostring(value);
+	//}
+
 	 //Packet frame is how often the client sends move information to the server.
 	 //Increase the packetFrame cap from 14 to 1024
 	MultiPointer(ptrRemEvalBufferSen, 0, 0, 0x005A0330, 0x005A3B4C);
@@ -1558,6 +1605,8 @@ namespace ModloaderMain {
 			missingTerrain_patch.Apply(true);
 
 			//Gameplay
+			playerFlyerElevationControl.Apply(true); //Allow player flyers to adjust fly height using the throttle
+
 			weaponShotCap_patch.Apply(true);
 				//Allow AllowVehicle(); clientSide for 1.004r
 			allowVehiclePatch1.Apply(true);
