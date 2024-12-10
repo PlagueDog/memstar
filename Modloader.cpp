@@ -708,7 +708,7 @@ namespace ModloaderMain {
 	BuiltInFunction("setCursorPos", _scp) {
 		if (argc != 2)
 		{
-			Console::echo("%s( x, y);", self);
+			Console::echo("%s( x, y );", self);
 			return "false";
 		}
 		Console::eval("winmouse();");
@@ -746,6 +746,20 @@ namespace ModloaderMain {
 		uintptr_t ptr = ptrCampaignByte;
 		int boolean = *reinterpret_cast<int*>(ptr);
 		if (boolean == 1)
+		{
+			return "true";
+		}
+		return 0;
+	}
+
+	BuiltInFunction("isNumeric", _isnumeric)
+	{
+		if (argc != 1 || argv[0] == NULL)
+		{
+			Console::echo("%s( string );", self);
+			return 0;
+		}
+		if (is_number(argv[0]))
 		{
 			return "true";
 		}
@@ -838,12 +852,65 @@ namespace ModloaderMain {
 	////////////////////////////////////////////////////////
 	// GAMEPLAY
 	////////////////////////////////////////////////////////
+	MultiPointer(ptrTankSpeedCoeff, 0, 0, 0, 0x00436C64);
+	MultiPointer(ptrTankVehicleScale, 0, 0, 0, 0x00433DF0);
+	MultiPointer(ptrHercVehicleScale, 0, 0, 0, 0x004A2BA0);
+
 	MultiPointer(ptrHardPointScale, 0, 0, 0, 0x00498628);
 	MultiPointer(ptrDTSCreationScale, 0, 0, 0, 0x0063DC60); //The scale for dts shape objects upon spawning in world
 
 
-	MultiPointer(ptrFlyerElevationControl, 0, 0, 0x004386E8, 0x00439BA0);
-	CodePatch playerFlyerElevationControl = { ptrFlyerElevationControl, "", "\x00", 2, false };
+	MultiPointer(ptrTankAlignmentSpeed, 0, 0, 0x004344D4, 0x0043598C);
+	BuiltInFunction("Nova::toggleSmoothTankAligns", _novatogglesmoothtankalign) {
+		std::string var = Console::getVariable("pref::smoothTankSurfaceAlign");
+		if (var.compare("1") == 0)
+		{
+			CodePatch tankAlignment = { ptrTankAlignmentSpeed, "", "\x00\x00\xA0\x3C", 4, false };
+			tankAlignment.Apply(true);
+		}
+		else
+		{
+			CodePatch tankAlignment = { ptrTankAlignmentSpeed, "", "\xCD\xCC\x4C\x3e", 4, false };
+			tankAlignment.Apply(true);
+		}
+		return "true";
+	}
+
+	//MultiPointer(ptrFlyerElevationControl, 0, 0, 0x004386E5, 0x00439B9D);
+	//MultiPointer(ptrFlyerElevationControlResume, 0, 0, 0x004386F0, 0x00439BA8);
+	//CodePatch playerflyerelevationcontrol = { ptrFlyerElevationControl, "", "\xE9_FEC", 5, false };
+	//NAKED void PlayerFlyerElevationControl() {
+	//__asm {
+	//	cmp ptrCampaignByte, 1
+	//	je __je
+	//	mov byte ptr[eax + 4], 0
+	//	mov dword ptr[eax + 0x40], 0x42480000
+	//	jmp ptrFlyerElevationControlResume
+	//	__je :
+	//		mov byte ptr[eax + 4], 1
+	//		mov dword ptr[eax + 0x40], 0x42480000
+	//		jmp ptrFlyerElevationControlResume
+	//	}
+	//}
+
+	MultiPointer(ptrFlyerThrottleInit, 0, 0, 0x004386E8, 0x00439BA0);
+	BuiltInFunction("Nova::flyerCampaignStateCheck", _novaflyercampaignstatecheck)
+	{
+		uintptr_t ptr = ptrCampaignByte;
+		int boolean = *reinterpret_cast<int*>(ptr);
+
+		if(boolean)
+		{
+			CodePatch AIFlyerThrottle = { ptrFlyerThrottleInit, "", "\x01", 1, false };
+			AIFlyerThrottle.Apply(true);
+		}
+		else
+		{
+			CodePatch PlayerFlyerThrottle = { ptrFlyerThrottleInit, "", "\x00", 1, false };
+			PlayerFlyerThrottle.Apply(true);
+		}
+		return "true";
+	}
 
 	MultiPointer(ptrAllowVehicleBypass1, 0, 0, 0, 0x00413BDD);
 	MultiPointer(ptrAllowVehicleBypass2, 0, 0, 0, 0x00413BFA);
@@ -871,7 +938,7 @@ namespace ModloaderMain {
 	BuiltInFunction("Nova::toggleCockpitShake", _novatogglecockpitshake)
 	{
 		std::string var = Console::getVariable("pref::cockpitShake");
-		if (var.compare("1") == 0)
+		if (var.compare("0") == 0)
 		{
 			CodePatch cockpitShake = { fnCockpitShake, "", "\x53", 1, false };
 			cockpitShake.Apply(true);
@@ -1124,6 +1191,22 @@ namespace ModloaderMain {
 	//	int value = *reinterpret_cast<int*>(ptr);
 	//	return tostring(value);
 	//}
+
+
+	
+	MultiPointer(ptrHercNetUpdate1, 0, 0, 0, 0x004A72F0);
+	MultiPointer(ptrHercNetUpdate2, 0, 0, 0, 0x004A72F4);
+	MultiPointer(ptrHercNetUpdate3, 0, 0, 0, 0x004A72F8);
+	CodePatch HercNetUpdate1 = { ptrHercNetUpdate1,"","\x00\x00\x80\x47",1,false };
+	CodePatch HercNetUpdate2 = { ptrHercNetUpdate2,"","\x00\x00\x80\x47",1,false };
+	CodePatch HercNetUpdate3 = { ptrHercNetUpdate3,"","\x00\x00\x80\x47",1,false };
+
+	MultiPointer(ptrTankNetUpdate1, 0, 0, 0, 0x004383A0);
+	MultiPointer(ptrTankNetUpdate2, 0, 0, 0, 0x004383A4);
+	MultiPointer(ptrTankNetUpdate3, 0, 0, 0, 0x004383A8);
+	CodePatch TankNetUpdate1 = { ptrTankNetUpdate1,"","\x00\x00\x80\x47",1,false };
+	CodePatch TankNetUpdate2 = { ptrTankNetUpdate2,"","\x00\x00\x80\x47",1,false };
+	CodePatch TankNetUpdate3 = { ptrTankNetUpdate3,"","\x00\x00\x80\x47",1,false };
 
 	 //Packet frame is how often the client sends move information to the server.
 	 //Increase the packetFrame cap from 14 to 1024
@@ -1496,7 +1579,6 @@ namespace ModloaderMain {
 			jmp[ptrCampaignResume]
 		}
 	}
-
 	MultiPointer(ptrVehicleCollMeshRender, 0, 0, 0x004836EF, 0x00485923);
 	BuiltInFunction("Nova::toggleCollisionMesh", _novatogglecollisionmesh)
 	{
@@ -1584,12 +1666,22 @@ namespace ModloaderMain {
 			VarRefBefAssignVerb_patch.Apply(true);
 
 			//Rendering
+			//Damage Status Display function: 46668B  (Colors)
+
+
 			terrainMaxVisDistance_patch.Apply(true);
 			canvasWindowMaxWindowedSize_patch.Apply(true);
 			canvasWindowMaxInteralRenderSizeWidth_patch.Apply(true);
 			canvasWindowMaxInteralRenderSizeHeight_patch.Apply(true);
 
 			//Networking
+			HercNetUpdate1.Apply(true);
+			HercNetUpdate2.Apply(true);
+			HercNetUpdate3.Apply(true);
+			TankNetUpdate1.Apply(true);
+			TankNetUpdate2.Apply(true);
+			TankNetUpdate3.Apply(true);
+
 			remoteEvalBufferSize_S_patch.Apply(true);
 			remoteEvalBufferSize_R_patch.Apply(true);
 			packetRate_patch.Apply(true);
@@ -1605,7 +1697,7 @@ namespace ModloaderMain {
 			missingTerrain_patch.Apply(true);
 
 			//Gameplay
-			playerFlyerElevationControl.Apply(true); //Allow player flyers to adjust fly height using the throttle
+			//playerflyerelevationcontrol.DoctorRelative((u32)PlayerFlyerElevationControl, 1).Apply(true);//Allow player flyers to adjust fly height using the throttle
 
 			weaponShotCap_patch.Apply(true);
 				//Allow AllowVehicle(); clientSide for 1.004r
