@@ -26,6 +26,130 @@ using namespace std;
 using namespace Fear;
 namespace NovaCore
 {
+	//Big endian to little endian
+	string BEtoLE(string& str)
+	{
+		string it;
+		std::reverse(str.begin(), str.end());
+		for (auto it = str.begin(); it != str.end(); it += 2) {
+			std::swap(it[0], it[1]);
+		}
+		return it;
+	}
+
+	bool is_number(const std::string& s)
+	{
+		std::string::const_iterator it = s.begin();
+		while (it != s.end() && std::isdigit(*it)) ++it;
+		return !s.empty() && it == s.end();
+	}
+
+	char* hexToASCII3(char* input)
+	{
+		// initialize the ASCII code string as empty.
+		char buffer[MAX_PATH];
+		strcpy(buffer, "00");
+		strcat(buffer, input);
+		string hex = buffer;
+		string ascii = "";
+		for (size_t i = 0; i < hex.length(); i += 2)
+		{
+			// extract two characters from hex string
+			string part = hex.substr(i, 2);
+
+			// change it into base 16 and
+			// typecast as the character
+			char ch = stoul(part, nullptr, 16);
+
+			// add this char to final ASCII string
+			ascii += part;
+		}
+		char* ascii_cstr = const_cast<char*>(ascii.c_str());
+		//char* ascii_cstr_ = const_cast<char*>(ascii_cstr);
+		free(buffer);
+		return ascii_cstr;
+	}
+
+	string hexToASCII(string input)
+	{
+		int length = input.length();
+		string result;
+		for (int i = 0; i < length; i += 2)
+		{
+			string byte = input.substr(i, 2);
+			char chr = (char)(int)strtol(byte.c_str(), NULL, 16);
+			result.push_back(chr);
+		}
+		char* ascii = const_cast<char*>(result.c_str());
+		return ascii;
+	}
+
+	string hexToASCII2(std::string hex) {
+		stringstream ss;
+		for (size_t i = 0; i < hex.length(); i += 2) {
+			unsigned char byte = stoi(hex.substr(i, 2), nullptr, 16);
+			ss << byte;
+		}
+		return ss.str();
+	}
+
+	char* hex2char(char* hexString = "00")
+	{
+		const std::string hex = hexString;
+		std::basic_string<uint8_t> bytes;
+		for (size_t i = 0; i < hex.length(); i += 2)
+		{
+			uint16_t byte;
+			std::string nextbyte = hex.substr(i, 2);
+			std::istringstream(nextbyte) >> std::hex >> byte;
+			bytes.push_back(static_cast<uint8_t>(byte));
+		}
+		std::string result(begin(bytes), end(bytes));
+		//Escaped hex strings in local variables dont parse correctly with CodePatch so they are passed pre-parsed
+		char* rawHexString = const_cast<char*>(result.c_str());
+		return rawHexString;
+	}
+
+	char* int2hex(int input = 0, int endian = 0)
+	{
+		char hex_string[MAX_PATH];
+		char bit[2] = "0";
+		sprintf(hex_string, "%X", input);
+		if (strlen(hex_string) % 2 != 0)
+		{
+			if (endian == 1)
+			{
+				std::string final_input = strcat(bit, hex_string);
+				const char* result = BEtoLE(final_input).c_str();
+				char* output = const_cast<char*>(result);
+				return(output);
+			}
+		}
+		return hex_string;
+	}
+
+	char* flt2hex(float input = 0.00, int type = 0)
+	{
+		const unsigned char* pf = reinterpret_cast<const unsigned char*>(&input);
+
+		char hexString[MAX_PATH];
+		if (type == 0)
+		{
+			//Reverse
+			strcpy(hexString, int2hex(pf[3], 1));
+			strcat(hexString, int2hex(pf[2], 1));
+			strcat(hexString, int2hex(pf[1], 1));
+			strcat(hexString, int2hex(pf[0], 1));
+		}
+		else
+		{
+			strcpy(hexString, int2hex(pf[0], 1));
+			strcat(hexString, int2hex(pf[1], 1));
+			strcat(hexString, int2hex(pf[2], 1));
+			strcat(hexString, int2hex(pf[3], 1));
+		}
+		return hexString;
+	}
 
 	std::string getEnvVar(const char* var)
 	{
@@ -94,33 +218,6 @@ namespace NovaCore
 
 	//We now just use the software grid renderer
 	MultiPointer(ptr_TerrainRenderOGLCheck, 0, 0, 0, 0x00583C05);
-	//BuiltInFunction("Nova::terrainFix", _novaterrainfix)
-	//{
-	//	if (argc != 1)
-	//	{
-	//		Console::echo("%s(bool);", self);
-	//		return 0;
-	//	}
-	//	std::string arg1 = argv[0];
-	//	if (arg1.compare("true") == 0 || arg1.compare("1") == 0)
-	//	{
-	//		CodePatch patchOGL_to_Software_terrain_render = { ptr_TerrainRenderOGLCheck,"","\xEB",1,false };
-	//		patchOGL_to_Software_terrain_render.Apply(true);
-	//	}
-	//	else
-	//	{
-	//		CodePatch patchOGL_to_Software_terrain_render = { ptr_TerrainRenderOGLCheck,"","\x74",1,false };
-	//		patchOGL_to_Software_terrain_render.Apply(true);
-	//	}
-	//	return "true";
-	//}
-
-	bool is_number(const std::string& s)
-	{
-		std::string::const_iterator it = s.begin();
-		while (it != s.end() && std::isdigit(*it)) ++it;
-		return !s.empty() && it == s.end();
-	}
 
 	BuiltInFunction("cos", _cos)
 	{
@@ -208,6 +305,19 @@ namespace NovaCore
 		}
 	}
 
+	BuiltInFunction("isFunction", _novaisfunction)
+	{
+		if (argc != 1 || argv[0] == NULL)
+		{
+			Console::echo("%s( functionName );", self);
+			return false;
+		}
+		if (Console::functionExists(argv[0]))
+		{
+			return "true";
+		}
+		return false;
+	}
 
 	MultiPointer(ptrbadweapon1, 0, 0, 0x00499977, 0x0049BC83);
 	MultiPointer(ptrbadweapon2, 0, 0, 0x0049998B, 0x0049BC97);
@@ -351,6 +461,90 @@ namespace NovaCore
 	CodePatch numbervehiclescheck = { ptrNumVehiclesCheck,"","\xEB",1,false };
 	CodePatch numbercomponentscheck = { ptrNumComponentsCheck,"","\xEB",1,false };
 
+	///
+	/// Class Type Modifications
+	///
+	/// Simgui::Slider
+	MultiPointer(ptrSimguiSliderColor, 0, 0, 0x005DC003, 0x005DF8A7);
+	CodePatch simguislidercolor = { ptrSimguiSliderColor,"","\xFF",1,false };
+
+	MultiPointer(ptrSimguiSlider_MinMax, 0, 0, 0x005DBB50, 0x005DF3F4);
+	MultiPointer(ptrSimguiSlider_Resume, 0, 0, 0x005DBB62, 0x005DF406);
+	CodePatch simguisliderminmax = { ptrSimguiSlider_MinMax,"","\xE9SLMM",5,false };
+	float slider_min = 0;
+	float slider_max = 1;
+	NAKED void SimGuiSliderMinMax() {
+		__asm {
+			mov edx, slider_min
+			mov[ebx + 0x1BC], edx
+			mov edx, slider_max
+			mov dword ptr[ebx + 0x1C0], edx
+			jmp ptrSimguiSlider_Resume
+		}
+	}
+
+	void setSimGuiSliderMinMax(float min, float max)
+	{
+		slider_min = min;
+		slider_max = max;
+		simguisliderminmax.DoctorRelative((u32)SimGuiSliderMinMax, 1).Apply(true);
+	}
+
+	BuiltInFunction("SimGui::Slider::SetMinMax", _simguislidersetminmax)
+	{
+		if(argc != 2)
+		{
+			Console::echo("%s( min, max );", self);
+			return 0;
+		}
+		if (!is_number(argv[0]) || !is_number(argv[1]))
+		{
+			Console::echo("%s: Numeric inputs only", self);
+			return 0;
+		}
+		if (argv[0] >= argv[1])
+		{
+			Console::echo("%s: Min cannot be greater than Max", self);
+			return 0;
+		}
+		setSimGuiSliderMinMax(stof(argv[0]), stof(argv[1]));
+	}
+
+	/// Simgui::   Default font tags
+	MultiPointer(ptrSimguiDefaultTextFont, 0, 0, 0x005CF677, 0x005D2F1B);
+	MultiPointer(ptrSimguiDefaultTextHLFont, 0, 0, 0x005CF681, 0x005D2F25);
+	MultiPointer(ptrSimguiDefaultTextDFont, 0, 0, 0x005CF68B, 0x005D2F2F);
+	MultiPointer(ptrSimguiDefaultTextString, 0, 0, 0x005CF695, 0x005D2F39);
+	CodePatch defaultStringTag = { ptrSimguiDefaultTextString,"","\x00\x00\x00\x00",4,false };
+
+	BuiltInFunction("SimGui::setFontTags", _simguisetfonttags)
+	{
+		if (argc != 3)
+		{
+			Console::echo("%s( font_tag );", self);
+			return 0;
+		}
+		string font = argv[0];
+		string buffer0 = hexToASCII2(int2hex(atoi(argv[0]), 1));
+		char* result0 = const_cast<char*>(buffer0.c_str());
+		CodePatch SimguiSimpleTextFont = { ptrSimguiDefaultTextFont,"",result0,4,false };
+		SimguiSimpleTextFont.Apply(true);
+
+		string hlfont = argv[1];
+		string buffer1 = hexToASCII2(int2hex(atoi(argv[1]), 1));
+		char* result1 = const_cast<char*>(buffer1.c_str());
+		CodePatch SimguiSimpleTextHLFont = { ptrSimguiDefaultTextHLFont,"",result1,4,false };
+		SimguiSimpleTextHLFont.Apply(true);
+
+		string dfont = argv[2];
+		string buffer2 = hexToASCII2(int2hex(atoi(argv[2]), 1));
+		char* result2 = const_cast<char*>(buffer2.c_str());
+		CodePatch SimguiSimpleTextDFont = { ptrSimguiDefaultTextDFont,"",result2,4,false };
+		SimguiSimpleTextDFont.Apply(true);
+
+		return "true";
+	}
+
 	struct Init {
 		Init() {
 
@@ -368,6 +562,10 @@ namespace NovaCore
 			numberweaponscheck.Apply(true);
 			numbervehiclescheck.Apply(true);
 			numbercomponentscheck.Apply(true);
+
+			//Simgui patches
+			simguislidercolor.Apply(true);
+			//defaultStringTag.Apply(true);
 		}
 	} init;
 }
