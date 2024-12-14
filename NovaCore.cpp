@@ -169,9 +169,27 @@ namespace NovaCore
 		return compatLayer;
 	}
 
-	BuiltInFunction("Nova::IsWindows10OrGreater", _novaiswindows10orgreater)
+	BuiltInFunction("Nova::IsWindowsXP", _novaiswindowsxp)
 	{
-		if (IsWindows10OrGreater())
+    DWORD dwVersion = 0; 
+    DWORD dwMajorVersion = 0;
+    DWORD dwMinorVersion = 0; 
+    DWORD dwBuild = 0;
+
+    dwVersion = GetVersion();
+ 
+    // Get the Windows version.
+
+    dwMajorVersion = (DWORD)(LOBYTE(LOWORD(dwVersion)));
+    dwMinorVersion = (DWORD)(HIBYTE(LOWORD(dwVersion)));
+
+    // Get the build number.
+
+    if (dwVersion < 0x80000000)              
+        dwBuild = (DWORD)(HIWORD(dwVersion));
+
+		std::string majorVersion = tostring(dwMajorVersion);
+		if (majorVersion.compare("5") == 0)
 		{
 			return "true";
 		}
@@ -180,6 +198,7 @@ namespace NovaCore
 			return 0;
 		}
 	}
+
 	void executeNova()
 	{
 		Console::eval("IDSTR_MISSING_FILE_TITLE = 00131400,\"Missing File\";");
@@ -516,6 +535,33 @@ namespace NovaCore
 	MultiPointer(ptrSimguiDefaultTextDFont, 0, 0, 0x005CF68B, 0x005D2F2F);
 	MultiPointer(ptrSimguiDefaultTextString, 0, 0, 0x005CF695, 0x005D2F39);
 	CodePatch defaultStringTag = { ptrSimguiDefaultTextString,"","\x00\x00\x00\x00",4,false };
+
+	//Skip the version hand shake with the server.
+	//IT IS WHAT BROKE RECORDING IN 1.004r//
+	CodePatch _1004VersionHandshake = { 0x00460E26,"","\xEB",1,false };
+	CodePatch _1004JoinVersionHandshake = { 0x0045FEBE,"","\xEB\x2F\x90\x90",4,false };
+	BuiltInFunction("Nova::toggleRecordingFix", _simguisetfonttags)
+	{
+		if (VersionSnoop::GetVersion() == VERSION::v001004)
+		{
+			std::string var = Console::getVariable("pref::fixRecording");
+			if (var.compare("1") == 0)
+			{
+				CodePatch _1004VersionHandshake = { 0x00460E26,"","\xEB",1,false };
+				CodePatch _1004JoinVersionHandshake = { 0x0045FEBE,"","\xEB\x2F\x90\x90",4,false };
+				_1004VersionHandshake.Apply(true);
+				_1004JoinVersionHandshake.Apply(true);
+			}
+			else
+			{
+				CodePatch _1004VersionHandshake = { 0x00460E26,"","\x7C",1,false };
+				CodePatch _1004JoinVersionHandshake = { 0x0045FEBE,"","\x8B\x4C\x24\x04",4,false };
+				_1004VersionHandshake.Apply(true);
+				_1004JoinVersionHandshake.Apply(true);
+			}
+			return "true";
+		}
+	}
 
 	BuiltInFunction("SimGui::setFontTags", _simguisetfonttags)
 	{
