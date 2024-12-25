@@ -1093,7 +1093,7 @@ namespace ExeFixes {
 			//Herc
 			uncapHercCameraAnimationRate.Apply(true);
 			uncapHercShapeAnimationRate.Apply(true);
-			uncapHercNetSync.Apply(true);
+			//uncapHercNetSync.Apply(true); - NOPE, this breaks vehicles when they shoot
 		}
 	} init;
 }; // namespace ExeFixes
