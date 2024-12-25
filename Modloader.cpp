@@ -174,63 +174,76 @@ void OpenGLenumDesktopModes()
 	OpenGLHeightMax.Apply(true);
 }
 
-MultiPointer(ptrBayOpenTestBit, 0, 0, 0, 0x00445FD4);
-void patchBackBayEdit()
-{
-	CodePatch BayTestBit2 = { ptrBayOpenTestBit,"","\x83",1,false };
-	BayTestBit2.Apply(true);
-	Console::eval("deleteobject(bayObject);");
-}
+//MultiPointer(ptrBayOpenTestBit, 0, 0, 0, 0x00445FD4);
+//void patchBackBayEdit()
+//{
+//	CodePatch BayTestBit2 = { ptrBayOpenTestBit,"","\x83",1,false };
+//	BayTestBit2.Apply(true);
+//	Console::eval("deleteobject(bayObject);");
+//}
+//
+//MultiPointer(ptrBayEditInit, 0, 0, 0, 0x00445FD9);
+//MultiPointer(ptrBayEditInitResume, 0, 0, 0, 0x00445FE6);
+//CodePatch bayeditjnb = { ptrBayEditInit,"","\xE9PBAY",5,false};
+//NAKED void BayEditJNB() {
+//	__asm {
+//		push 0x190
+//		call [ptrMemLibModule]
+//		pop ecx
+//		call [patchBackBayEdit]
+//		jmp [ptrBayEditInitResume]
+//	}
+//}
 
-MultiPointer(ptrBayEditInit, 0, 0, 0, 0x00445FD9);
-MultiPointer(ptrBayEditInitResume, 0, 0, 0, 0x00445FE6);
-CodePatch bayeditjnb = { ptrBayEditInit,"","\xE9PBAY",5,false};
-NAKED void BayEditJNB() {
+//BuiltInFunction("Nova::EditAI", _novaeditai)
+//{
+//	Console::eval("newobject(bayObject,turret,1);");
+//	CodePatch BayTestBit = { ptrBayOpenTestBit,"","\x84",1,false };
+//	BayTestBit.Apply(true);
+//	bayeditjnb.DoctorRelative((u32)BayEditJNB, 1).Apply(true);
+//	return "true";
+//}
+
+MultiPointer(ptrGuiBitmapCtrlImageTag, 0, 0, 0x005CED21, 0x005D25C5);
+MultiPointer(ptrGuiBitmapCtrlImageTagResume, 0, 0, 0x005CED2B, 0x005D25CF);
+CodePatch simgui_guibitmapctrl_defaultimage = { ptrGuiBitmapCtrlImageTag,"","\xE9SGDI",5,false };
+BuiltInVariable("engine::GuiBitmapCtrl::DefaultImage", int, engine_GuiBitmapCtrl_DefaultImage, 169998);
+NAKED void Simgui_GuiBitmapCtrl_DefaultImage() {
 	__asm {
-		push 0x190
-		call [ptrMemLibModule]
-		pop ecx
-		call [patchBackBayEdit]
-		jmp [ptrBayEditInitResume]
+		mov ecx, engine_GuiBitmapCtrl_DefaultImage
+		mov dword ptr[ebx + 0x1C0], ecx
+		xor ecx, ecx
+		jmp ptrGuiBitmapCtrlImageTagResume
 	}
 }
 
-BuiltInFunction("Nova::EditAI", _novaeditai)
-{
-	Console::eval("newobject(bayObject,turret,1);");
-	CodePatch BayTestBit = { ptrBayOpenTestBit,"","\x84",1,false };
-	BayTestBit.Apply(true);
-	bayeditjnb.DoctorRelative((u32)BayEditJNB, 1).Apply(true);
-	return "true";
-}
-
-BuiltInFunction("Simgui::GuiBitmapCtrl::SetDefaultImage", _SGSDI)
-{
-	if (argc != 1)
-	{
-		Console::echo("MAIN_MENU, SP_MAIN, MFD, LOADING");
-	}
-	string background = argv[0];
-	MultiPointer(ptrGuiBitmapCtrlImageTag, 0, 0, 0x005CED27, 0x005D25CB);
-	if (background.compare("MAIN_MENU") == 0)
-	{
-		CodePatch genericCodePatch = { ptrGuiBitmapCtrlImageTag,"","\x1D\x71",2,false }; genericCodePatch.Apply(true);
-	}
-	if (background.compare("SP_MAIN") == 0)
-	{
-		CodePatch genericCodePatch = { ptrGuiBitmapCtrlImageTag,"","\x38\x71",2,false }; genericCodePatch.Apply(true);
-	}
-	if (background.compare("MFD") == 0)
-	{
-		CodePatch genericCodePatch = { ptrGuiBitmapCtrlImageTag,"","\x15\x71",2,false }; genericCodePatch.Apply(true);
-	}
-	if (background.compare("LOADING") == 0)
-	{
-		CodePatch genericCodePatch = { ptrGuiBitmapCtrlImageTag,"","\x2C\x71",2,false }; genericCodePatch.Apply(true);
-	}
-
-	return "true";
-}
+//BuiltInFunction("Simgui::GuiBitmapCtrl::SetDefaultImage", _SGSDI)
+//{
+//	return 0;
+//	if (argc != 1)
+//	{
+//		Console::echo("MAIN_MENU, SP_MAIN, MFD, LOADING");
+//	}
+//	string background = argv[0];
+//	if (background.compare("MAIN_MENU") == 0)
+//	{
+//		CodePatch genericCodePatch = { ptrGuiBitmapCtrlImageTag,"","\x1D\x71",2,false }; genericCodePatch.Apply(true);
+//	}
+//	if (background.compare("SP_MAIN") == 0)
+//	{
+//		CodePatch genericCodePatch = { ptrGuiBitmapCtrlImageTag,"","\x38\x71",2,false }; genericCodePatch.Apply(true);
+//	}
+//	if (background.compare("MFD") == 0)
+//	{
+//		CodePatch genericCodePatch = { ptrGuiBitmapCtrlImageTag,"","\x15\x71",2,false }; genericCodePatch.Apply(true);
+//	}
+//	if (background.compare("LOADING") == 0)
+//	{
+//		CodePatch genericCodePatch = { ptrGuiBitmapCtrlImageTag,"","\x2C\x71",2,false }; genericCodePatch.Apply(true);
+//	}
+//
+//	return "true";
+//}
 
 namespace ModloaderMain {
 
@@ -793,23 +806,24 @@ namespace ModloaderMain {
 	//Allows Glide to run at 1280x1024 in windowed mode.
 	//"\xC7\x02\x00\x05\x00\x00\xC7\x42\x04\x00\x04",
 
-	MultiPointer(ptrFixedTerrainDetailFloat, 0, 0, 0x005804AC, 0x00583BCF);
-	BuiltInFunction("Nova::setTerrainDetail", _novasetterraindetail)
-	{
-		if (argc != 1 || !is_number(argv[0]))
-		{
-			Console::echo("%s( int );", self);
-			return 0;
-		}
-
-		char* flt2hex_c = flt2hex(stof(argv[0]), 1);
-		string buffer = hexToASCII2(flt2hex_c);
-		char* hex2char_c = const_cast<char*>(buffer.c_str());
-		CodePatch terrainDetailValue = { ptrFixedTerrainDetailFloat, "", hex2char_c, 4, false };
-		terrainDetailValue.Apply(true);
-		Console::setVariable("pref::terrainDetail", tostring(trunc(atof(argv[0]))));
-		return "true";
-	}
+	//MultiPointer(ptrFixedTerrainDetailFloat, 0, 0, 0x005804AC, 0x00583BCF);
+	//BuiltInFunction("Nova::setTerrainDetail", _novasetterraindetail)
+	//{
+	//	return 0;
+	//	if (argc != 1 || !is_number(argv[0]))
+	//	{
+	//		Console::echo("%s( int );", self);
+	//		return 0;
+	//	}
+	//
+	//	char* flt2hex_c = flt2hex(stof(argv[0]), 1);
+	//	string buffer = hexToASCII2(flt2hex_c);
+	//	char* hex2char_c = const_cast<char*>(buffer.c_str());
+	//	CodePatch terrainDetailValue = { ptrFixedTerrainDetailFloat, "", hex2char_c, 4, false };
+	//	terrainDetailValue.Apply(true);
+	//	Console::setVariable("pref::terrainDetail", tostring(trunc(atof(argv[0]))));
+	//	return "true";
+	//}
 
 	MultiPointer(ptrWinMaxWinSize, 0, 0, 0x005740FF, 0x00577307);
 	CodePatch canvasWindowMaxWindowedSize_patch = {
@@ -861,19 +875,50 @@ namespace ModloaderMain {
 
 
 	MultiPointer(ptrTankAlignmentSpeed, 0, 0, 0x004344D4, 0x0043598C);
-	BuiltInFunction("Nova::toggleSmoothTankAligns", _novatogglesmoothtankalign) {
-		std::string var = Console::getVariable("pref::smoothTankSurfaceAlign");
-		if (var.compare("1") == 0)
+	//BuiltInFunction("Nova::toggleSmoothTankAligns", _novatogglesmoothtankalign) {
+	//	std::string var = Console::getVariable("pref::smoothTankSurfaceAlign");
+	//	if (var.compare("1") == 0)
+	//	{
+	//		CodePatch tankAlignment = { ptrTankAlignmentSpeed, "", "\x00\x00\xA0\x3C", 4, false };
+	//		tankAlignment.Apply(true);
+	//	}
+	//	else
+	//	{
+	//		CodePatch tankAlignment = { ptrTankAlignmentSpeed, "", "\xCD\xCC\x4C\x3e", 4, false };
+	//		tankAlignment.Apply(true);
+	//	}
+	//	return "true";
+	//}
+
+	MultiPointer(ptr_tankAlignmentSpeed, 0, 0, 0x00434405, 0x004358BD);
+	MultiPointer(ptr_tankAlignmentSpeedResume, 0, 0, 0x00434431, 0x004358E9);
+	CodePatch tankalignmentspeed = { ptr_tankAlignmentSpeed,"","\xE9TALR",5,false };
+	float tankAlignSpeed = 0.2;
+	void getPrefSmoothTankAlignment()
+	{
+		if (atoi(Console::getVariable("pref::smoothTankSurfaceAlign")) == 1)
 		{
-			CodePatch tankAlignment = { ptrTankAlignmentSpeed, "", "\x00\x00\xA0\x3C", 4, false };
-			tankAlignment.Apply(true);
+			tankAlignSpeed = 0.0195;
 		}
 		else
 		{
-			CodePatch tankAlignment = { ptrTankAlignmentSpeed, "", "\xCD\xCC\x4C\x3e", 4, false };
-			tankAlignment.Apply(true);
+			tankAlignSpeed = 0.2;
 		}
-		return "true";
+	}
+	NAKED void tankAlignmentSpeed() {
+		__asm {
+			call getPrefSmoothTankAlignment
+			fld tankAlignSpeed
+			fmul [esp + 0x170 - 0x138]
+			fstp [esp + 0x170 - 0x138]
+			fld tankAlignSpeed
+			fmul [esp + 0x170 - 0x134]
+			fstp [esp + 0x170 - 0x134]
+			fld tankAlignSpeed
+			fmul [esp + 0x170 - 0x130]
+			lea edx, [ebx + 0x0CC8]
+			jmp ptr_tankAlignmentSpeedResume
+		}
 	}
 
 	//MultiPointer(ptrFlyerElevationControl, 0, 0, 0x004386E5, 0x00439B9D);
@@ -1321,13 +1366,22 @@ namespace ModloaderMain {
 		false
 	};
 
-	//Packet rate loopback. This is the serverside packetRate. Set to 512
+	//Packet rate loopback. This is the serverside packetRate. Set to 4096
 	MultiPointer(ptrLoopbackPacketRate, 0, 0, 0x0045F440, 0x00460A98);
 	CodePatch loopback_packetRate_patch = {
 		 ptrLoopbackPacketRate,
 		 "",
-		 "\x00\x02\x00\x00",
+		 "\x00\x10\x00\x00",
 		 4,
+		 false
+	};
+
+	MultiPointer(ptrBadRateDivisor, 0, 0, 0, 0x00690A85);
+	CodePatch badPacketRate_patch = {
+		 ptrBadRateDivisor,
+		 "",
+		 "\x90\x90",
+		 2,
 		 false
 	};
 
@@ -1667,7 +1721,7 @@ namespace ModloaderMain {
 
 			//Rendering
 			//Damage Status Display function: 46668B  (Colors)
-
+			simgui_guibitmapctrl_defaultimage.DoctorRelative((u32)Simgui_GuiBitmapCtrl_DefaultImage, 1).Apply(true);
 
 			terrainMaxVisDistance_patch.Apply(true);
 			canvasWindowMaxWindowedSize_patch.Apply(true);
@@ -1693,11 +1747,13 @@ namespace ModloaderMain {
 			ignoreMissingServerVolume_patch.Apply(true);
 			invalidPackets1_patch.Apply(true);
 			invalidPackets2_patch.Apply(true);
-
 			missingTerrain_patch.Apply(true);
+			//Fix clients having higher packet rates than the server causing the server to crash
+			badPacketRate_patch.Apply(true);
 
 			//Gameplay
 			//playerflyerelevationcontrol.DoctorRelative((u32)PlayerFlyerElevationControl, 1).Apply(true);//Allow player flyers to adjust fly height using the throttle
+			tankalignmentspeed.DoctorRelative((u32)tankAlignmentSpeed, 1).Apply(true);
 
 			weaponShotCap_patch.Apply(true);
 				//Allow AllowVehicle(); clientSide for 1.004r

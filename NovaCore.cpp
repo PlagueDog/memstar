@@ -540,7 +540,7 @@ namespace NovaCore
 	//IT IS WHAT BROKE RECORDING IN 1.004r//
 	CodePatch _1004VersionHandshake = { 0x00460E26,"","\xEB",1,false };
 	CodePatch _1004JoinVersionHandshake = { 0x0045FEBE,"","\xEB\x2F\x90\x90",4,false };
-	BuiltInFunction("Nova::toggleRecordingFix", _simguisetfonttags)
+	BuiltInFunction("Nova::toggleRecordingFix", _simguitogglerecordingfix)
 	{
 		if (VersionSnoop::GetVersion() == VERSION::v001004)
 		{

@@ -155,6 +155,10 @@ namespace Terrain {
 	};
 	MultiPointer(ptr_SoftwareTerrainGridRender, 0, 0, 0, 0x005F79E5);
 	CodePatch patchOGL_to_Software_grid_render = { ptr_SoftwareTerrainGridRender,"","\x0F\x85",2,false};
+
+	MultiPointer(ptr_SoftwareTerrainTileRender, 0, 0, 0, 0x00583C05);
+	CodePatch patchOGL_to_Software_tile_render = { ptr_SoftwareTerrainTileRender,"","\xEB",1,false };
+
 	MultiPointer(ptr_TerrainLowestMipCoeff, 0, 0, 0, 0x005FAA2C);
 	CodePatch patchOGL_to_Software_terrain_render_bad_mips = { ptr_TerrainLowestMipCoeff,"","\x00\x00\x40\x3F",4,false };
 
@@ -705,17 +709,32 @@ namespace Terrain {
 	}
 
 	MultiPointer(ptrFixedTerrainDetail, 0, 0, 0x005804A9, 0x00583BCC);
-	CodePatch fixedTerrainDetail = { ptrFixedTerrainDetail, "", "\x90\x90", 2, false };
+
+	BuiltInVariable("pref::terrainDetail", float, prefTerrainDetail, 32);
+
+	MultiPointer(ptr_patchTerrainDetail, 0, 0, 0, 0x00583C03);
+	MultiPointer(ptr_patchTerrainDetailResume, 0, 0, 0, 0x00583BD6);
+	CodePatch terraindetail = { ptr_patchTerrainDetail,"","\xE9TRDT",5,false };
+
+	NAKED void terrainDetail() {
+		__asm {
+			push prefTerrainDetail
+			lea eax, [ebx + 0x18]
+			jmp ptr_patchTerrainDetailResume
+		}
+	}
 
 	void Open() {
-		Callback::attach(Callback::OnOpenGL, OnOpenGL);
+		//Callback::attach(Callback::OnOpenGL, OnOpenGL);
 
-		fixedTerrainDetail.Apply(true);
-		//fixedTerrainDetailValue.Apply(true);
 		//patchOGL_to_Software_terrain_render.Apply(true);
 		//patchOGL_to_Software_terrain_render_bad_mips.Apply(true);
+		
 		patchOGL_to_Software_grid_render.Apply(true);
-
+		//patchOGL_to_Software_tile_render.Apply(true);
+		//patchterrainrender.DoctorRelative((u32)patchTerrainRender, 1).Apply(true);
+		terraindetail.DoctorRelative((u32)terrainDetail, 1).Apply(true);
+		
 		//
 		//badterrainmipshackfix.DoctorRelative((u32)BadTerrainMipsHackFix, 1).Apply(true);
 		//DEPRECATED

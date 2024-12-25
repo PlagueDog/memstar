@@ -307,20 +307,7 @@ namespace OpenGLFixes
 	//	cmdSetGuiScale(atof(argv[0]));
 	//	return "true";
 	//}
-
-	//Shifting
-	MultiPointer(ptrGuiShift, 0, 0, 0x0063D9AC, 0x0064C904);
-	MultiPointer(ptrGuiShiftResume, 0, 0, 0x0063D9B6, 0x0064C90E);
-	MultiPointer(ptrShiftSub, 0, 0, 0x00647C50, 0x00657968);
-	//CodePatch setguishift = { ptrGuiShift, "", "\xE9SGSH", 5, false };
-	//float guiShift = -1;
-	//NAKED void setGuiShift() {
-	//	__asm {
-	//		push guiShift
-	//		call [ptrShiftSub]
-	//		jmp[ptrGuiShiftResume]
-	//	}
-	//}
+	 
 	//
 	//void cmdSetGuiShift(float flt)
 	//{
@@ -410,6 +397,7 @@ namespace OpenGLFixes
 			//goSplash480.Apply(true);
 			//tempPatch.Apply(true);
 			//gdi_opengl.DoctorRelative((u32)GDI_OpenGL, 1).Apply(true);
+
 		}
 	} init;
 };

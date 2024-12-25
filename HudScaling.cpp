@@ -33,6 +33,8 @@ NAKED void HudPBAFix() {
 
 }
 
+
+
 //Hud Elements Constants Set Patch
 //Allow hud elements to always refresh their constants after being set
 MultiPointer(ptrRadarConstantsSetBoolean, 0, 0, 0x00516CA4, 0x00519140);

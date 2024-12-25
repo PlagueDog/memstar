@@ -181,14 +181,123 @@ namespace Intercepts {
 		}
 	}
 
-	MultiPointer(ptrStatusPartDamageCalc, 0, 0, 0, 0x0046634A);
-	MultiPointer(ptrStatusPartDamageCalcResume, 0, 0, 0, 0x00466350);
-	MultiPointer(ptrStatusPart, 0, 0, 0, 0x006E8AAC);
+	char* partName;
+	float partDamage;
+	float partDamageMax;
+	void assignDamageVars()
+	{
+		char partNameAssign[127];
+		//Assign part name to array
+		strcpy(partNameAssign, "$Nova::damageStatus[$damStatArr++, name] = '");
+		strcat(partNameAssign, partName);
+		strcat(partNameAssign, "';");
+		Console::eval(partNameAssign);
+		free(partNameAssign);
+
+		//Calculate the damge percent
+		int damageStatPercent = partDamage / partDamageMax * 100;
+
+		//Assign damge percentile to array
+		strcpy(partNameAssign, "$Nova::damageStatus[$damStatArr, damage] = '");
+		strcat(partNameAssign, tostring(damageStatPercent));
+		strcat(partNameAssign, "';");
+		Console::eval(partNameAssign);
+		free(partNameAssign);
+
+		//Assign damge max percentile to array
+		//strcpy(partNameAssign, "$Nova::damageStatus[$damStatArr, damageMax] = '");
+		//strcat(partNameAssign, tostring(partDamageMaxPercentile));
+		//strcat(partNameAssign, "';");
+		//Console::eval(partNameAssign);
+		//free(partNameAssign);
+	}
+	//NAKED void statusPartCalc2() {
+	//	__asm {
+	//		//push eax
+	//		//mov partName, eax
+	//		//pop eax
+	//
+	//		fld     dword ptr[ebx + 0x1C]
+	//		fdiv    dword ptr[ebx + 0x18]
+	//		fstp	[esp + 0x1C - 0x18]
+	//
+	//		//push eax
+	//		//mov eax, dword ptr[ebx + 0x1C]
+	//		//mov partDamagePercentile, eax
+	//		//pop eax
+	//
+	//		mov     edx, [ebx + 0x3C]
+	//		test    edx, edx
+	//		jz      __jz
+	//		fld     dword ptr[edx + 4]
+	//		fdiv    dword ptr[edx + 8]
+	//		fstp	[esp + 0x1C - 0x14]
+	//		mov     ecx, [ebx + 0x3C]
+	//		add     esp, 0xFFFFFFF8
+	//		fld     dword ptr[ecx + 8]
+	//		fstp	[esp + 0x24 - 0x24]
+	//		mov     edx, [ebx + 0x3C]
+	//		add     esp, 0xFFFFFFF8
+	//		fld     dword ptr[edx + 4]
+	//		fstp	[esp + 0x2C - 0x2C]
+	//		fld		[esp + 0x2C - 0x14]
+	//		fmul    fltMaxHealth
+	//		add     esp, 0xFFFFFFF8
+	//		fstp	[esp + 0x34 - 0x34]
+	//		add     esp, 0xFFFFFFF8
+	//		fld     dword ptr[ebx + 0x18]
+	//		fstp	[esp + 0x3C - 0x3C]
+	//		add     esp, 0x0FFFFFFF8
+	//		fld     dword ptr[ebx + 0x1C]
+	//		fstp	[esp + 44h - 0x44]
+	//		fld     fltMaxHealth
+	//		fmul	[esp + 0x44 - 0x18]
+	//		add     esp, 0xFFFFFFF8
+	//		fstp	[esp + 0x4C - 0x4C]
+	//		push    eax
+	//		push    aS41f30f30fArmo
+	//		push    ebp
+	//		call    fnEcho
+	//		add     esp, 0x3C
+	//		call assignDamageVars
+	//		jmp ptrStatusPartDamageCalcResume
+	//		__jz:
+	//		jmp ptrStatusInternalPartDamageCalc
+	//
+	//	}
+	//}
+
+	//void clearDamageStatArrCounter()
+	//{
+	//	Console::eval("deleteVariables('$damStatArr*'); ");
+	//}
+	//
+	//MultiPointer(fnDumpDamage, 0, 0, 0, 0x004662F8);
+	//MultiPointer(fnDumpDamageResume, 0, 0, 0, 0x00466308);
+	//CodePatch dumpdamageintercept = { fnDumpDamage, "", "\xE9_DDI", 5, false };
+	//NAKED void dumpDamageIntercept() {
+	//	__asm {
+	//		push	ebx
+	//		push	esi
+	//		push	edi
+	//		push	ebp
+	//		add		esp, 0xFFFFFFF4
+	//		mov		ebp, edx
+	//		mov		edi, eax
+	//		mov		[esp + 0x1C - 0x1C], ecx
+	//		xor		esi, esi
+	//
+	//		//Wipe the damStatArr global variable
+	//		call clearDamageStatArrCounter
+	//		jmp fnDumpDamageResume
+	//	}
+	//}
+
+	//MultiPointer(ptrStatusPartDamageCalc, 0, 0, 0, 0x0046634A);
+	//MultiPointer(ptrStatusPartDamageCalcResume, 0, 0, 0, 0x00466350);
+	//MultiPointer(ptrStatusPart, 0, 0, 0, 0x006E8AAC);
+	//MultiPointer(ptrStatusInternalPartDamageCalc, 0, 0, 0, 0x004663C0);
 	//CodePatch statuspartcalc = { ptrStatusPartDamageCalc, "", "\xE9SPDC", 5, false };
-	//char* partName;
-	//float partHealth;
-	//float partMaxHealth;
-	//static const char* NovaGetDamageStatus = "Nova::getDamageStatus();";
 	//NAKED void statusPartCalc() {
 	//	__asm {
 	//		push eax
@@ -197,19 +306,20 @@ namespace Intercepts {
 	//		fld dword ptr [ebx + 0x1C]
 	//		push eax
 	//		mov eax, dword ptr [ebx + 0x1C] //Current hit points (float)
-	//		mov partHealth, eax
+	//		mov partDamage, eax
 	//		pop eax
 	//		fdiv dword ptr[ebx + 0x18]
 	//		push eax
 	//		mov eax, dword ptr [ebx + 0x18] //Max hit points (float)
-	//		mov partMaxHealth, eax
+	//		mov partDamageMax, eax
 	//		pop eax
 	//
-	//		push eax
-	//		mov eax, [NovaGetDamageStatus]
-	//		push eax
-	//		call Console::eval
-	//		add esp, 0x8
+	//		//push eax
+	//		//mov eax, [NovaGetDamageStatus]
+	//		//push eax
+	//		//call Console::eval
+	//		//add esp, 0x8
+	//		call assignDamageVars
 	//		mov eax, [esp + 0x1C + 0x1C]
 	//
 	//		jmp[ptrStatusPartDamageCalcResume]
@@ -265,10 +375,8 @@ namespace Intercepts {
 
 	float gamecursor_x;
 	float gamecursor_y;
-	void SetCursorLocationVars()
+	void CursorRestraints()
 	{
-		Console::setVariable("Nova::cursorLocX", tostring(gamecursor_x));
-		Console::setVariable("Nova::cursorLocY", tostring(gamecursor_y));
 		Console::execFunction(0, "Nova::containCursor");
 		Console::execFunction(0, "Nova::onCursorMove");
 	}
@@ -276,28 +384,21 @@ namespace Intercepts {
 	MultiPointer(ptrMouseMove, 0, 0, 0x005C26A3, 0x005C5EBF);
 	MultiPointer(ptrMouseMoveResume, 0, 0, 0x005C26A9, 0x005C5EC5);
 	CodePatch getcursor = { ptrMouseMove, "", "\xE9GCPS", 5, false };
-	//static const char* NovaOnMouseMove = "Nova::containCursor();Nova::onCursorMove();";
+	BuiltInVariable("Nova::cursorLocX", float, cursor_x, 0);
+	BuiltInVariable("Nova::cursorLocY", float, cursor_y, 0);
 	NAKED void GetCursor() {
 		__asm {
 			mov al, [edi + 0x1F8]
 			push eax
 			mov eax, dword ptr[edi + 0x1FC]
-			//jmp[ptrFloatTOInt]
-			mov gamecursor_x, eax
+			mov cursor_x, eax
 			pop eax
 
 			push eax
 			mov eax, dword ptr[edi + 0x200]
-			//jmp[ptrFloatTOInt]
-			mov gamecursor_y, eax
+			mov cursor_y, eax
 			pop eax
-			call SetCursorLocationVars
-
-			//push eax
-			//mov eax, [NovaOnMouseMove]
-			//push eax
-			//call Console::eval
-			//add esp, 0x8
+			call CursorRestraints
 
 			jmp[ptrMouseMoveResume]
 		}
@@ -439,14 +540,35 @@ namespace Intercepts {
 		return clientVehicleFile;
 	}
 
+
 	MultiPointer(ptrPlayerMessageEveryone, 0, 0, 0x0055ACD7, 0x0055DB13);
 	MultiPointer(ptrPlayerMessageEveryoneResume, 0, 0, 0x0055AD3D, 0x0055DB79);
+	MultiPointer(ptrPlayerMessageEveryoneReturn, 0, 0, 0, 0x0055DB79);
 	static const char* messageEventfn = "Nova::push::onPlayerMessage();";
 	static const char* msg_sprint = "%s %s->%s: %s";
+	//static const char* msg_sprint = "";
 	CodePatch playeronmessage = { ptrPlayerMessageEveryone, "", "\xE9PONM", 5, false };
 	char* playerMessage;
 	char* playerName;
 	char* messageRecipient;
+
+	//This function calls player::onMessage with the playerName and their message as args
+	//BuiltInFunction("Nova::push::onPlayerMessage", _novaplayermessage)
+	void onPlayerMessage()
+	{
+		Console::echo("MSG: %s-> (%s): %s", playerName, messageRecipient, playerMessage);
+		char playerOnMessage_evalString[127];
+		strcpy(playerOnMessage_evalString, "player::onMessage(\"");
+		strcat(playerOnMessage_evalString, playerName);
+		strcat(playerOnMessage_evalString, "\",\"");
+		strcat(playerOnMessage_evalString, playerMessage);
+		strcat(playerOnMessage_evalString, "\");");
+		//Final string -> player::onMessage("%playerName","%playerMessage");
+		eval(playerOnMessage_evalString);
+		free(playerOnMessage_evalString);
+		//return "true";
+	}
+
 	NAKED void playerOnMessage() {
 		__asm {
 			add ebx, 0x75
@@ -463,33 +585,12 @@ namespace Intercepts {
 			mov eax, [ptrConsoleBuffer]
 			push eax
 			call Console::echo
-			//call fnEcho
 			add esp, 0x18
 
-			push eax
-			mov eax, [messageEventfn]
-			push eax
-			call Console::eval
-			add esp, 0x8
+			call onPlayerMessage
 
 			jmp [ptrPlayerMessageEveryoneResume]
 		}
-	}
-
-	//This function calls player::onMessage with the playerName and their message as args
-	BuiltInFunction("Nova::push::onPlayerMessage", _novaplayermessage)
-	{
-		Console::echo("MSG: %s-> (%s): %s", playerName, messageRecipient, playerMessage);
-		char playerOnMessage_evalString[127];
-		strcpy(playerOnMessage_evalString, "player::onMessage(\"");
-		strcat(playerOnMessage_evalString, playerName);
-		strcat(playerOnMessage_evalString,  "\",\"");
-		strcat(playerOnMessage_evalString, playerMessage);
-		strcat(playerOnMessage_evalString, "\");");
-		//Final string -> player::onMessage("%playerName","%playerMessage");
-		eval(playerOnMessage_evalString);
-		free(playerOnMessage_evalString);
-		return "true";
 	}
 
 	//Create a empty player::onMessage(); initially
@@ -500,6 +601,7 @@ namespace Intercepts {
 		getcursor.DoctorRelative((u32)GetCursor, 1).Apply(true);
 		return "true";
 	}
+
 	struct Init 
 	{
 		Init() 
@@ -534,10 +636,13 @@ namespace Intercepts {
 
 				//player::onMessage
 				playeronmessage.DoctorRelative((u32)playerOnMessage, 1).Apply(true);
-
+				
 				//OpenGL DEV
 				//openglmodeextend.DoctorRelative((u32)OpenGLModeExtend, 1).Apply(true);
 
+				//dumpDamage / damage
+				//dumpdamageintercept.DoctorRelative((u32)dumpDamageIntercept, 1).Apply(true);
+				//statuspartcalc.DoctorRelative((u32)statusPartCalc, 1).Apply(true);
 		}
 	} init;
 }

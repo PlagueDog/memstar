@@ -14,8 +14,6 @@ namespace ExeFixes {
 	//Unknown crash patches
 	MultiPointer(ptr_unkCrash01, 0, 0, 0x00624F01, 0x00633E41); //This one seems related to the hud scaling
 	CodePatch unkCrashPatch01 = { ptr_unkCrash01,"","\x72",1,false };
-	MultiPointer(ptr_unkCrash02, 0, 0, 0x00658178, 0x00667E90); //Multi-world loading crash
-	CodePatch unkCrashPatch02 = { ptr_unkCrash02,"","\xC3",1,false };
 
 	HWND getHWND() {
 		MultiPointer(ptrHWND, 0, 0, 0x00705C5C, 0x007160CC);
@@ -109,18 +107,18 @@ namespace ExeFixes {
 		CodePatch OpenGLFiltering = { ptrOGLTextureFilter,"","\x00\x26",2,false };
 		OpenGLFiltering.Apply(true);
 		Console::eval("flushtexturecache();");
-		//Console::setVariable("pref::OpenGL::GL_NEAREST", "true");
 		return "true";
 	}
-
+	
+	
 	BuiltInFunction("OpenGL::disableGL_NEAREST", _oglDgln)
 	{
 		CodePatch OpenGLFiltering = { ptrOGLTextureFilter,"","\x01\x26",2,false };
 		OpenGLFiltering.Apply(true);
 		Console::eval("flushtexturecache();");
-		//Console::setVariable("pref::OpenGL::GL_NEAREST", "false");
 		return "true";
 	}
+
 	CodePatch OpenGLBitDepth = { ptrOGLBitDepth,"","\x20",1,false };
 
 	//CodePatch OpenGLWidthMin = { ptrOGLWidthMin,"","\x3D\x40\x01",3,false };
@@ -268,7 +266,7 @@ namespace ExeFixes {
 	}
 
 	MultiPointer(ptrVolumetricERR, 0, 0, 0, 0x0062E7CA);
-	MultiPointer(ptrVolumetricERRresume, 0, 0, 0, 0x0062E7D5);
+	MultiPointer(ptrVolumetricERRresume, 0, 0, 0, 0x0062E7CF);
 	CodePatch volumetricfix = {
 	ptrVolumetricERR,
 	"",
@@ -276,19 +274,14 @@ namespace ExeFixes {
 	5,
 	false
 	};
-
+	MultiPointer(dword_728570, 0, 0, 0, 0x0062E7CA);
+	int persFlt = 1;
 	NAKED void VolumetricFix() {
 		__asm {
-			lea edx, [ecx + edx * 0x8]
-			test esi, 0x2
-			je __errBypass
-			test esi, 0x3
-			je __errBypass
-			mov ecx, [edx]
-			mov[eax + 0x20], ecx
-			mov ecx, [edx + 0x4]
-			jmp[ptrVolumetricERRresume]
-			__errBypass:
+			mov ecx, dword_728570
+			mov eax, [ecx + edx * 8]
+			mov edx, [ebp - 0x10]
+			mov [eax + 0x20], ecx
 			jmp[ptrVolumetricERRresume]
 		}
 	}
@@ -772,7 +765,14 @@ namespace ExeFixes {
 	}
 
 	//Volumetric Face Rendering
-	MultiPointer(ptrVolumetricFaceRender, 0, 0, 0, 0x006810BC);
+	MultiPointer(ptrVolumetricFaceRender1, 0, 0, 0, 0x006810BC);
+	MultiPointer(ptrVolumetricFaceRender2, 0, 0, 0, 0x00681202);
+	MultiPointer(ptrVolumetricFaceRender3, 0, 0, 0, 0x00681348);
+	CodePatch VolumetricFaceColor1 = { ptrVolumetricFaceRender1, "", "\xBA\xFD", 2, false };
+	CodePatch VolumetricFaceColor2 = { ptrVolumetricFaceRender2, "", "\xBA\xFD", 2, false };
+	CodePatch VolumetricFaceColor3 = { ptrVolumetricFaceRender3, "", "\xBA\xFD", 2, false };
+	MultiPointer(ptrVolumetricDMLrender, 0, 0, 0, 0x0062E7CA);
+
 	//Terrain Tile Rendering
 	MultiPointer(ptrTerrainTileRender, 0, 0, 0, 0x00600AB1);
 	//Terrain Mip Rendering
@@ -972,6 +972,17 @@ namespace ExeFixes {
 	MultiPointer(ptrRadarUpdateRate, 0, 0, 0x006F05F8, 0x00700880);
 	CodePatch RadarUpdateRate = { ptrRadarUpdateRate, "", "\x00", 1, false };
 
+	//Disable control letter <r><R><l><L> on chat messages
+	MultiPointer(ptr_ControlLetterIndentationBypass, 0, 0, 0x005C6AB2, 0x005CA355);
+	CodePatch filterRLFormatters = { ptr_ControlLetterIndentationBypass, "", "\xEB\xF4", 2, false };
+
+	MultiPointer(ptrHercCameraAnimationRate, 0, 0, 0, 0x0049E988);
+	MultiPointer(ptrHercShapeAnimationRate, 0, 0, 0, 0x0049E990);
+	MultiPointer(ptrHercNetSyncRate, 0, 0, 0, 0x0049E937);
+	CodePatch uncapHercCameraAnimationRate = { ptrHercCameraAnimationRate, "", "\x00\x00\x00\x00\x00\x00\x00\x00", 8, false };
+	CodePatch uncapHercShapeAnimationRate = { ptrHercCameraAnimationRate, "", "\x00\x00\x00\x00\x00\x00\x00\x00", 8, false };
+	CodePatch uncapHercNetSync = { ptrHercNetSyncRate, "", "\x68\x00\x00\x00\x00", 5, false };
+
 	struct Init {
 		Init() {
 			//WindowsCompatMode();
@@ -1001,6 +1012,9 @@ namespace ExeFixes {
 
 			//ITRpatch.DoctorRelative((u32)ITRPatch, 1).Apply(true);
 			//volumetricfix.DoctorRelative((u32)VolumetricFix, 1).Apply(true);
+			VolumetricFaceColor1.Apply(true);
+			VolumetricFaceColor2.Apply(true);
+			VolumetricFaceColor3.Apply(true);
 			//catch_flr_crash.DoctorRelative((u32)Catch_FLR_Crash0, 1).Apply(true);
 			//software_widescreen_patch.DoctorRelative((u32)Software_Widescreen_Patch, 1).Apply(true);
 			navExploitFix0.Apply(true);
@@ -1021,6 +1035,8 @@ namespace ExeFixes {
 
 			//Null the console newline feed character to prevent the white screen of death
 			consoleNewLineChar.Apply(true);
+			//Filter <L> <R> chat formatters
+			filterRLFormatters.Apply(true);
 
 			//Fix player vehicle properties
 			PlayerVehiclePropertyCheckPatch.Apply(true);
@@ -1068,12 +1084,16 @@ namespace ExeFixes {
 
 			//Patches for crashes I don't know what the actual causes are
 			unkCrashPatch01.Apply(true);
-			unkCrashPatch02.Apply(true);
 
 			//Update Frequency of damage displays
 			DamageStatDelay.Apply(true);
 			TargetDamageStatDelay.Apply(true);
 			StatusRotateAmount.Apply(true);//Slow down the rotation to align with the uncapped status display fps
+
+			//Herc
+			uncapHercCameraAnimationRate.Apply(true);
+			uncapHercShapeAnimationRate.Apply(true);
+			uncapHercNetSync.Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes
