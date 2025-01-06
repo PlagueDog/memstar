@@ -778,6 +778,7 @@ namespace ModloaderMain {
 		}
 		return 0;
 	}
+
 	//Test function to run a subroutine
 	//BuiltInFunction("subroutine", _hc) {
 		//typedef int (*FunctionType)(int,int);
@@ -939,6 +940,7 @@ namespace ModloaderMain {
 	//}
 
 	MultiPointer(ptrFlyerThrottleInit, 0, 0, 0x004386E8, 0x00439BA0);
+	CodePatch FlyerThrottle = { ptrFlyerThrottleInit, "\x01", "\x00", 1, false };
 	BuiltInFunction("Nova::flyerCampaignStateCheck", _novaflyercampaignstatecheck)
 	{
 		uintptr_t ptr = ptrCampaignByte;
@@ -946,13 +948,11 @@ namespace ModloaderMain {
 
 		if(boolean)
 		{
-			CodePatch AIFlyerThrottle = { ptrFlyerThrottleInit, "", "\x01", 1, false };
-			AIFlyerThrottle.Apply(true);
+			FlyerThrottle.Apply(false);
 		}
 		else
 		{
-			CodePatch PlayerFlyerThrottle = { ptrFlyerThrottleInit, "", "\x00", 1, false };
-			PlayerFlyerThrottle.Apply(true);
+			FlyerThrottle.Apply(true);
 		}
 		return "true";
 	}

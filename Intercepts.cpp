@@ -593,6 +593,43 @@ namespace Intercepts {
 		}
 	}
 
+	const char* campaignFace;
+	void assignFaceBmpVar()
+	{
+		Console::setVariable("engine::campaignFace", campaignFace);
+		execFunction(0,"ProfileGUI::onSelectFace");
+	}
+
+	//Get the face or logo bmp on the initial button press
+	static const u32 sub_4DADE8 = 0x4DADE8;
+	MultiPointer(ptrGuiButtonInitialFace, 0, 0, 0, 0x0053503A);
+	MultiPointer(ptrGuiButtonInitialFaceResume, 0, 0, 0, 0x00535041);
+	CodePatch guibuttoninitialface = { ptrGuiButtonInitialFace, "", "\xE9SBFI", 5, false };
+	NAKED void guiButtonInitialFace () {
+		__asm {
+			mov     eax, esi
+			call    sub_4DADE8
+			mov		campaignFace, eax
+			call	assignFaceBmpVar
+			mov		eax, campaignFace
+			jmp		ptrGuiButtonInitialFaceResume
+		}
+	}
+
+	MultiPointer(ptrGuiButtonSelectFace, 0, 0, 0, 0x0053512D);
+	MultiPointer(ptrGuiButtonSelectFaceResume, 0, 0, 0, 0x00535134);
+	CodePatch guibuttonselectface = { ptrGuiButtonSelectFace, "", "\xE9SSFS", 5, false };
+	NAKED void guiButtonSelectFace() {
+		__asm {
+			mov     eax, ebx
+			call    sub_4DADE8
+			mov		campaignFace, eax
+			call	assignFaceBmpVar
+			mov		eax, campaignFace
+			jmp		ptrGuiButtonSelectFaceResume
+		}
+	}
+
 	//Create a empty player::onMessage(); initially
 	BuiltInFunction("player::onMessage", _playeronmessage){return 0;}
 
@@ -643,6 +680,9 @@ namespace Intercepts {
 				//dumpDamage / damage
 				//dumpdamageintercept.DoctorRelative((u32)dumpDamageIntercept, 1).Apply(true);
 				//statuspartcalc.DoctorRelative((u32)statusPartCalc, 1).Apply(true);
+
+				guibuttoninitialface.DoctorRelative((u32)guiButtonInitialFace, 1).Apply(true);
+				guibuttonselectface.DoctorRelative((u32)guiButtonSelectFace, 1).Apply(true);
 		}
 	} init;
 }

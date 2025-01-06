@@ -69,18 +69,18 @@ MultiPointer(RadarDisplay_ZenithLength, 0, 0, 0x00516F16, 0x005193B2);
 MultiPointer(RadarDisplay_ZenithWidth, 0, 0, 0x00516F20, 0x005193BC);
 MultiPointer(RadarDisplay_DiagonalOffset, 0, 0, 0x00516EB6, 0x00519352);
 MultiPointer(RadarDisplay_VerticalOffset, 0, 0, 0x00516EC0, 0x0051935C);
+MultiPointer(RadarDisplay_NorthSouthEastWestLines, 0, 0, 0x00516F2A, 0x005193C6);
+MultiPointer(RadarDisplay_Perspective, 0, 0, 0x00516EA4, 0x00519340);
 MultiPointer(RadarDisplay_EnergyLabelHorizontalOffset, 0, 0, 0x00516FB4, 0x00519450);
 MultiPointer(RadarDisplay_EnergyLabelVerticalOffset, 0, 0, 0x00516FBE, 0x0051945A);
 MultiPointer(RadarDisplay_EnergyStatusHorizontalOffset, 0, 0, 0x00516FC8, 0x00519464);
 MultiPointer(RadarDisplay_EnergyStatusVerticalOffset, 0, 0, 0x00516FD2, 0x0051946E);
-MultiPointer(RadarDisplay_NorthSouthEastWestLines, 0, 0, 0x00516F2A, 0x005193C6);
 MultiPointer(RadarDisplay_ThrottleArrowWidth, 0, 0, 0x00517036, 0x005194D2);
 MultiPointer(RadarDisplay_ThrottleArrowLength, 0, 0, 0x0051702C, 0x005194C8);
 MultiPointer(RadarDisplay_ThrottleArrowHorizontalOffset, 0, 0, 0x00517040, 0x005194DC);
 MultiPointer(RadarDisplay_EnergyArrowWidth, 0, 0, 0x00516FA0, 0x0051943C);
 MultiPointer(RadarDisplay_EnergyArrowLength, 0, 0, 0x00516F96, 0x00519432);
 MultiPointer(RadarDisplay_EnergyArrowHorizontalOffset, 0, 0, 0x00516FAA, 0x00519446);
-MultiPointer(RadarDisplay_Perspective, 0, 0, 0x00516EA4, 0x00519340);
 
 //Simgui::HudMtrDamage pointers
 MultiPointer(VehicleDisplay_FontTag, 0, 0, 0x005232FC, 0x0052579C);
@@ -126,16 +126,25 @@ MultiPointer(ShieldDisplay_LabelTextHorizontalOffset, 0, 0, 0x0051B888, 0x0051DD
 MultiPointer(ShieldDisplay_LabelTextVerticalOffset, 0, 0, 0x0051B892, 0x0051DD32);
 MultiPointer(ShieldDisplay_StrengthTextHorizontalOffset, 0, 0, 0x0051B89C, 0x0051DD3C);
 MultiPointer(ShieldDisplay_StrengthTextVerticalOffset, 0, 0, 0x0051B8A6, 0x0051DD46);
-MultiPointer(ShieldDisplay_StrengthArrowHorizontalOffset, 0, 0, 0x0051B84C, 0x0051DCEC);
-MultiPointer(ShieldDisplay_StrengthArrowVerticalOffset, 0, 0, 0x0051B856, 0x0051DCF6);
+
+//Also determines the shield left/right line when using a SMOD component
+MultiPointer(ShieldDisplay_StrengthArrowHorizontalOffset, 0, 0, 0x0051B84C, 0x0051DCEC); // 1X: 97  2x: E0  3X: 2501  4X: 7001
+
+//Also determines the shield header/footer line when using a SMOD component
+MultiPointer(ShieldDisplay_StrengthArrowVerticalOffset, 0, 0, 0x0051B856, 0x0051DCF6); // 1X: F2  2x: FA  3X: F4 DA  4X: EF
+
 MultiPointer(ShieldDisplay_StrengthArrowPerspective, 0, 0, 0x0051B860, 0x0051DD00);
 MultiPointer(ShieldDisplay_StrengthArrowWidth, 0, 0, 0x0051B87E, 0x0051DD1E);
 MultiPointer(ShieldDisplay_StrengthArrowLength, 0, 0, 0x0051B874, 0x0051DD14);
 MultiPointer(ShieldDisplay_DirectionalRingHorizontalOffset, 0, 0, 0x0051B8CE, 0x0051DD6E);
 MultiPointer(ShieldDisplay_DirectionalRingVerticalOffset, 0, 0, 0x0051B8D8, 0x0051DD78);
-MultiPointer(ShieldDisplay_DirectionalTextGapSize, 0, 0, 0x0051B8C4, 0x0051DD64);
-MultiPointer(ShieldDisplay_DirectionalInfoLineAndTextGap, 0, 0, 0x0051B8E2, 0x0051DD82);
+MultiPointer(ShieldDisplay_DirectionalTextGapSize, 0, 0, 0x0051B8C4, 0x0051DD64); // 1X: 20 2x: 25  3X: 5A 4X: 55
+
+//Effects vertical offset from the directional line
+MultiPointer(ShieldDisplay_DirectionalInfoLineTextVerticalOffset, 0, 0, 0x0051B8E2, 0x0051DD82); // 1X: 03 2x: 03  3X: 03  4X: 03 
+
 MultiPointer(ShieldDisplay_DirectionalInfoLine, 0, 0, 0x0051B842, 0x0051DCE2);
+MultiPointer(ShieldDisplay_DirectionalInfoLineFooterTextZaxis, 0, 0, 0, 0x0051DC42); // 1X: 9A 2x: E0  3X: 2501  4X: 7001
 
 //SimGui::HudMtrAimReticle pointers
 MultiPointer(AimRet_FontTag, 0, 0, 0x0051D2D7, 0x0051F777);
@@ -330,7 +339,9 @@ BuiltInFunction("HudManager::Multiplier", _HMM)
 				CodePatch SD_Patch11 = { ShieldDisplay_StrengthArrowLength,			"","\x19",1,false }; SD_Patch11.Apply(true);
 				CodePatch SD_Patch12 = { ShieldDisplay_StrengthArrowWidth,			"","\x08",1,false }; SD_Patch12.Apply(true);
 				CodePatch SD_Patch13 = { ShieldDisplay_DirectionalTextGapSize,		"","\x20",1,false }; SD_Patch13.Apply(true);
-				CodePatch SD_Patch14 = { ShieldDisplay_DirectionalInfoLine,			"","\x37",1,false }; SD_Patch14.Apply(true);
+				CodePatch SD_Patch14 = { ShieldDisplay_DirectionalInfoLineTextVerticalOffset,"","\x03",1,false }; SD_Patch14.Apply(true);
+				CodePatch SD_Patch16 = { ShieldDisplay_DirectionalInfoLine,			"","\x37",1,false }; SD_Patch16.Apply(true);
+				CodePatch SD_Patch17 = { ShieldDisplay_DirectionalInfoLineFooterTextZaxis,	 "","\x9A\x00",2,false }; SD_Patch17.Apply(true);
 				Console::eval("$pref::hudScale::shields = 1;");
 			}
 			else if (arg1.compare("retical") == 0)
@@ -500,20 +511,22 @@ BuiltInFunction("HudManager::Multiplier", _HMM)
 				Console::eval("IDBMP_SHIELDS = 00160012, \"shields2x.bmp\";");
 				Console::eval("IDBMP_SHIELDS_SOLID = 00160166, \"shields_solid2x.bmp\";");
 				Console::eval("IDBMP_STR_CIRCLE = 00160013, \"strCircle2x.bmp\";");
-				CodePatch SD_Patch1 = { ShieldDisplay_FontTag,						"","\xFF\x51\x02",3,false }; SD_Patch1.Apply(true);
-				CodePatch SD_Patch2 = { ShieldDisplay_DirectionalRingHorizontalOffset,"","\x21",1,false }; SD_Patch2.Apply(true);
-				CodePatch SD_Patch3 = { ShieldDisplay_DirectionalRingVerticalOffset,"","\x11",1,false }; SD_Patch3.Apply(true);
-				CodePatch SD_Patch4 = { ShieldDisplay_LabelTextHorizontalOffset,	"","\x55",1,false }; SD_Patch4.Apply(true);
-				CodePatch SD_Patch5 = { ShieldDisplay_LabelTextVerticalOffset,		"","\x70",1,false }; SD_Patch5.Apply(true);
-				CodePatch SD_Patch6 = { ShieldDisplay_StrengthTextHorizontalOffset,	"","\x81",1,false }; SD_Patch6.Apply(true);
-				CodePatch SD_Patch7 = { ShieldDisplay_StrengthTextVerticalOffset,	"","\x80",1,false }; SD_Patch7.Apply(true);
-				CodePatch SD_Patch8 = { ShieldDisplay_StrengthArrowVerticalOffset,	"","\xFA\xFF\xFF\xFF",4,false }; SD_Patch8.Apply(true);
-				CodePatch SD_Patch9 = { ShieldDisplay_StrengthArrowHorizontalOffset,"","\xD0\x00",2,false }; SD_Patch9.Apply(true);
-				CodePatch SD_Patch10 = { ShieldDisplay_StrengthArrowPerspective,	"","\x00\x00\x00\x47",4,false }; SD_Patch10.Apply(true);
-				CodePatch SD_Patch11 = { ShieldDisplay_StrengthArrowLength,			"","\x19",1,false }; SD_Patch11.Apply(true);
-				CodePatch SD_Patch12 = { ShieldDisplay_StrengthArrowWidth,			"","\x08",1,false }; SD_Patch12.Apply(true);
-				CodePatch SD_Patch13 = { ShieldDisplay_DirectionalTextGapSize,		"","\x20",1,false }; SD_Patch13.Apply(true);
-				CodePatch SD_Patch14 = { ShieldDisplay_DirectionalInfoLine,			"","\x37",1,false }; SD_Patch14.Apply(true);
+				CodePatch SD_Patch1 = { ShieldDisplay_FontTag,								 "","\xFF\x51\x02",3,false }; SD_Patch1.Apply(true);
+				CodePatch SD_Patch2 = { ShieldDisplay_DirectionalRingHorizontalOffset,		 "","\x21",1,false }; SD_Patch2.Apply(true);
+				CodePatch SD_Patch3 = { ShieldDisplay_DirectionalRingVerticalOffset,		 "","\x11",1,false }; SD_Patch3.Apply(true);
+				CodePatch SD_Patch4 = { ShieldDisplay_LabelTextHorizontalOffset,			 "","\x55",1,false }; SD_Patch4.Apply(true);
+				CodePatch SD_Patch5 = { ShieldDisplay_LabelTextVerticalOffset,				 "","\x70",1,false }; SD_Patch5.Apply(true);
+				CodePatch SD_Patch6 = { ShieldDisplay_StrengthTextHorizontalOffset,			 "","\x82",1,false }; SD_Patch6.Apply(true);
+				CodePatch SD_Patch7 = { ShieldDisplay_StrengthTextVerticalOffset,			 "","\x80",1,false }; SD_Patch7.Apply(true);
+				CodePatch SD_Patch8 = { ShieldDisplay_StrengthArrowVerticalOffset,			 "","\xFA\xFF\xFF\xFF",4,false }; SD_Patch8.Apply(true);
+				CodePatch SD_Patch9 = { ShieldDisplay_StrengthArrowHorizontalOffset,		 "","\xE0\x00",2,false }; SD_Patch9.Apply(true);
+				CodePatch SD_Patch10 = { ShieldDisplay_StrengthArrowPerspective,			 "","\x00\x00\x00\x47",4,false }; SD_Patch10.Apply(true);
+				CodePatch SD_Patch11 = { ShieldDisplay_StrengthArrowLength,					 "","\x19",1,false }; SD_Patch11.Apply(true);
+				CodePatch SD_Patch12 = { ShieldDisplay_StrengthArrowWidth,					 "","\x08",1,false }; SD_Patch12.Apply(true);
+				CodePatch SD_Patch13 = { ShieldDisplay_DirectionalTextGapSize,				 "","\x25",1,false }; SD_Patch13.Apply(true);
+				CodePatch SD_Patch14 = { ShieldDisplay_DirectionalInfoLineTextVerticalOffset,"","\x03",1,false }; SD_Patch14.Apply(true);
+				CodePatch SD_Patch16 = { ShieldDisplay_DirectionalInfoLine,					 "","\x37",1,false }; SD_Patch16.Apply(true);
+				CodePatch SD_Patch17 = { ShieldDisplay_DirectionalInfoLineFooterTextZaxis,	 "","\xE0\x00",2,false }; SD_Patch17.Apply(true);
 				Console::eval("$pref::hudScale::shields = 2;");
 			}
 			else if (arg1.compare("retical") == 0)
@@ -682,20 +695,22 @@ BuiltInFunction("HudManager::Multiplier", _HMM)
 				Console::eval("IDBMP_SHIELDS = 00160012, \"shields3x.bmp\";");
 				Console::eval("IDBMP_SHIELDS_SOLID = 00160166, \"shields_solid3x.bmp\";");
 				Console::eval("IDBMP_STR_CIRCLE = 00160013, \"strCircle3x.bmp\";");
-				CodePatch SD_Patch1 = { ShieldDisplay_FontTag,						"","\x7B\x4E\x02",3,false }; SD_Patch1.Apply(true);
-				CodePatch SD_Patch2 = { ShieldDisplay_DirectionalRingHorizontalOffset,"","\x26",1,false }; SD_Patch2.Apply(true);
-				CodePatch SD_Patch3 = { ShieldDisplay_DirectionalRingVerticalOffset,"","\x13",1,false }; SD_Patch3.Apply(true);
-				CodePatch SD_Patch4 = { ShieldDisplay_LabelTextHorizontalOffset,	"","\x60",1,false }; SD_Patch4.Apply(true);
-				CodePatch SD_Patch5 = { ShieldDisplay_LabelTextVerticalOffset,		"","\x95",1,false }; SD_Patch5.Apply(true);
-				CodePatch SD_Patch6 = { ShieldDisplay_StrengthTextHorizontalOffset,	"","\xB2",1,false }; SD_Patch6.Apply(true);
-				CodePatch SD_Patch7 = { ShieldDisplay_StrengthTextVerticalOffset,	"","\xA8",1,false }; SD_Patch7.Apply(true);
-				CodePatch SD_Patch8 = { ShieldDisplay_StrengthArrowVerticalOffset,	"","\xE0\xFF\xFF\xFF",4,false }; SD_Patch8.Apply(true);
-				CodePatch SD_Patch9 = { ShieldDisplay_StrengthArrowHorizontalOffset,"","\xF0\x00",2,false }; SD_Patch9.Apply(true);
-				CodePatch SD_Patch10 = { ShieldDisplay_StrengthArrowPerspective,	"","\x00\x00\x00\x49",2,false }; SD_Patch10.Apply(true);
-				CodePatch SD_Patch11 = { ShieldDisplay_StrengthArrowLength,			"","\x25",1,false }; SD_Patch11.Apply(true);
-				CodePatch SD_Patch12 = { ShieldDisplay_StrengthArrowWidth,			"","\x0C",1,false }; SD_Patch12.Apply(true);
-				CodePatch SD_Patch13 = { ShieldDisplay_DirectionalTextGapSize,		"","\x30",1,false }; SD_Patch13.Apply(true);
-				CodePatch SD_Patch14 = { ShieldDisplay_DirectionalInfoLine,			"","\x37",1,false }; SD_Patch14.Apply(true);
+				CodePatch SD_Patch1 = { ShieldDisplay_FontTag,								"","\x7B\x4E\x02",3,false }; SD_Patch1.Apply(true);
+				CodePatch SD_Patch2 = { ShieldDisplay_DirectionalRingHorizontalOffset,		"","\x26",1,false }; SD_Patch2.Apply(true);
+				CodePatch SD_Patch3 = { ShieldDisplay_DirectionalRingVerticalOffset,		"","\x13",1,false }; SD_Patch3.Apply(true);
+				CodePatch SD_Patch4 = { ShieldDisplay_LabelTextHorizontalOffset,			"","\x60",1,false }; SD_Patch4.Apply(true);
+				CodePatch SD_Patch5 = { ShieldDisplay_LabelTextVerticalOffset,				"","\x95",1,false }; SD_Patch5.Apply(true);
+				CodePatch SD_Patch6 = { ShieldDisplay_StrengthTextHorizontalOffset,			"","\xB2",1,false }; SD_Patch6.Apply(true);
+				CodePatch SD_Patch7 = { ShieldDisplay_StrengthTextVerticalOffset,			"","\xA8",1,false }; SD_Patch7.Apply(true);
+				CodePatch SD_Patch8 = { ShieldDisplay_StrengthArrowVerticalOffset,			"","\xF4\xFF\xFF\xFF",4,false }; SD_Patch8.Apply(true);
+				CodePatch SD_Patch9 = { ShieldDisplay_StrengthArrowHorizontalOffset,		"","\x25\x01",2,false }; SD_Patch9.Apply(true);
+				CodePatch SD_Patch10 = { ShieldDisplay_StrengthArrowPerspective,			"","\x00\x00\x96\x45",2,false }; SD_Patch10.Apply(true);
+				CodePatch SD_Patch11 = { ShieldDisplay_StrengthArrowLength,					"","\x25",1,false }; SD_Patch11.Apply(true);
+				CodePatch SD_Patch12 = { ShieldDisplay_StrengthArrowWidth,					"","\x0C",1,false }; SD_Patch12.Apply(true);
+				CodePatch SD_Patch13 = { ShieldDisplay_DirectionalTextGapSize,				"","\x40",1,false }; SD_Patch13.Apply(true);
+				CodePatch SD_Patch14 = { ShieldDisplay_DirectionalInfoLineTextVerticalOffset,"","\x03",1,false }; SD_Patch14.Apply(true);
+				CodePatch SD_Patch16 = { ShieldDisplay_DirectionalInfoLine,					"","\x37",1,false }; SD_Patch16.Apply(true);
+				CodePatch SD_Patch17 = { ShieldDisplay_DirectionalInfoLineFooterTextZaxis,	"","\x25\x01",2,false }; SD_Patch17.Apply(true);
 				Console::eval("$pref::hudScale::shields = 3;");
 			}
 			else if (arg1.compare("retical") == 0)
@@ -863,20 +878,22 @@ BuiltInFunction("HudManager::Multiplier", _HMM)
 				Console::eval("IDBMP_SHIELDS = 00160012, \"shields4x.bmp\";");
 				Console::eval("IDBMP_SHIELDS_SOLID = 00160166, \"shields_solid4x.bmp\";");
 				Console::eval("IDBMP_STR_CIRCLE = 00160013, \"strCircle4x.bmp\";");
-				CodePatch SD_Patch1 = { ShieldDisplay_FontTag,						"","\xCB\x4E\x02",3,false }; SD_Patch1.Apply(true);
-				CodePatch SD_Patch2 = { ShieldDisplay_DirectionalRingHorizontalOffset,"","\x2B",1,false }; SD_Patch2.Apply(true);
-				CodePatch SD_Patch3 = { ShieldDisplay_DirectionalRingVerticalOffset,"","\x14",1,false }; SD_Patch3.Apply(true);
-				CodePatch SD_Patch4 = { ShieldDisplay_LabelTextHorizontalOffset,	"","\x6C",1,false }; SD_Patch4.Apply(true);
-				CodePatch SD_Patch5 = { ShieldDisplay_LabelTextVerticalOffset,		"","\xBA",1,false }; SD_Patch5.Apply(true);
-				CodePatch SD_Patch6 = { ShieldDisplay_StrengthTextHorizontalOffset,	"","\xE0",1,false }; SD_Patch6.Apply(true);
-				CodePatch SD_Patch7 = { ShieldDisplay_StrengthTextVerticalOffset,	"","\xD4",1,false }; SD_Patch7.Apply(true);
-				CodePatch SD_Patch8 = { ShieldDisplay_StrengthArrowVerticalOffset,	"","\xE4\xFF\xFF\xFF",4,false }; SD_Patch8.Apply(true);
-				CodePatch SD_Patch9 = { ShieldDisplay_StrengthArrowHorizontalOffset,"","\x30\x01",2,false }; SD_Patch9.Apply(true);
-				CodePatch SD_Patch10 = { ShieldDisplay_StrengthArrowPerspective,	"","\x40\x54\x09\x4C",4,false }; SD_Patch10.Apply(true);
-				CodePatch SD_Patch11 = { ShieldDisplay_StrengthArrowLength,			"","\x4A",1,false }; SD_Patch11.Apply(true);
-				CodePatch SD_Patch12 = { ShieldDisplay_StrengthArrowWidth,			"","\x12",1,false }; SD_Patch12.Apply(true);
-				CodePatch SD_Patch13 = { ShieldDisplay_DirectionalTextGapSize,		"","\x40",1,false }; SD_Patch13.Apply(true);
-				CodePatch SD_Patch14 = { ShieldDisplay_DirectionalInfoLine,			"","\x37",1,false }; SD_Patch14.Apply(true);
+				CodePatch SD_Patch1 = { ShieldDisplay_FontTag,								"","\xCB\x4E\x02",3,false }; SD_Patch1.Apply(true);
+				CodePatch SD_Patch2 = { ShieldDisplay_DirectionalRingHorizontalOffset,		"","\x2B",1,false }; SD_Patch2.Apply(true);
+				CodePatch SD_Patch3 = { ShieldDisplay_DirectionalRingVerticalOffset,		"","\x14",1,false }; SD_Patch3.Apply(true);
+				CodePatch SD_Patch4 = { ShieldDisplay_LabelTextHorizontalOffset,			"","\x6C",1,false }; SD_Patch4.Apply(true);
+				CodePatch SD_Patch5 = { ShieldDisplay_LabelTextVerticalOffset,				"","\xBA",1,false }; SD_Patch5.Apply(true);
+				CodePatch SD_Patch6 = { ShieldDisplay_StrengthTextHorizontalOffset,			"","\xE0",1,false }; SD_Patch6.Apply(true);
+				CodePatch SD_Patch7 = { ShieldDisplay_StrengthTextVerticalOffset,			"","\xD4",1,false }; SD_Patch7.Apply(true);
+				CodePatch SD_Patch8 = { ShieldDisplay_StrengthArrowVerticalOffset,			"","\xEF\xFF\xFF\xFF",4,false }; SD_Patch8.Apply(true);
+				CodePatch SD_Patch9 = { ShieldDisplay_StrengthArrowHorizontalOffset,		"","\x70\x01",2,false }; SD_Patch9.Apply(true);
+				CodePatch SD_Patch10 = { ShieldDisplay_StrengthArrowPerspective,			"","\x40\x54\x09\x4C",4,false }; SD_Patch10.Apply(true);
+				CodePatch SD_Patch11 = { ShieldDisplay_StrengthArrowLength,					"","\x4A",1,false }; SD_Patch11.Apply(true);
+				CodePatch SD_Patch12 = { ShieldDisplay_StrengthArrowWidth,					"","\x12",1,false }; SD_Patch12.Apply(true);
+				CodePatch SD_Patch13 = { ShieldDisplay_DirectionalTextGapSize,				"","\x55",1,false }; SD_Patch13.Apply(true);
+				CodePatch SD_Patch14 = { ShieldDisplay_DirectionalInfoLineTextVerticalOffset,"","\x03",1,false }; SD_Patch14.Apply(true);
+				CodePatch SD_Patch16 = { ShieldDisplay_DirectionalInfoLine,					"","\x55",1,false }; SD_Patch16.Apply(true);
+				CodePatch SD_Patch17 = { ShieldDisplay_DirectionalInfoLineFooterTextZaxis,	"","\x70\x01",2,false }; SD_Patch17.Apply(true);
 				Console::eval("$pref::hudScale::shields = 4;");
 			}
 			else if (arg1.compare("retical") == 0)

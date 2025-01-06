@@ -538,24 +538,20 @@ namespace NovaCore
 
 	//Skip the version hand shake with the server.
 	//IT IS WHAT BROKE RECORDING IN 1.004r//
-	CodePatch _1004VersionHandshake = { 0x00460E26,"","\xEB",1,false };
-	CodePatch _1004JoinVersionHandshake = { 0x0045FEBE,"","\xEB\x2F\x90\x90",4,false };
+	CodePatch _1004VersionHandshake = { 0x00460E26,"\x7C","\xEB",1,false };
+	CodePatch _1004JoinVersionHandshake = { 0x0045FEBE,"\x8B\x4C\x24\x04","\xEB\x2F\x90\x90",4,false };
 	BuiltInFunction("Nova::toggleRecordingFix", _simguitogglerecordingfix)
 	{
 		if (VersionSnoop::GetVersion() == VERSION::v001004)
 		{
 			std::string var = Console::getVariable("pref::fixRecording");
-			if (var.compare("1") == 0)
+			if (var.compare("0") == 0 || var.compare("true") == 0 || var.compare("True") == 0)
 			{
-				CodePatch _1004VersionHandshake = { 0x00460E26,"","\xEB",1,false };
-				CodePatch _1004JoinVersionHandshake = { 0x0045FEBE,"","\xEB\x2F\x90\x90",4,false };
-				_1004VersionHandshake.Apply(true);
-				_1004JoinVersionHandshake.Apply(true);
+				_1004VersionHandshake.Apply(false);
+				_1004JoinVersionHandshake.Apply(false);
 			}
 			else
 			{
-				CodePatch _1004VersionHandshake = { 0x00460E26,"","\x7C",1,false };
-				CodePatch _1004JoinVersionHandshake = { 0x0045FEBE,"","\x8B\x4C\x24\x04",4,false };
 				_1004VersionHandshake.Apply(true);
 				_1004JoinVersionHandshake.Apply(true);
 			}
@@ -591,6 +587,23 @@ namespace NovaCore
 		return "true";
 	}
 
+
+	BuiltInVariable("pref::disableMasterServerMOTD", bool, prefdisablemasterservermotd, 0);
+	CodePatch messageboxpatch = { 0x00420792,"\x0F\x8F\x85\x00\x00\x00", "\x90\x90\x90\x90\x90\x90",6,false };
+	BuiltInFunction("Nova::disableMasterServerMOTD", _simguidisablemasterservermotd)
+	{
+		std::string var = argv[0];
+		if (var.compare("1") == 0 || var.compare("true") == 0 || var.compare("True") == 0)
+		{
+			messageboxpatch.Apply(true);
+		}
+		else
+		{
+			messageboxpatch.Apply(false);
+		}
+		return "true";
+	}
+
 	struct Init {
 		Init() {
 
@@ -612,6 +625,9 @@ namespace NovaCore
 			//Simgui patches
 			simguislidercolor.Apply(true);
 			//defaultStringTag.Apply(true);
+
+			//Message Box Creation
+			//messageboxpatch.DoctorRelative((u32)messageBoxPatch, 1).Apply(true);
 		}
 	} init;
 }

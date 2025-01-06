@@ -15,6 +15,56 @@ namespace ExeFixes {
 	MultiPointer(ptr_unkCrash01, 0, 0, 0x00624F01, 0x00633E41); //This one seems related to the hud scaling
 	CodePatch unkCrashPatch01 = { ptr_unkCrash01,"","\x72",1,false };
 
+	CodePatch patchOutIncrementalQueryRetry1 = { 0x0053B16C, "", "\x90\x90", 2, false };
+	CodePatch patchOutIncrementalQueryRetry2 = { 0x0053B172, "", "\x90\x90", 2, false };
+
+	MultiPointer(ptrMasterQueryEnd, 0, 0, 0, 0x0053B22D);
+	MultiPointer(ptrMasterQueryRepeat, 0, 0, 0, 0x0053B149);
+	MultiPointer(ptrMasterQueryPopRetn, 0, 0, 0, 0x0053B236);
+	//MultiPointer(ptrMaxMasterQueryTriesResume, 0, 0, 0, 0x004A8870);
+	int incrementQuery = 1;
+	CodePatch masterqueryall = { ptrMasterQueryEnd, "", "\xE9MQAL", 5, false };
+	NAKED void masterQueryAll() {
+		__asm {
+			inc incrementQuery
+			xor ebx, ebx
+			mov ebx, incrementQuery
+			cmp ebx, 0x7F
+			jle __jle
+
+			mov incrementQuery, 1
+			add     esp, 0x300
+			pop     edi
+			pop     esi
+			pop     ebx
+			jmp ptrMasterQueryPopRetn
+			__jle:
+				jmp ptrMasterQueryRepeat
+		}
+	}
+
+	int masterServerArray;
+	static const char* masterServer;
+	void echoMasterQuery()
+	{
+		if (strlen(masterServer))
+		{
+			Console::echo("Polling master server %d [%s]", masterServerArray, masterServer);
+		}
+	}
+
+	MultiPointer(ptrMasterQueryCheck, 0, 0, 0, 0x0053B174);
+	MultiPointer(ptrMasterQueryCheckEnd, 0, 0, 0, 0x0053B18A);
+	CodePatch masterquerycheck = { ptrMasterQueryCheck, "", "\xE9MQCH", 5, false };
+	NAKED void masterQueryCheck() {
+		__asm {
+			mov masterServer, esi
+			mov masterServerArray, ebx
+			call echoMasterQuery
+			jmp ptrMasterQueryCheckEnd
+		}
+	}
+
 	HWND getHWND() {
 		MultiPointer(ptrHWND, 0, 0, 0x00705C5C, 0x007160CC);
 		uintptr_t HWND_PTR = ptrHWND;
@@ -983,6 +1033,9 @@ namespace ExeFixes {
 	CodePatch uncapHercShapeAnimationRate = { ptrHercCameraAnimationRate, "", "\x00\x00\x00\x00\x00\x00\x00\x00", 8, false };
 	CodePatch uncapHercNetSync = { ptrHercNetSyncRate, "", "\x68\x00\x00\x00\x00", 5, false };
 
+	MultiPointer(ptrSimguiGuiTextEditThans, 0, 0, 0, 0x004E6CCD);
+	CodePatch allowLessThanGreaterThans = { ptrSimguiGuiTextEditThans, "", "\xEB\x06", 2, false };
+
 	struct Init {
 		Init() {
 			//WindowsCompatMode();
@@ -1094,6 +1147,15 @@ namespace ExeFixes {
 			uncapHercCameraAnimationRate.Apply(true);
 			uncapHercShapeAnimationRate.Apply(true);
 			//uncapHercNetSync.Apply(true); - NOPE, this breaks vehicles when they shoot
+
+			//Query the ENTIRE $Inet::Master array, not just the 1st entry.
+			masterqueryall.DoctorRelative((u32)masterQueryAll, 1).Apply(true);
+			masterquerycheck.DoctorRelative((u32)masterQueryCheck, 1).Apply(true);
+			//patchOutIncrementalQueryRetry1.Apply(true);
+			//patchOutIncrementalQueryRetry2.Apply(true);
+
+			//Allow Less-Thans Greater-Thans '<>'
+			allowLessThanGreaterThans.Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes
