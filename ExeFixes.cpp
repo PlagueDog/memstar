@@ -656,9 +656,16 @@ namespace ExeFixes {
 
 	//MultiPointer(ptrVideoModesBoxSize, 0, 0, 0, 0x004E17CA);
 	MultiPointer(ptrComboBoxVertSizeMult, 0, 0, 0x004DE41E, 0x004E08AE);
-	CodePatch ComboBoxFixedSize = { ptrComboBoxVertSizeMult, "", "\x90\x90\x90", 3, false };
-	//MultiPointer(ptrComboBoxPadding, 0, 0, 0x004DF36B, 0x004E17FB);
-
+	MultiPointer(ptrComboBoxVertSizeMultResume, 0, 0, 0x004DE41E, 0x004E08B6);
+	CodePatch comboboxfixedsize = { ptrComboBoxVertSizeMult, "", "\xE9_CBFS", 5, false };
+	NAKED void ComboboxFixedSize() {
+		__asm {
+			mov [ebp - 0x8], 0xFF
+			add edi, edx
+			mov ecx, [ebp - 0x8]
+			jmp ptrComboBoxVertSizeMultResume
+		}
+	}
 
 	//MultiPointer(ptrFullscreenInitWidth, 0, 0, 0, 0x0059B7A2);
 	//MultiPointer(ptrFullscreenInitWidthRetn, 0, 0, 0, 0x0059B7A8);
@@ -1098,7 +1105,7 @@ namespace ExeFixes {
 			//dronetypeallow.DoctorRelative((u32)droneTypeAllow, 1).Apply(true);
 
 			//Make all combo boxes have a fixed vertical size to prevent them from extending offscreen in upscaled OGL
-			ComboBoxFixedSize.Apply(true);
+			comboboxfixedsize.DoctorRelative((u32)ComboboxFixedSize, 1).Apply(true);
 
 			//Adjust Simgui::TestButton colors
 			TestButtonFillColor.Apply(true);
