@@ -8,6 +8,10 @@
 #include "Replacer.h"
 #include "Callback.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include "Strings.h"
+#include <string>
 
 namespace Replacer {
 	extern bool prefShowMatchedTextures;
@@ -154,7 +158,7 @@ namespace Terrain {
 		false
 	};
 	MultiPointer(ptr_SoftwareTerrainGridRender, 0, 0, 0, 0x005F79E5);
-	CodePatch patchOGL_to_Software_grid_render = { ptr_SoftwareTerrainGridRender,"","\x0F\x85",2,false};
+	CodePatch patchOGL_to_Software_grid_render = { ptr_SoftwareTerrainGridRender,"\x0F\x84","\x0F\x85",2,false};
 
 	MultiPointer(ptr_SoftwareTerrainTileRender, 0, 0, 0, 0x00583C05);
 	CodePatch patchOGL_to_Software_tile_render = { ptr_SoftwareTerrainTileRender,"","\xEB",1,false };
@@ -724,13 +728,31 @@ namespace Terrain {
 		}
 	}
 
+	BuiltInFunction("OpenGL::terrainFix", _openglterrainfix)
+	{
+		if (argc != 1)
+		{
+			return 0;
+		}
+
+		std::string var = argv[0];
+		if (var.compare("0") == 0 || var.compare("true") == 0 || var.compare("True") == 0)
+		{
+			patchOGL_to_Software_grid_render.Apply(true);
+		}
+		else
+		{
+			patchOGL_to_Software_grid_render.Apply(false);
+		}
+		return "true";
+	}
+
 	void Open() {
 		//Callback::attach(Callback::OnOpenGL, OnOpenGL);
 
 		//patchOGL_to_Software_terrain_render.Apply(true);
 		//patchOGL_to_Software_terrain_render_bad_mips.Apply(true);
 		
-		patchOGL_to_Software_grid_render.Apply(true);
 		//patchOGL_to_Software_tile_render.Apply(true);
 		//patchterrainrender.DoctorRelative((u32)patchTerrainRender, 1).Apply(true);
 		terraindetail.DoctorRelative((u32)terrainDetail, 1).Apply(true);
