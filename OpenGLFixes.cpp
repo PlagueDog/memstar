@@ -275,6 +275,30 @@ namespace OpenGLFixes
 		return 0;
 	}
 
+	MultiPointer(ptrHercCameraAntialiasing, 0, 0, 0, 0x0049FCBC);
+	MultiPointer(ptrTankCameraAntialiasing, 0, 0, 0, 0x00433040);
+	CodePatch AMDhercAA = { ptrHercCameraAntialiasing, "\xCD\xCC\xCC\x3E", "\x00\x00\x20\x3F", 4, false };
+	CodePatch AMDtankAA = { ptrTankCameraAntialiasing, "\xCD\xCC\xCC\x3E", "\x00\x00\x60\x3F", 4, false };
+	BuiltInFunction("OpenGL::AMDAATweak", _opengladjustamdantialiasing)
+	{
+		if (argc != 1)
+		{
+			return 0;
+		}
+		const char* str = argv[0];
+		std::string arg1 = str;
+		if (arg1.compare("true") == 0 || arg1.compare("1") == 0 || arg1.compare("True") == 0)
+		{
+			AMDhercAA.Apply(true);
+			AMDtankAA.Apply(true);
+		}
+		else
+		{
+			AMDhercAA.Apply(false);
+			AMDtankAA.Apply(false);
+		}
+	}
+
 	//OPENGL SCALING FUNCTIONS
 	//Scaling
 	MultiPointer(ptrGuiScale, 0, 0, 0x0063D9BE, 0x0064C916);
