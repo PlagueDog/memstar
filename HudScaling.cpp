@@ -41,6 +41,11 @@ MultiPointer(ptrRadarConstantsSetBoolean, 0, 0, 0x00516CA4, 0x00519140);
 MultiPointer(ptrShieldConstantsSetBoolean, 0, 0, 0x0051B785, 0x0051DC25);
 CodePatch RadarElementsAlwaysRefresh = { ptrRadarConstantsSetBoolean,	"","\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90",	14,false };
 CodePatch ShieldElementsAlwaysRefresh = { ptrShieldConstantsSetBoolean,	"","\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90",	13,false };
+MultiPointer(RadarRefreshByte, 0, 0, 0, 0x007027C0);
+CodePatch RadarVectorsAlwaysRefresh = { RadarRefreshByte,	"","\x00",	1,false };
+MultiPointer(ShieldsRefresh, 0, 0, 0, 0x0051E0C6);
+CodePatch ShieldVectorsAlwaysRefresh = { ShieldsRefresh,	"","\xEB\x0D",	2,false };
+
 
 //Simgui::HudMtrWeaponDisplay pointers
 MultiPointer(WeaponDisplay_FontTag, 0, 0, 0x00521EB6, 0x00524356);
@@ -54,6 +59,15 @@ MultiPointer(WeaponDisplay_AmmoBoxLength, 0, 0, 0x00521F06, 0x005243A6);
 MultiPointer(WeaponDisplay_RowHeight, 0, 0, 0x00521F10, 0x005243B0);
 MultiPointer(WeaponDisplay_WeaponGroupRectangularColumn, 0, 0, 0x00521F1A, 0x005243BA);
 MultiPointer(WeaponDisplay_WeaponRollPitchError_FontTag, 0, 0, 0x00521F1A, 0x00524441);
+
+//Simgui::HudMtrWeaponDisplay Palette Color Sets
+MultiPointer(WeaponDisplay_OpaqueBackground, 0, 0, 0, 0x005249C5);
+MultiPointer(WeaponDisplay_GroupOpaqueBackground, 0, 0, 0, 0x00524A47);
+MultiPointer(WeaponDisplay_WeaponChargeOutline, 0, 0, 0, 0x00524DD2);
+MultiPointer(WeaponDisplay_WeaponChargeBar, 0, 0, 0, 0x00524E5E);
+MultiPointer(WeaponDisplay_SelectedWeapon, 0, 0, 0, 0x00524F36);
+MultiPointer(WeaponDisplay_SelectedWeaponGroup, 0, 0, 0, 0x00524F36);
+
 
 //Simgui::HudMtrRadar pointers
 MultiPointer(RadarDisplay_FontTag, 0, 0, 0x00516C4D, 0x005190E9);
@@ -81,6 +95,15 @@ MultiPointer(RadarDisplay_ThrottleArrowHorizontalOffset, 0, 0, 0x00517040, 0x005
 MultiPointer(RadarDisplay_EnergyArrowWidth, 0, 0, 0x00516FA0, 0x0051943C);
 MultiPointer(RadarDisplay_EnergyArrowLength, 0, 0, 0x00516F96, 0x00519432);
 MultiPointer(RadarDisplay_EnergyArrowHorizontalOffset, 0, 0, 0x00516FAA, 0x00519446);
+
+//Simgui::HudMtrRadar pointers Palette Color Sets
+MultiPointer(RadarDisplay_FOVLeftLine, 0, 0, 0, 0x0051A8D7);//F5
+MultiPointer(RadarDisplay_FOVRightLine, 0, 0, 0, 0x0051A8E8);//F5
+MultiPointer(RadarDisplay_SweepLine, 0, 0, 0, 0x0051AA3B); //F8
+MultiPointer(RadarDisplay_NorthSouthEastWest, 0, 0, 0, 0x0051ABE8); //F4
+MultiPointer(RadarDisplay_NorthSouthEastWestMids, 0, 0, 0, 0x0051AE18); //F4
+MultiPointer(RadarDisplay_EnergyArrow, 0, 0, 0, 0x0051AF08); //F8
+MultiPointer(RadarDisplay_ThrottleArrow, 0, 0, 0, 0x0051B20B); //F8
 
 //Simgui::HudMtrDamage pointers
 MultiPointer(VehicleDisplay_FontTag, 0, 0, 0x005232FC, 0x0052579C);
@@ -532,13 +555,21 @@ BuiltInFunction("HudManager::Multiplier", _HMM)
 			else if (arg1.compare("retical") == 0)
 			{
 				CodePatch AR_Patch0 = { AimRet_FontTag,								"","\xFF\x51\x02",3,false }; AR_Patch0.Apply(true);
-				CodePatch AR_Patch1 = { AimRet_TargetOutlineCornerScale,			"","\x04",1,false }; AR_Patch1.Apply(true);
-				CodePatch AR_Patch2 = { AimRet_TargetOutlineCornerLength,			"","\x14",1,false }; AR_Patch2.Apply(true);
-				CodePatch AR_Patch3 = { AimRet_TargetDistanceTextHorizontalOffset,	"","\x00\x00\x00\x00",4,false }; AR_Patch3.Apply(true);
-				CodePatch AR_Patch4 = { AimRet_TargetDistanceTextVerticalOffset,	"","\xC1\xFF\xFF\xFF",4,false }; AR_Patch4.Apply(true);
-				CodePatch AR_Patch5 = { AimRet_LeadPointerVerticalScale,			"","\x30",1,false }; AR_Patch5.Apply(true);
-				CodePatch AR_Patch6 = { AimRet_LeadPointerHorizontalScale,			"","\x06",1,false }; AR_Patch6.Apply(true);
-				CodePatch AR_DIRARROW = { AimRet_DiractionalArrowWholeScale,		"","\x80\xFF\x3F",3,false }; AR_DIRARROW.Apply(true);
+				//CodePatch AR_Patch1 = { AimRet_TargetOutlineCornerScale,			"","\x04",1,false }; AR_Patch1.Apply(true);
+				//CodePatch AR_Patch2 = { AimRet_TargetOutlineCornerLength,			"","\x14",1,false }; AR_Patch2.Apply(true);
+				//CodePatch AR_Patch3 = { AimRet_TargetDistanceTextHorizontalOffset,	"","\x00\x00\x00\x00",4,false }; AR_Patch3.Apply(true);
+				//CodePatch AR_Patch4 = { AimRet_TargetDistanceTextVerticalOffset,	"","\xC1\xFF\xFF\xFF",4,false }; AR_Patch4.Apply(true);
+				//CodePatch AR_Patch5 = { AimRet_LeadPointerVerticalScale,			"","\x30",1,false }; AR_Patch5.Apply(true);
+				//CodePatch AR_Patch6 = { AimRet_LeadPointerHorizontalScale,			"","\x06",1,false }; AR_Patch6.Apply(true);
+				//CodePatch AR_DIRARROW = { AimRet_DiractionalArrowWholeScale,		"","\x80\xFF\x3F",3,false }; AR_DIRARROW.Apply(true);
+				CodePatch AR_Patch1 = { AimRet_TargetOutlineCornerScale,			"","\x02",1,false }; AR_Patch1.Apply(true);
+				CodePatch AR_Patch2 = { AimRet_TargetOutlineCornerLength,			"","\x0A",1,false }; AR_Patch2.Apply(true);
+				CodePatch AR_Patch3 = { AimRet_TargetDistanceTextHorizontalOffset,	"","\x12\x00\x00\x00",4,false }; AR_Patch3.Apply(true);
+				CodePatch AR_Patch4 = { AimRet_TargetDistanceTextVerticalOffset,	"","\xE0\xFF\xFF\xFF",4,false }; AR_Patch4.Apply(true);
+				CodePatch AR_Patch5 = { AimRet_LeadPointerVerticalScale,			"","\x18",1,false }; AR_Patch5.Apply(true);
+				CodePatch AR_Patch6 = { AimRet_LeadPointerHorizontalScale,			"","\x03",1,false }; AR_Patch6.Apply(true);
+				CodePatch AR_DIRARROW = { AimRet_DiractionalArrowWholeScale,		"","\xAA\xFE\x3F",3,false }; AR_DIRARROW.Apply(true);
+
 				Console::eval("$pref::hudScale::retical = 2;");
 			}
 			else if (arg1.compare("internals") == 0)
@@ -716,13 +747,20 @@ BuiltInFunction("HudManager::Multiplier", _HMM)
 			else if (arg1.compare("retical") == 0)
 			{
 				CodePatch AR_Patch0 = { AimRet_FontTag,								"","\x7B\x4E\x02",3,false }; AR_Patch0.Apply(true);
-				CodePatch AR_Patch1 = { AimRet_TargetOutlineCornerScale,			"","\x06",1,false }; AR_Patch1.Apply(true);
-				CodePatch AR_Patch2 = { AimRet_TargetOutlineCornerLength,			"","\x1E",1,false }; AR_Patch2.Apply(true);
-				CodePatch AR_Patch3 = { AimRet_TargetDistanceTextHorizontalOffset,	"","\xE7\xFF\xFF\xFF",4,false }; AR_Patch3.Apply(true);
-				CodePatch AR_Patch4 = { AimRet_TargetDistanceTextVerticalOffset,	"","\xA2\xFF\xFF\xFF",4,false }; AR_Patch4.Apply(true);
-				CodePatch AR_Patch5 = { AimRet_LeadPointerVerticalScale,			"","\x48",1,false }; AR_Patch5.Apply(true);
-				CodePatch AR_Patch6 = { AimRet_LeadPointerHorizontalScale,			"","\x09",1,false }; AR_Patch6.Apply(true);
-				CodePatch AR_DIRARROW = { AimRet_DiractionalArrowWholeScale,		"","\xD0\xFF\x3F",3,false }; AR_DIRARROW.Apply(true);
+				//CodePatch AR_Patch1 = { AimRet_TargetOutlineCornerScale,			"","\x06",1,false }; AR_Patch1.Apply(true);
+				//CodePatch AR_Patch2 = { AimRet_TargetOutlineCornerLength,			"","\x1E",1,false }; AR_Patch2.Apply(true);
+				//CodePatch AR_Patch3 = { AimRet_TargetDistanceTextHorizontalOffset,	"","\xE7\xFF\xFF\xFF",4,false }; AR_Patch3.Apply(true);
+				//CodePatch AR_Patch4 = { AimRet_TargetDistanceTextVerticalOffset,	"","\xA2\xFF\xFF\xFF",4,false }; AR_Patch4.Apply(true);
+				//CodePatch AR_Patch5 = { AimRet_LeadPointerVerticalScale,			"","\x48",1,false }; AR_Patch5.Apply(true);
+				//CodePatch AR_Patch6 = { AimRet_LeadPointerHorizontalScale,			"","\x09",1,false }; AR_Patch6.Apply(true);
+				//CodePatch AR_DIRARROW = { AimRet_DiractionalArrowWholeScale,		"","\xD0\xFF\x3F",3,false }; AR_DIRARROW.Apply(true);
+				CodePatch AR_Patch1 = { AimRet_TargetOutlineCornerScale,			"","\x04",1,false }; AR_Patch1.Apply(true);
+				CodePatch AR_Patch2 = { AimRet_TargetOutlineCornerLength,			"","\x14",1,false }; AR_Patch2.Apply(true);
+				CodePatch AR_Patch3 = { AimRet_TargetDistanceTextHorizontalOffset,	"","\x00\x00\x00\x00",4,false }; AR_Patch3.Apply(true);
+				CodePatch AR_Patch4 = { AimRet_TargetDistanceTextVerticalOffset,	"","\xC1\xFF\xFF\xFF",4,false }; AR_Patch4.Apply(true);
+				CodePatch AR_Patch5 = { AimRet_LeadPointerVerticalScale,			"","\x30",1,false }; AR_Patch5.Apply(true);
+				CodePatch AR_Patch6 = { AimRet_LeadPointerHorizontalScale,			"","\x06",1,false }; AR_Patch6.Apply(true);
+				CodePatch AR_DIRARROW = { AimRet_DiractionalArrowWholeScale,		"","\x80\xFF\x3F",3,false }; AR_DIRARROW.Apply(true);
 				Console::eval("$pref::hudScale::retical = 3;");
 			}
 			else if (arg1.compare("internals") == 0)
@@ -899,13 +937,20 @@ BuiltInFunction("HudManager::Multiplier", _HMM)
 			else if (arg1.compare("retical") == 0)
 			{
 				CodePatch AR_Patch0 = { AimRet_FontTag,								"","\xCB\x4E\x02",3,false }; AR_Patch0.Apply(true);
-				CodePatch AR_Patch1 = { AimRet_TargetOutlineCornerScale,			"","\x06",1,false }; AR_Patch1.Apply(true);
-				CodePatch AR_Patch2 = { AimRet_TargetOutlineCornerLength,			"","\x28",1,false }; AR_Patch2.Apply(true);
-				CodePatch AR_Patch3 = { AimRet_TargetDistanceTextHorizontalOffset,	"","\xDB\xFF\xFF\xFF",4,false }; AR_Patch3.Apply(true);
-				CodePatch AR_Patch4 = { AimRet_TargetDistanceTextVerticalOffset,	"","\x83\xFF\xFF\xFF",4,false }; AR_Patch4.Apply(true);
-				CodePatch AR_Patch5 = { AimRet_LeadPointerVerticalScale,			"","\x60",1,false }; AR_Patch5.Apply(true);
-				CodePatch AR_Patch6 = { AimRet_LeadPointerHorizontalScale,			"","\x0C",1,false }; AR_Patch6.Apply(true);
-				CodePatch AR_DIRARROW = { AimRet_DiractionalArrowWholeScale,		"","\xA0\x00\x40",3,false }; AR_DIRARROW.Apply(true);
+				//CodePatch AR_Patch1 = { AimRet_TargetOutlineCornerScale,			"","\x06",1,false }; AR_Patch1.Apply(true);
+				//CodePatch AR_Patch2 = { AimRet_TargetOutlineCornerLength,			"","\x28",1,false }; AR_Patch2.Apply(true);
+				//CodePatch AR_Patch3 = { AimRet_TargetDistanceTextHorizontalOffset,	"","\xDB\xFF\xFF\xFF",4,false }; AR_Patch3.Apply(true);
+				//CodePatch AR_Patch4 = { AimRet_TargetDistanceTextVerticalOffset,	"","\x83\xFF\xFF\xFF",4,false }; AR_Patch4.Apply(true);
+				//CodePatch AR_Patch5 = { AimRet_LeadPointerVerticalScale,			"","\x60",1,false }; AR_Patch5.Apply(true);
+				//CodePatch AR_Patch6 = { AimRet_LeadPointerHorizontalScale,			"","\x0C",1,false }; AR_Patch6.Apply(true);
+				//CodePatch AR_DIRARROW = { AimRet_DiractionalArrowWholeScale,		"","\xA0\x00\x40",3,false }; AR_DIRARROW.Apply(true);
+				CodePatch AR_Patch1 = { AimRet_TargetOutlineCornerScale,			"","\x04",1,false }; AR_Patch1.Apply(true);
+				CodePatch AR_Patch2 = { AimRet_TargetOutlineCornerLength,			"","\x14",1,false }; AR_Patch2.Apply(true);
+				CodePatch AR_Patch3 = { AimRet_TargetDistanceTextHorizontalOffset,	"","\x00\x00\x00\x00",4,false }; AR_Patch3.Apply(true);
+				CodePatch AR_Patch4 = { AimRet_TargetDistanceTextVerticalOffset,	"","\xC1\xFF\xFF\xFF",4,false }; AR_Patch4.Apply(true);
+				CodePatch AR_Patch5 = { AimRet_LeadPointerVerticalScale,			"","\x30",1,false }; AR_Patch5.Apply(true);
+				CodePatch AR_Patch6 = { AimRet_LeadPointerHorizontalScale,			"","\x06",1,false }; AR_Patch6.Apply(true);
+				CodePatch AR_DIRARROW = { AimRet_DiractionalArrowWholeScale,		"","\x80\xFF\x3F",3,false }; AR_DIRARROW.Apply(true);
 				Console::eval("$pref::hudScale::retical = 4;");
 			}
 			else if (arg1.compare("internals") == 0)
@@ -931,11 +976,17 @@ BuiltInFunction("HudManager::Multiplier", _HMM)
 	return 0;
 }
 
+BuiltInFunction("Nova::RefreshRadarVectorObjects", _novarefreshvectors)
+{
+	RadarVectorsAlwaysRefresh.Apply(true);
+	return "true";
+}
 struct Init {
 	Init() {
 		hudpbafix.DoctorRelative((u32)HudPBAFix, 1).Apply(true);
 		RadarElementsAlwaysRefresh.Apply(true);
 		ShieldElementsAlwaysRefresh.Apply(true);
+		ShieldVectorsAlwaysRefresh.Apply(true);
 
 		//Assign default hud fonts to alternative IDs to avoid conflicts with text scaling
 		if (std::filesystem::exists("Nova.vol"))
