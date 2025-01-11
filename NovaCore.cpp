@@ -203,7 +203,7 @@ namespace NovaCore
 	{
 		Console::eval("IDSTR_MISSING_FILE_TITLE = 00131400,\"Missing File\";");
 		Console::eval("IDSTR_MISSING_FILE_ERROR = 00131401,\"Unable to find '%s'.\\nIt is required for use with mem.dll\";");
-		Console::eval("checkForFile(\"Nova.vol\", \"mods\\\\replacements\\\\NovaAssets.zip\");");
+		Console::eval("checkForFile(\"Nova.vol\", \"mods\\\\replacements\\\\NovaAssets.zip\", \"mods\\\\ScriptGL\\\\NovaScriptGLassets.zip\");");
 		Console::eval("newObject(cDel,ESCSDelegate,false,LOOPBACK,0);");
 		Console::eval("newobject(NovaVol, simVolume, \"Nova.vol\");");
 		Console::eval("if($cargv1 != \"-s\"){newObject(simCanvas,SimGui::Canvas,Starsiege,640,480,true,1);}");
