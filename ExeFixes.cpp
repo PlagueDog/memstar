@@ -1043,6 +1043,13 @@ namespace ExeFixes {
 	MultiPointer(ptrSimguiGuiTextEditThans, 0, 0, 0, 0x004E6CCD);
 	CodePatch allowLessThanGreaterThans = { ptrSimguiGuiTextEditThans, "", "\xEB\x06", 2, false };
 
+	MultiPointer(ptrSPBarSlideOutIncrementSize, 0, 0, 0, 0x0054416A);
+	CodePatch SPBarSlideOutInc = { ptrSPBarSlideOutIncrementSize, "", "\x02", 1, false };
+	MultiPointer(ptrSPBarSlideInIncrementSize, 0, 0, 0, 0x0054419B);
+	CodePatch SPBarSlideInInc = { ptrSPBarSlideInIncrementSize, "", "\x02", 1, false };
+	MultiPointer(ptrSPBarSlideDuration, 0, 0, 0, 0x005441C8);
+	CodePatch SPBarSlideDuration = { ptrSPBarSlideDuration, "", "\x00\x00\x00\x3A", 4, false };
+
 	struct Init {
 		Init() {
 			//WindowsCompatMode();
@@ -1163,6 +1170,11 @@ namespace ExeFixes {
 
 			//Allow Less-Thans Greater-Thans '<>'
 			allowLessThanGreaterThans.Apply(true);
+
+			//Smooth the SPBar slide animation in the campaign GUI
+			SPBarSlideOutInc.Apply(true);
+			SPBarSlideInInc.Apply(true);
+			SPBarSlideDuration.Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes

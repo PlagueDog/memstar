@@ -157,7 +157,7 @@ namespace ScriptGL {
 		mFiles.Grok("Mods/ScriptGL");
 	}
 
-	BuiltInVariable("ScriptGL::inShell", bool, scriptglinshell, true);
+	//BuiltInVariable("ScriptGL::inShell", bool, scriptglinshell, false);
 	void OnDraw(int pre_or_post) {
 		mCanDraw = (OpenGL::IsActive());
 
@@ -184,7 +184,7 @@ namespace ScriptGL {
 			if (Console::functionExists(function))
 				Console::execFunction(1, function, dim.c_str());
 
-			if (Console::functionExists(shellfunction) && scriptglinshell)
+			if (Console::functionExists(shellfunction))
 			{
 				Console::execFunction(1, shellfunction, dim.c_str());
 			}
