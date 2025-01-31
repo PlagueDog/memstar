@@ -8,10 +8,18 @@
 #include "Console.h"
 #include "Patch.h"
 
+#include "Fear.h"
+#include "Strings.h"
+#include "MultiPointer.h"
+#include "console.h"
+
 using namespace std;
+using namespace Fear;
+using namespace Console;
 
 class ScriptTexture : public Texture {
 public:
+
 	//ScriptTexture() : Texture(), mLastUsed(GetTickCount64()) { }
 	ScriptTexture() : Texture(), mLastUsed(GetTickCount()) { }
 	~ScriptTexture() { }
@@ -168,7 +176,7 @@ namespace ScriptGL {
 
 		int ticks = (GetTickCount());
 		if (ticks - mLastGLDraw >= mLatency) {
-			char* function = (pre_or_post) ?
+			char* simfunction = (pre_or_post) ?
 				"ScriptGL::playGUI::onPostDraw" : "ScriptGL::playGUI::onPreDraw";
 
 			char* shellfunction = (pre_or_post) ?
@@ -181,10 +189,10 @@ namespace ScriptGL {
 
 			mCompiler->Clear();
 
-			if (Console::functionExists(function))
-				Console::execFunction(1, function, dim.c_str());
+			if (Console::functionExists(simfunction) && Sim::Client()->findObject<Object>(651))
+				Console::execFunction(1, simfunction, dim.c_str());
 
-			if (Console::functionExists(shellfunction))
+			if (Console::functionExists(shellfunction) && !Sim::Client()->findObject<Object>(651))
 			{
 				Console::execFunction(1, shellfunction, dim.c_str());
 			}
