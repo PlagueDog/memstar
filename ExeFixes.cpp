@@ -1050,6 +1050,22 @@ namespace ExeFixes {
 	MultiPointer(ptrSPBarSlideDuration, 0, 0, 0, 0x005441C8);
 	CodePatch SPBarSlideDuration = { ptrSPBarSlideDuration, "", "\x00\x00\x00\x3A", 4, false };
 
+	//Crash occuring on map load
+	MultiPointer(unk667E90, 0, 0, 0, 0x00667EA6);
+	MultiPointer(unk667E90_loop, 0, 0, 0, 0x00667EAC);
+	CodePatch maploadPatch = { unk667E90, "", "\xE9MPPT", 5, false };
+	NAKED void mapLoadPatch() {
+		__asm {
+			mov ebx, [eax + 8]
+			cmp ecx, 0
+			je __je
+			mov [ecx + ebx * 4], edx
+			jmp [unk667E90_loop]
+			__je:
+			jmp [unk667E90_loop]
+		}
+	}
+
 	struct Init {
 		Init() {
 			//WindowsCompatMode();
@@ -1175,6 +1191,9 @@ namespace ExeFixes {
 			SPBarSlideOutInc.Apply(true);
 			SPBarSlideInInc.Apply(true);
 			SPBarSlideDuration.Apply(true);
+
+			//Map load patch which fixes crashing after creating a local server, dropping into the map, exiting the server, and repeating
+			maploadPatch.DoctorRelative((u32)mapLoadPatch, 1).Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes
