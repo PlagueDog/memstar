@@ -543,100 +543,190 @@ namespace Intercepts {
 
 	MultiPointer(ptrPlayerMessageEveryone, 0, 0, 0x0055ACD7, 0x0055DB13);
 	MultiPointer(ptrPlayerMessageEveryoneResume, 0, 0, 0x0055AD3D, 0x0055DB79);
-	MultiPointer(ptrPlayerMessageEveryoneReturn, 0, 0, 0, 0x0055DB79);
-	static const char* messageEventfn = "Nova::push::onPlayerMessage();";
-	static const char* msg_sprint = "%s %s->%s: %s";
-	//static const char* msg_sprint = "";
-	CodePatch playeronmessage = { ptrPlayerMessageEveryone, "", "\xE9PONM", 5, false };
-	char* playerMessage;
-	char* playerName;
-	char* messageRecipient;
+MultiPointer(ptrPlayerMessageEveryoneReturn, 0, 0, 0, 0x0055DB79);
+static const char* messageEventfn = "Nova::push::onPlayerMessage();";
+static const char* msg_sprint = "%s %s->%s: %s";
+//static const char* msg_sprint = "";
+CodePatch playeronmessage = { ptrPlayerMessageEveryone, "", "\xE9PONM", 5, false };
+char* playerMessage;
+char* playerName;
+char* messageRecipient;
 
-	//This function calls player::onMessage with the playerName and their message as args
-	//BuiltInFunction("Nova::push::onPlayerMessage", _novaplayermessage)
-	void onPlayerMessage()
+//This function calls player::onMessage with the playerName and their message as args
+//BuiltInFunction("Nova::push::onPlayerMessage", _novaplayermessage)
+void onPlayerMessage()
+{
+	Console::echo("MSG: %s-> (%s): %s", playerName, messageRecipient, playerMessage);
+	char playerOnMessage_evalString[127];
+	strcpy(playerOnMessage_evalString, "player::onMessage(\"");
+	strcat(playerOnMessage_evalString, playerName);
+	strcat(playerOnMessage_evalString, "\",\"");
+	strcat(playerOnMessage_evalString, playerMessage);
+	strcat(playerOnMessage_evalString, "\");");
+	//Final string -> player::onMessage("%playerName","%playerMessage");
+	eval(playerOnMessage_evalString);
+	free(playerOnMessage_evalString);
+	//return "true";
+}
+
+NAKED void playerOnMessage() {
+	__asm {
+		add ebx, 0x75
+		push ebx
+		mov playerMessage, ebx
+		push edi
+		mov messageRecipient, edi
+		push ebp
+		mov playerName, ebp
+		push esi
+
+		push[msg_sprint]
+
+		mov eax, [ptrConsoleBuffer]
+		push eax
+		call Console::echo
+		add esp, 0x18
+
+		call onPlayerMessage
+
+		jmp[ptrPlayerMessageEveryoneResume]
+	}
+}
+
+const char* campaignFace;
+void assignFaceBmpVar()
+{
+	Console::setVariable("engine::campaignFace", campaignFace);
+	execFunction(0, "ProfileGUI::onSelectFace");
+}
+
+//Get the face or logo bmp on the initial button press
+static const u32 sub_4DADE8 = 0x4DADE8;
+MultiPointer(ptrGuiButtonInitialFace, 0, 0, 0, 0x0053503A);
+MultiPointer(ptrGuiButtonInitialFaceResume, 0, 0, 0, 0x00535041);
+CodePatch guibuttoninitialface = { ptrGuiButtonInitialFace, "", "\xE9SBFI", 5, false };
+NAKED void guiButtonInitialFace() {
+	__asm {
+		mov     eax, esi
+		call    sub_4DADE8
+		mov		campaignFace, eax
+		call	assignFaceBmpVar
+		mov		eax, campaignFace
+		jmp		ptrGuiButtonInitialFaceResume
+	}
+}
+
+MultiPointer(ptrGuiButtonSelectFace, 0, 0, 0, 0x0053512D);
+MultiPointer(ptrGuiButtonSelectFaceResume, 0, 0, 0, 0x00535134);
+CodePatch guibuttonselectface = { ptrGuiButtonSelectFace, "", "\xE9SSFS", 5, false };
+NAKED void guiButtonSelectFace() {
+	__asm {
+		mov     eax, ebx
+		call    sub_4DADE8
+		mov		campaignFace, eax
+		call	assignFaceBmpVar
+		mov		eax, campaignFace
+		jmp		ptrGuiButtonSelectFaceResume
+	}
+}
+
+//Create a empty player::onMessage(); initially
+BuiltInFunction("player::onMessage", _playeronmessage) { return 0; }
+
+BuiltInFunction("Nova::CursorPatch", _novacursorpatch)
+{
+	getcursor.DoctorRelative((u32)GetCursor, 1).Apply(true);
+	return "true";
+}
+
+void overrideFadeEvent()
+{
+	std::string gui = currentGui;
+	if (gui.compare("playgui") != 0 || gui.compare("playGui") != 0)
 	{
-		Console::echo("MSG: %s-> (%s): %s", playerName, messageRecipient, playerMessage);
-		char playerOnMessage_evalString[127];
-		strcpy(playerOnMessage_evalString, "player::onMessage(\"");
-		strcat(playerOnMessage_evalString, playerName);
-		strcat(playerOnMessage_evalString, "\",\"");
-		strcat(playerOnMessage_evalString, playerMessage);
-		strcat(playerOnMessage_evalString, "\");");
-		//Final string -> player::onMessage("%playerName","%playerMessage");
-		eval(playerOnMessage_evalString);
-		free(playerOnMessage_evalString);
-		//return "true";
+		Console::eval("schedule(\"ffEvent(0, 0, 0, 0);\");\",0);");
 	}
+}
 
-	NAKED void playerOnMessage() {
+	MultiPointer(ptrFadeEvent, 0, 0, 0, 0x0045DD28);
+	CodePatch fadeeventpatch = { ptrFadeEvent, "\x8B\xD8", "\xEB\x45", 2, false };
+
+	MultiPointer(ptrFadeEventPacket, 0, 0, 0, 0x00691D58);
+	MultiPointer(ptrFadeEventPacketHandle, 0, 0, 0, 0x00691D6D);
+	MultiPointer(ptrFadeEventPacketBad, 0, 0, 0, 0x00691D5E);
+	MultiPointer(ptrFadeEventPacketDrop, 0, 0, 0, 0x00691F50);
+	CodePatch fadeeventpacketpatch = { ptrFadeEventPacket, "", "\xE9_FPP", 5, false };
+	CodePatch fadeeventpacketpatchback = { ptrFadeEventPacket, "", "\x8B\xF8\x85\xFF\x75\x0F", 6, false };
+	NAKED void fadeEventPacketPatch() {
 		__asm {
-			add ebx, 0x75
-			push ebx
-			mov playerMessage, ebx
-			push edi
-			mov messageRecipient, edi
-			push ebp
-			mov playerName, ebp
-			push esi
-			
-			push [msg_sprint]
-			
-			mov eax, [ptrConsoleBuffer]
-			push eax
-			call Console::echo
-			add esp, 0x18
-
-			call onPlayerMessage
-
-			jmp [ptrPlayerMessageEveryoneResume]
+			mov edi, eax
+			cmp [edi], 0
+			je __je
+			test edi, edi
+			jnz __jnz
+			jmp ptrFadeEventPacketBad
+			__je:
+			jmp ptrFadeEventPacketDrop
+			__jnz:
+			jmp ptrFadeEventPacketHandle
 		}
 	}
 
-	const char* campaignFace;
-	void assignFaceBmpVar()
+	//Used to drop fade event packets from the server
+	BuiltInFunction("Nova::fadeEvents", _novafadeevents)
 	{
-		Console::setVariable("engine::campaignFace", campaignFace);
-		execFunction(0,"ProfileGUI::onSelectFace");
-	}
-
-	//Get the face or logo bmp on the initial button press
-	static const u32 sub_4DADE8 = 0x4DADE8;
-	MultiPointer(ptrGuiButtonInitialFace, 0, 0, 0, 0x0053503A);
-	MultiPointer(ptrGuiButtonInitialFaceResume, 0, 0, 0, 0x00535041);
-	CodePatch guibuttoninitialface = { ptrGuiButtonInitialFace, "", "\xE9SBFI", 5, false };
-	NAKED void guiButtonInitialFace () {
-		__asm {
-			mov     eax, esi
-			call    sub_4DADE8
-			mov		campaignFace, eax
-			call	assignFaceBmpVar
-			mov		eax, campaignFace
-			jmp		ptrGuiButtonInitialFaceResume
+		if (argc != 1)
+		{
+			return 0;
 		}
-	}
 
-	MultiPointer(ptrGuiButtonSelectFace, 0, 0, 0, 0x0053512D);
-	MultiPointer(ptrGuiButtonSelectFaceResume, 0, 0, 0, 0x00535134);
-	CodePatch guibuttonselectface = { ptrGuiButtonSelectFace, "", "\xE9SSFS", 5, false };
-	NAKED void guiButtonSelectFace() {
-		__asm {
-			mov     eax, ebx
-			call    sub_4DADE8
-			mov		campaignFace, eax
-			call	assignFaceBmpVar
-			mov		eax, campaignFace
-			jmp		ptrGuiButtonSelectFaceResume
+		std::string boolean = argv[0];
+		if (boolean.compare("0") == 0 || boolean.compare("false") == 0 || boolean.compare("False") == 0)
+		{
+			fadeeventpacketpatch.DoctorRelative((u32)fadeEventPacketPatch, 1).Apply(true);
+			fadeeventpatch.Apply(true);
 		}
-	}
-
-	//Create a empty player::onMessage(); initially
-	BuiltInFunction("player::onMessage", _playeronmessage){return 0;}
-
-	BuiltInFunction("Nova::CursorPatch", _novacursorpatch)
-	{ 
-		getcursor.DoctorRelative((u32)GetCursor, 1).Apply(true);
+		else if (boolean.compare("1") == 0 || boolean.compare("true") == 0 || boolean.compare("True") == 0)
+		{
+			fadeeventpacketpatchback.Apply(true);
+			fadeeventpatch.Apply(false);
+			Console::eval("ffevent(0,0,0,0);");
+		}
 		return "true";
+	}
+
+	//Allow ffevent without PlayerPacketStream
+	MultiPointer(ptrffevent_packetstreamcheck, 0, 0, 0, 0x004B796D);
+	CodePatch ffeventpatch0 = { ptrffevent_packetstreamcheck, "", "\xEB", 1, false };
+
+	MultiPointer(ptrffevent_err1, 0, 0, 0, 0x004B7A57);
+	//CodePatch ffeventpatch1 = { ptrffevent_err1, "", "\x90\x90\x90\x90\x90\x90", 6, false };
+	CodePatch ffeventpatch1 = { ptrffevent_err1, "", "\xE9_FE1", 5, false };
+	MultiPointer(ptrffevent_err1_resume, 0, 0, 0, 0x004B7A5D);
+	NAKED void ffEventPatch1() {
+		__asm {
+			cmp edx , 0
+			je __je
+			fadd dword ptr[edx + 0x8C]
+			jmp ptrffevent_err1_resume
+			__je:
+			jmp ptrffevent_err1_resume
+		}
+	}
+
+	MultiPointer(ptrffevent_err2, 0, 0, 0, 0x004B7AC5);
+	//CodePatch ffeventpatch2 = { ptrffevent_err2, "", "\x90\x90\x90\x90\x90\x90", 6, false };
+	CodePatch ffeventpatch2 = { ptrffevent_err2, "", "\xE9_FE2", 5, false };
+	MultiPointer(ptrffevent_err2_resume, 0, 0, 0, 0x004B7ACB);
+	NAKED void ffEventPatch2() {
+		__asm {
+			cmp ecx, 0
+			je __je
+			fadd dword ptr[ecx + 0x8C]
+			jmp ptrffevent_err2_resume
+			__je:
+			jmp ptrffevent_err2_resume
+		}
 	}
 
 	struct Init 
@@ -683,6 +773,17 @@ namespace Intercepts {
 
 				guibuttoninitialface.DoctorRelative((u32)guiButtonInitialFace, 1).Apply(true);
 				guibuttonselectface.DoctorRelative((u32)guiButtonSelectFace, 1).Apply(true);
+
+				//Disable fade event packets to prevent scriptGL fading as well
+				fadeeventpacketpatch.DoctorRelative((u32)fadeEventPacketPatch, 1).Apply(true);
+				fadeeventpatch.Apply(true);
+
+				//Allow ffevent to be used without a playerpacketstream
+				ffeventpatch0.Apply(true);
+				//ffeventpatch1.Apply(true);
+				//ffeventpatch2.Apply(true);
+				ffeventpatch1.DoctorRelative((u32)ffEventPatch1, 1).Apply(true);
+				ffeventpatch2.DoctorRelative((u32)ffEventPatch2, 1).Apply(true);
 		}
 	} init;
 }
