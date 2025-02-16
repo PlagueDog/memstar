@@ -8,14 +8,9 @@
 #include "Console.h"
 #include "Patch.h"
 
-#include "Fear.h"
-#include "Strings.h"
-#include "MultiPointer.h"
-#include "console.h"
 
 using namespace std;
 using namespace Fear;
-using namespace Console;
 
 class ScriptTexture : public Texture {
 public:
@@ -105,8 +100,7 @@ namespace ScriptGL {
 
 
 	bool Allowed() {
-		return "true";
-		//return (mCanDraw);
+		return (mCanDraw);
 	}
 
 	void Close() {
@@ -174,13 +168,17 @@ namespace ScriptGL {
 
 		mCompiler = (&mCompilers[pre_or_post]);
 
-		int ticks = (GetTickCount());
-		if (ticks - mLastGLDraw >= mLatency) {
+		int ticks = (GetTickCount64());
+		if (ticks - mLastGLDraw >= mLatency) 
+		{
 			char* simfunction = (pre_or_post) ?
 				"ScriptGL::playGUI::onPostDraw" : "ScriptGL::playGUI::onPreDraw";
 
 			char* shellfunction = (pre_or_post) ?
 				"ScriptGL::shellGUI::onPostDraw" : "ScriptGL::shellGUI::onPreDraw";
+
+			char* hudfunction = (pre_or_post) ?
+				"ScriptGL::hud::onPostDraw" : "ScriptGL::hud::onPreDraw";
 
 			Vector2i screen;
 			Fear::getScreenDimensions(&screen);
@@ -190,16 +188,23 @@ namespace ScriptGL {
 			mCompiler->Clear();
 
 			if (Console::functionExists(simfunction) && Sim::Client()->findObject<Object>(651))
+			{
 				Console::execFunction(1, simfunction, dim.c_str());
+			}
+
+			if (Console::functionExists(hudfunction) && Sim::Client()->findObject<Object>(651))
+			{
+				Console::execFunction(1, hudfunction, dim.c_str());
+			}
 
 			if (Console::functionExists(shellfunction) && !Sim::Client()->findObject<Object>(651))
 			{
 				Console::execFunction(1, shellfunction, dim.c_str());
 			}
 
-			if (pre_or_post == __SCRIPTGL_POSTDRAW__)
-				mLastGLDraw = (ticks);
 		}
+		if (pre_or_post == __SCRIPTGL_POSTDRAW__)
+			mLastGLDraw = (ticks);
 
 		DefaultSettings();
 		mCompiler->Execute();
