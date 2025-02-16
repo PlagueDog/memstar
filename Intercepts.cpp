@@ -51,6 +51,7 @@ char* despace(char* input)
 }
 
 namespace Intercepts {
+	u32 dummy, dummy2, dummy3, dummy4, dummy5;
 //GuiLoad
 	MultiPointer(ptrGuiOpened, 0, 0, 0x005C52B2, 0x005C8B2A);
 	MultiPointer(ptrGuiOpenedRetn, 0, 0, 0x005C52B8, 0x005C8B30);
@@ -571,6 +572,7 @@ void onPlayerMessage()
 
 NAKED void playerOnMessage() {
 	__asm {
+		mov [dummy], 0
 		add ebx, 0x75
 		push ebx
 		mov playerMessage, ebx
@@ -581,14 +583,14 @@ NAKED void playerOnMessage() {
 		push esi
 
 		push[msg_sprint]
-
+		
 		mov eax, [ptrConsoleBuffer]
 		push eax
 		call Console::echo
 		add esp, 0x18
-
+		mov dummy, eax
 		call onPlayerMessage
-
+		mov eax, dummy
 		jmp[ptrPlayerMessageEveryoneResume]
 	}
 }
@@ -657,43 +659,64 @@ void overrideFadeEvent()
 	MultiPointer(ptrFadeEventPacketDrop, 0, 0, 0, 0x00691F50);
 	CodePatch fadeeventpacketpatch = { ptrFadeEventPacket, "", "\xE9_FPP", 5, false };
 	CodePatch fadeeventpacketpatchback = { ptrFadeEventPacket, "", "\x8B\xF8\x85\xFF\x75\x0F", 6, false };
+
+	void enableFadeEvents()
+	{
+		fadeeventpacketpatchback.Apply(true);
+		fadeeventpatch.Apply(false);
+	}
+
+	MultiPointer(ptrWaitroomCloseToPlayGui, 0, 0, 0, 0x0054112E);
+	MultiPointer(sub5C6C54, 0, 0, 0, 0x005C6C54);
+	MultiPointer(ptrCloseWaitroomGui, 0, 0, 0, 0x00541136);
+	CodePatch waitroomclosetoplaygui = { ptrWaitroomCloseToPlayGui, "", "\xE9_FPP", 5, false };
+	//Intercept the call to join the map to re-enable server side fade events (Disabled fade events breaks player spawn packets)
+	NAKED void WaitroomCloseToPlayGUI() {
+		__asm {
+			call enableFadeEvents
+			mov eax, [esi + 0x58]
+			call sub5C6C54
+			jmp ptrCloseWaitroomGui
+		}
+	}
+
 	NAKED void fadeEventPacketPatch() {
 		__asm {
 			mov edi, eax
-			cmp [edi], 0
+			cmp[edi], 0
 			je __je
 			test edi, edi
 			jnz __jnz
 			jmp ptrFadeEventPacketBad
-			__je:
+			__je :
 			jmp ptrFadeEventPacketDrop
-			__jnz:
+				__jnz :
 			jmp ptrFadeEventPacketHandle
 		}
 	}
 
 	//Used to drop fade event packets from the server
-	BuiltInFunction("Nova::fadeEvents", _novafadeevents)
-	{
-		if (argc != 1)
-		{
-			return 0;
-		}
-
-		std::string boolean = argv[0];
-		if (boolean.compare("0") == 0 || boolean.compare("false") == 0 || boolean.compare("False") == 0)
-		{
-			fadeeventpacketpatch.DoctorRelative((u32)fadeEventPacketPatch, 1).Apply(true);
-			fadeeventpatch.Apply(true);
-		}
-		else if (boolean.compare("1") == 0 || boolean.compare("true") == 0 || boolean.compare("True") == 0)
-		{
-			fadeeventpacketpatchback.Apply(true);
-			fadeeventpatch.Apply(false);
-			Console::eval("ffevent(0,0,0,0);");
-		}
-		return "true";
-	}
+	//BuiltInFunction("Nova::fadeEvents", _novafadeevents)
+	//{
+	//	if (argc != 1)
+	//	{
+	//		return 0;
+	//	}
+	//
+	//	std::string boolean = argv[0];
+	//	if (boolean.compare("0") == 0 || boolean.compare("false") == 0 || boolean.compare("False") == 0)
+	//	{
+	//		fadeeventpacketpatch.DoctorRelative((u32)fadeEventPacketPatch, 1).Apply(true);
+	//		fadeeventpatch.Apply(true);
+	//	}
+	//	else if (boolean.compare("1") == 0 || boolean.compare("true") == 0 || boolean.compare("True") == 0)
+	//	{
+	//		fadeeventpacketpatchback.Apply(true);
+	//		fadeeventpatch.Apply(false);
+	//		Console::eval("ffevent(0,0,0,0);");
+	//	}
+	//	return "true";
+	//}
 
 	//Allow ffevent without PlayerPacketStream
 	MultiPointer(ptrffevent_packetstreamcheck, 0, 0, 0, 0x004B796D);
@@ -775,13 +798,12 @@ void overrideFadeEvent()
 				guibuttonselectface.DoctorRelative((u32)guiButtonSelectFace, 1).Apply(true);
 
 				//Disable fade event packets to prevent scriptGL fading as well
-				fadeeventpacketpatch.DoctorRelative((u32)fadeEventPacketPatch, 1).Apply(true);
-				fadeeventpatch.Apply(true);
+				//waitroomclosetoplaygui.DoctorRelative((u32)WaitroomCloseToPlayGUI, 1).Apply(true);
+				//fadeeventpacketpatch.DoctorRelative((u32)fadeEventPacketPatch, 1).Apply(true);
+				//fadeeventpatch.Apply(true);
 
 				//Allow ffevent to be used without a playerpacketstream
 				ffeventpatch0.Apply(true);
-				//ffeventpatch1.Apply(true);
-				//ffeventpatch2.Apply(true);
 				ffeventpatch1.DoctorRelative((u32)ffEventPatch1, 1).Apply(true);
 				ffeventpatch2.DoctorRelative((u32)ffEventPatch2, 1).Apply(true);
 		}
