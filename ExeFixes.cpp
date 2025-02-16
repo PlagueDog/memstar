@@ -8,9 +8,10 @@
 #include <stdint.h>
 #include "Strings.h"
 #include <string>
+#include "IsBadMemPtr.c" //Included for the copyright notice
 
 namespace ExeFixes {
-
+	u32 dummy, dummy2, dummy3, dummy4, dummy5;
 	//Unknown crash patches
 	MultiPointer(ptr_unkCrash01, 0, 0, 0x00624F01, 0x00633E41); //This one seems related to the hud scaling
 	CodePatch unkCrashPatch01 = { ptr_unkCrash01,"","\x72",1,false };
@@ -315,27 +316,6 @@ namespace ExeFixes {
 		}
 	}
 
-	MultiPointer(ptrVolumetricERR, 0, 0, 0, 0x0062E7CA);
-	MultiPointer(ptrVolumetricERRresume, 0, 0, 0, 0x0062E7CF);
-	CodePatch volumetricfix = {
-	ptrVolumetricERR,
-	"",
-	"\xE9VMFX",
-	5,
-	false
-	};
-	MultiPointer(dword_728570, 0, 0, 0, 0x0062E7CA);
-	int persFlt = 1;
-	NAKED void VolumetricFix() {
-		__asm {
-			mov ecx, dword_728570
-			mov eax, [ecx + edx * 8]
-			mov edx, [ebp - 0x10]
-			mov [eax + 0x20], ecx
-			jmp[ptrVolumetricERRresume]
-		}
-	}
-
 	//Ignore atan2 calls for navs calling invalid locations
 	MultiPointer(ptrNavAtan2Call0, 0, 0, 0x0051A004, 0x0051C4A1);
 	CodePatch navExploitFix0 = { ptrNavAtan2Call0, "", "\x90\x90", 2, false };
@@ -349,6 +329,25 @@ namespace ExeFixes {
 
 	//Console key
 	MultiPointer(ptrConsoleKey, 0, 0, 0x0059D9E6, 0x005A1202);
+
+
+	//Mapview grid line count
+	MultiPointer(ptrMapviewPanelLineCount, 0, 0, 0, 0x00514FEC);
+	CodePatch mapviewGridLineCount = { ptrMapviewPanelLineCount,	"\x00\x00\x00\x39","\x00\x00\x00\x00",	4,false };
+	BuiltInVariable("pref::mapviewLineGridVisible", int, prefmapviewlinegridvisible, 1);
+	BuiltInFunction("Nova::toggleMapviewGrid", _novatogglemapviewgrid)
+	{
+		std::string var = Console::getVariable("pref::mapviewLineGridVisible");
+		if (var.compare("1") == 0 || var.compare("true") == 0 || var.compare("True") == 0)
+		{
+			mapviewGridLineCount.Apply(false);
+		}
+		else
+		{
+			mapviewGridLineCount.Apply(true);
+		}
+		return "true";
+	}
 
 	//Mapview map panel size
 	MultiPointer(ptrMapviewPanelSize, 0, 0, 0, 0x00514968);
@@ -801,23 +800,59 @@ namespace ExeFixes {
 		}
 	}
 
+	void* inputPtr = 0x0;
+	int isBadPtr = 0;
+	void simVolumetricCheckForBadPtr()
+	{
+		if (IsBadMemPtr(FALSE, inputPtr, 4)) //We have read access at this memory address
+		{
+			isBadPtr = 0;
+		}
+		else
+		{
+			isBadPtr = 1;
+		}
+	}
+
 	//Catch Volumetric DML render crash
-	MultiPointer(ptrVolumetRend, 0, 0, 0, 0x0062E7C1);
-	MultiPointer(ptrVolumetRendDWORD, 0, 0, 0, 0x00728570);
-	MultiPointer(ptrVolumetRendResume, 0, 0, 0, 0x0062E7CF);
+	MultiPointer(ptrVolumetRend, 0, 0, 0, 0x0062E7CA);
+	//MultiPointer(ptrVolumetRendDWORD, 0, 0, 0, 0x00728570);
+	MultiPointer(ptrVolumetRendResume, 0, 0, 0, 0x0062E7D5);
 	CodePatch volumetriccrashcatcher = { ptrVolumetRend, "", "\xE9VDCR", 5, false };
 	NAKED void VolumetricCrashCatcher() {
 		__asm {
-			mov edx, [edi+4]
-			mov eax, ptrVolumetRendDWORD
-			mov edx, [eax + ecx * 8 + 4]
-			mov ecx, [ebp - 0x10]
-			mov [ecx + 0x34], edx
-			mov eax, [ebp - 0x10]
-			//xor edx, edx
-			//mov [eax + 0x38], edx
-			//or dword ptr [ebx + 0x58], 2
-			jmp [ptrVolumetRendResume]
+			mov [dummy], 0
+			mov [dummy2], 0
+			mov [dummy3], 0
+			mov [dummy4], 0
+			mov [dummy5], 0
+			mov [isBadPtr], 0
+
+			mov dummy, eax
+			mov dummy2, ecx
+			mov dummy4, esi
+			mov dummy5, ebx
+
+			lea edx, [ecx + edx * 8]
+			mov inputPtr, edx
+			mov dummy3, edx //Save the memory address of edx after we LEA
+			call simVolumetricCheckForBadPtr
+
+			//Move the memory addresses that were wiped by our simVolumetricCheckForBadPtr() back into their associated registers
+			mov eax, dummy
+			mov ecx, dummy2
+			mov edx, dummy3
+			mov esi, dummy4
+			mov ebx, dummy5
+
+			cmp isBadPtr, 0
+			je __je
+			mov ecx, [edx]
+			mov [eax + 0x20], ecx
+			mov ecx, [edx + 4]
+			jmp ptrVolumetRendResume
+			__je:
+				jmp ptrVolumetRendResume
 		}
 	}
 
@@ -1066,6 +1101,14 @@ namespace ExeFixes {
 		}
 	}
 
+	//setHudMapViewOffset - patched to allow the client to change their mapview offset regardless if they are the server or not
+	MultiPointer(ptrSetHudMapViewOffset1, 0, 0, 0, 0x004BCB40);
+	MultiPointer(ptrSetHudMapViewOffset2, 0, 0, 0, 0x004BCB6C);
+	MultiPointer(ptrSetHudMapViewOffset3, 0, 0, 0, 0x0041E176);
+	CodePatch setHudMapViewOffsetPatch1 = { ptrSetHudMapViewOffset1, "", "\xEB", 1, false };
+	CodePatch setHudMapViewOffsetPatch2 = { ptrSetHudMapViewOffset2, "", "\xEB\x03", 2, false };
+	CodePatch setHudMapViewOffsetPatch3 = { ptrSetHudMapViewOffset3, "", "\x90\x90\x90", 3, false };
+
 	struct Init {
 		Init() {
 			//WindowsCompatMode();
@@ -1094,7 +1137,6 @@ namespace ExeFixes {
 			//interiorpluginrestore.DoctorRelative((u32)InteriorPluginRestore, 1).Apply(true);
 
 			//ITRpatch.DoctorRelative((u32)ITRPatch, 1).Apply(true);
-			//volumetricfix.DoctorRelative((u32)VolumetricFix, 1).Apply(true);
 			VolumetricFaceColor1.Apply(true);
 			VolumetricFaceColor2.Apply(true);
 			VolumetricFaceColor3.Apply(true);
@@ -1145,7 +1187,9 @@ namespace ExeFixes {
 			terraincrashcatcher.DoctorRelative((u32)TerrainCrashCatcher, 1).Apply(true);
 			invalidparentpartcrashcatcher.DoctorRelative((u32)InvalidParentPartCrashCatcher, 1).Apply(true);
 			invalidpartfixfix.DoctorRelative((u32)InvalidPartFixFix, 1).Apply(true);
-			//volumetriccrashcatcher.DoctorRelative((u32)VolumetricCrashCatcher, 1).Apply(true);
+
+			//Fix material lists crashing when applied to a SimVolumetric
+			volumetriccrashcatcher.DoctorRelative((u32)VolumetricCrashCatcher, 1).Apply(true);
 			//recordcrashcatcher.DoctorRelative((u32)RecordCrashCatcher, 1).Apply(true);
 
 			//Console open
@@ -1194,6 +1238,11 @@ namespace ExeFixes {
 
 			//Map load patch which fixes crashing after creating a local server, dropping into the map, exiting the server, and repeating
 			maploadPatch.DoctorRelative((u32)mapLoadPatch, 1).Apply(true);
+
+			//Allow setHudMapViewOffset on other servers
+			setHudMapViewOffsetPatch1.Apply(true);
+			setHudMapViewOffsetPatch2.Apply(true);
+			setHudMapViewOffsetPatch3.Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes
