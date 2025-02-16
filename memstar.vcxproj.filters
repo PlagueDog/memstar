@@ -171,6 +171,9 @@
     <ClCompile Include="ForbiddenKnowledge.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IsBadMemPtr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="zlib\crc32.h">
