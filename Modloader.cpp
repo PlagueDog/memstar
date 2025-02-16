@@ -1020,17 +1020,20 @@ namespace ModloaderMain {
 		false
 	};
 
-	BuiltInFunction("modloader::patchMapview", _mlpatchMapView) {
-
-		MultiPointer(ptrMapViewFidelity, 0, 0, 0x005155DC, 0x00517A78);
-		CodePatch OverviewMapFidelity = { //Smooths the elevation rings on the "satellite map"
-			ptrMapViewFidelity,
-			"",
-			"\x00\x00\xC0\x42\x00\x00\xB0\x3E",
-			8,
-			false
-		};
-		OverviewMapFidelity.Apply(true);
+	MultiPointer(ptrMapViewFidelity, 0, 0, 0x005155DC, 0x00517A78);
+	CodePatch OverviewMapFidelity = { ptrMapViewFidelity,	"\x00\x00\x00\x42\x00\x00\x80\x3E",	"\x00\x00\xC0\x42\x00\x00\xB0\x3E",	8,	false};
+	BuiltInVariable("pref::mapviewSmoothTerrain", int, prefmapviewsmoothterrain, 1);
+	BuiltInFunction("Nova::toggleMapviewSmoothTerrain", _novatogglemapviewsmoothterrain)
+	{
+		std::string var = Console::getVariable("pref::mapviewSmoothTerrain");
+		if (var.compare("1") == 0 || var.compare("true") == 0 || var.compare("True") == 0)
+		{
+			OverviewMapFidelity.Apply(false);
+		}
+		else
+		{
+			OverviewMapFidelity.Apply(true);
+		}
 		return "true";
 	}
 
