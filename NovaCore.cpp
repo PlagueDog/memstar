@@ -26,6 +26,7 @@ using namespace std;
 using namespace Fear;
 namespace NovaCore
 {
+	BuiltInVariable("pref::novaNotifyText", bool, prefnovanotifytext, true);
 	//Big endian to little endian
 	string BEtoLE(string& str)
 	{
@@ -199,6 +200,15 @@ namespace NovaCore
 		}
 	}
 
+	MultiPointer(ptrRVectorAllocSize1, 0, 0, 0, 0x0056F0FB);
+	MultiPointer(ptrRVectorAllocSize2, 0, 0, 0, 0x0056F161);
+	CodePatch RVectorAllocSize1 = { ptrRVectorAllocSize1, "", "\xFF\xFF\xFF\xFF", 4, false };
+	CodePatch RVectorAllocSize2 = { ptrRVectorAllocSize2, "", "\xFF\xFF\xFF\xFF", 4, false };
+	MultiPointer(ptrBitmapDatabasePad, 0, 0, 0, 0x006679C5);
+	CodePatch SoftwareMode_BitmapDatabasePadSize = { ptrBitmapDatabasePad, "", "\xFA\x00\x00", 3, false };
+	MultiPointer(ptrBitmapDataSize, 0, 0, 0, 0x006679D6);
+	CodePatch SoftwareMode_BitmapDataSize = { ptrBitmapDataSize, "", "\x7D\x00\x00", 3, false };
+
 	void executeNova()
 	{
 		Console::eval("IDSTR_MISSING_FILE_TITLE = 00131400,\"Missing File\";");
@@ -206,6 +216,7 @@ namespace NovaCore
 		Console::eval("if($cargv1 != \"-s\"){checkForFile(\"Nova.vol\", \"mods\\\\replacements\\\\NovaAssets.zip\", \"mods\\\\ScriptGL\\\\NovaScriptGLassets.zip\");}");
 		Console::eval("newObject(cDel,ESCSDelegate,false,LOOPBACK,0);");
 		Console::eval("newobject(NovaVol, simVolume, \"Nova.vol\");");
+		Console::eval("exec(\"Nova_Core.cs\");");
 		Console::eval("if($cargv1 != \"-s\"){newObject(simCanvas,SimGui::Canvas,Starsiege,640,480,true,1);}");
 		Console::eval("exec(\"Nova_Start.cs\");");
 	}
@@ -495,7 +506,7 @@ namespace NovaCore
 	NAKED void SimGuiSliderMinMax() {
 		__asm {
 			mov edx, slider_min
-			mov[ebx + 0x1BC], edx
+			mov [ebx + 0x1BC], edx
 			mov edx, slider_max
 			mov dword ptr[ebx + 0x1C0], edx
 			jmp ptrSimguiSlider_Resume
@@ -604,6 +615,9 @@ namespace NovaCore
 		return "true";
 	}
 
+	MultiPointer(ptrHudDLGChatboxWidth, 0, 0, 0, 0x0052CB5E);
+	CodePatch huddlgchatboxwidth = { ptrHudDLGChatboxWidth,"","\x76\x02",2,false };
+
 	struct Init {
 		Init() {
 
@@ -626,8 +640,16 @@ namespace NovaCore
 			simguislidercolor.Apply(true);
 			//defaultStringTag.Apply(true);
 
+			//Expand the width of the chat input box
+			huddlgchatboxwidth.Apply(true);
 			//Message Box Creation
 			//messageboxpatch.DoctorRelative((u32)messageBoxPatch, 1).Apply(true);
+
+			//RVectorRead/Write size
+			RVectorAllocSize1.Apply(true);
+			RVectorAllocSize2.Apply(true);
+			SoftwareMode_BitmapDatabasePadSize.Apply(true);
+			SoftwareMode_BitmapDataSize.Apply(true);
 		}
 	} init;
 }
