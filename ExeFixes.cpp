@@ -539,7 +539,7 @@ namespace ExeFixes {
 	//MISSING ADDITIONAL ASM
 	//MultiPointer(ptrInteriorPluginFunctionList, 0, 0, 0x006AA25C, 0x006BA2D4);
 	//MultiPointer(ptrInteriorPluginNOP, 0, 0, 0x006AA261, 0x006BA2D9);
-	//static const char* interiorPlugin = "InteriorPlugin [Re-implemented]";
+	//static const char* interiorPlugin = "InteriorPlugin";
 	//static const char* setInteriorShapeState = "setInteriorShapeState";
 	//static const char* setInteriorLightState = "setInteriorLightState";
 	//static const char* animateInteriorLight = "animateInteriorLight";
@@ -591,6 +591,34 @@ namespace ExeFixes {
 	//		mov eax, [ebx + 8]
 	//		call[ptrFunctionAllocation]
 	//		retn
+	//	}
+	//}
+
+	//MultiPointer(SimGame__registerPlugin, 0, 0, 0, 0x005A0DB4);
+	//MultiPointer(sub_44ABFC, 0, 0, 0, 0x0044ABFC);
+	//MultiPointer(sub_5A3EC8, 0, 0, 0, 0x005A3EC8);
+	//MultiPointer(off_6D833C, 0, 0, 0, 0x006D833C);
+	//MultiPointer(ptrPluginInitsResume, 0, 0, 0, 0x00401526);
+	//MultiPointer(ptrPluginInits, 0, 0, 0, 0x00401502);
+	//CodePatch interiorPluginInsert = { ptrPluginInits, "", "\xE9IPLI", 5, false };
+	//NAKED void InteriorPluginInsert() {
+	//	__asm {
+	//		mov     eax, ebx
+	//		call    [SimGame__registerPlugin]
+	//		push    0x0C
+	//		call    [sub_44ABFC]
+	//		pop     ecx
+	//		mov     esi, eax
+	//		test    eax, eax
+	//		jz      __mov_edx_esi
+	//		mov     eax, esi
+	//		call    [sub_5A3EC8]
+	//		mov     dword ptr[esi], offset [off_6D833C]
+	//		mov     edx, esi
+	//		jmp		[ptrPluginInitsResume]
+	//
+	//		__mov_edx_esi:
+	//		mov edx, esi
 	//	}
 	//}
 
@@ -686,6 +714,8 @@ namespace ExeFixes {
 	MultiPointer(ptrRainDropletSize2, 0, 0, 0x0054E498, 0x005509E0);
 	MultiPointer(ptrRainDropletSize3, 0, 0, 0x0054E4A2, 0x005509EA);
 
+	MultiPointer(ptrMaxRainParticles, 0, 0, 0, 0x00753D8C);
+	MultiPointer(ptrMaxSnowParticles, 0, 0, 0, 0x00753D84);
 	//CodePatch RainfallDropletSize1 = { ptrRainDropletSize1, "", "\xCD\xCC\xFC\x3D", 4, false };
 	//CodePatch RainfallDropletSize2 = { ptrRainDropletSize2, "", "\x9A\x99\xFC\x3E", 4, false };
 	//CodePatch RainfallDropletSize3 = { ptrRainDropletSize3, "", "\xCD\xCC\xFC\x3E", 4, false };
@@ -693,6 +723,7 @@ namespace ExeFixes {
 	{
 		CodePatch SnowfallMaxIntensity = { ptrSnowfallMaxIntensity, "", "\x00\x00\x48\x42", 4, false };
 		CodePatch SnowfallMaxFlakes = { ptrSnowfallMaxFlakes, "", "\x00\xA0\x00\x00", 4, false };
+		CodePatch MaxSnowParticles = { ptrMaxSnowParticles, "", "\x00\x00\x10\x00", 4, false };
 		CodePatch SnowfallRadius = { ptrSnowfallRenderRadius, "", "\x00\x00\x40\x44", 4, false };
 		//SNOW
 		SnowfallMaxFlakes.Apply(true);
@@ -701,6 +732,7 @@ namespace ExeFixes {
 
 		CodePatch RainfallRenderRadius = { ptrRainfallRenderRadius, "", "\x00\x00\x00\x44", 4, false };
 		CodePatch RainfallMaxDroplets = { ptrRainfallMaxDroplets, "", "\x00\xA0\x00\x00", 4, false }; //Anything higher than 4096 will halt the game
+		CodePatch MaxRainParticles = { ptrMaxRainParticles, "", "\x00\x10\x00\x00", 4, false };
 		CodePatch RainfallSpeed = { ptrRainfallSpeed, "", "\x00\x00\x80\xC3", 4, false };
 		//RAIN
 		RainfallRenderRadius.Apply(true);
@@ -714,6 +746,7 @@ namespace ExeFixes {
 	{
 		CodePatch SnowfallMaxIntensity = { ptrSnowfallMaxIntensity, "", "\x00\x00\x80\x3F", 4, false };
 		CodePatch SnowfallMaxFlakes = { ptrSnowfallMaxFlakes, "", "\x00\x10\x00\x00", 4, false };
+		CodePatch MaxSnowParticles = { ptrMaxSnowParticles, "", "\x00\x04\x00\x00", 4, false };
 		CodePatch SnowfallRadius = { ptrSnowfallRenderRadius, "", "\x00\x00\x48\x43", 4, false };
 		//SNOW
 		SnowfallMaxFlakes.Apply(true);
@@ -722,6 +755,7 @@ namespace ExeFixes {
 
 		CodePatch RainfallRenderRadius = { ptrRainfallRenderRadius, "", "\x00\x00\xDC\x42", 4, false };
 		CodePatch RainfallMaxDroplets = { ptrRainfallMaxDroplets, "", "\x00\x10\x00\x00", 4, false };
+		CodePatch MaxRainParticles = { ptrMaxRainParticles, "", "\x00\x04\x00\x00", 4, false };
 		CodePatch RainfallSpeed = { ptrRainfallSpeed, "", "\x00\x00\xAA\xC2", 4, false };
 		//RAIN
 		RainfallRenderRadius.Apply(true);
@@ -802,9 +836,33 @@ namespace ExeFixes {
 
 	void* inputPtr = 0x0;
 	int isBadPtr = 0;
-	void simVolumetricCheckForBadPtr()
+	void CheckForBadReadPtr()
 	{
 		if (IsBadMemPtr(FALSE, inputPtr, 4)) //We have read access at this memory address
+		{
+			isBadPtr = 0;
+		}
+		else
+		{
+			isBadPtr = 1;
+		}
+	}
+
+	void CheckForBadWritePtr()
+	{
+		if (IsBadMemPtr(TRUE, inputPtr, 4)) //We have read access at this memory address
+		{
+			isBadPtr = 0;
+		}
+		else
+		{
+			isBadPtr = 1;
+		}
+	}
+
+	void packetCheckForBadPtr()
+	{
+		if (IsBadMemPtr(TRUE, inputPtr, 4)) //We have read access at this memory address
 		{
 			isBadPtr = 0;
 		}
@@ -836,7 +894,7 @@ namespace ExeFixes {
 			lea edx, [ecx + edx * 8]
 			mov inputPtr, edx
 			mov dummy3, edx //Save the memory address of edx after we LEA
-			call simVolumetricCheckForBadPtr
+			call CheckForBadReadPtr
 
 			//Move the memory addresses that were wiped by our simVolumetricCheckForBadPtr() back into their associated registers
 			mov eax, dummy
@@ -1109,8 +1167,11 @@ namespace ExeFixes {
 	CodePatch setHudMapViewOffsetPatch2 = { ptrSetHudMapViewOffset2, "", "\xEB\x03", 2, false };
 	CodePatch setHudMapViewOffsetPatch3 = { ptrSetHudMapViewOffset3, "", "\x90\x90\x90", 3, false };
 
+	MultiPointer(ptrSimGameForceSetTime, 0, 0, 0, 0x0059EF58);
+
 	struct Init {
 		Init() {
+
 			//WindowsCompatMode();
 			if (VersionSnoop::GetVersion() == VERSION::vNotGame) {
 				return;
@@ -1189,7 +1250,7 @@ namespace ExeFixes {
 			invalidpartfixfix.DoctorRelative((u32)InvalidPartFixFix, 1).Apply(true);
 
 			//Fix material lists crashing when applied to a SimVolumetric
-			volumetriccrashcatcher.DoctorRelative((u32)VolumetricCrashCatcher, 1).Apply(true);
+			//volumetriccrashcatcher.DoctorRelative((u32)VolumetricCrashCatcher, 1).Apply(true); //MASSIVE PERFORMANCE LOSS WITH CURRENT METHOD
 			//recordcrashcatcher.DoctorRelative((u32)RecordCrashCatcher, 1).Apply(true);
 
 			//Console open
@@ -1220,6 +1281,7 @@ namespace ExeFixes {
 			//Herc
 			uncapHercCameraAnimationRate.Apply(true);
 			uncapHercShapeAnimationRate.Apply(true);
+
 			//uncapHercNetSync.Apply(true); - NOPE, this breaks vehicles when they shoot
 
 			//Query the ENTIRE $Inet::Master array, not just the 1st entry.
@@ -1243,6 +1305,7 @@ namespace ExeFixes {
 			setHudMapViewOffsetPatch1.Apply(true);
 			setHudMapViewOffsetPatch2.Apply(true);
 			setHudMapViewOffsetPatch3.Apply(true);
+
 		}
 	} init;
 }; // namespace ExeFixes
