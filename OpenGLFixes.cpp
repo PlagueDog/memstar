@@ -21,6 +21,46 @@ using namespace std;
 namespace OpenGLFixes
 {
 
+	CodePatch Surface_TextureCache_sm_cacheMagic = { 0x0072A5A4, "", "\x00\x00\x00\x01", 4, false };
+	const UINT32 TextureCache_csm_sizeIndices[10] = { 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 };
+	const UINT32 TextureCache_csm_cacheDSize[10] = { 40960, 40960, 40960, 40960, 40960, 40960, 40960, 40960, 40960, 40960};
+	MultiPointer(ptrSurfaceTextureCacheGetArena, 0, 0, 0, 0x0064CEF0);
+	CodePatch surfacetexturecachegetarena = { ptrSurfaceTextureCacheGetArena, "", "\xE9STCH", 5, false };
+	NAKED void SurfaceTextureCacheGetArena()
+	{
+		__asm {
+			xor eax, eax
+			mov ecx, offset TextureCache_csm_sizeIndices
+			
+			jl__:
+			cmp edx, [ecx]
+			jbe retn__
+			inc eax
+			add ecx, 4
+			cmp eax, 10
+			jl  jl__
+			mov eax, 0xF00FF00F
+
+			retn__:
+			retn
+
+		}
+	}
+
+
+	MultiPointer(ptrBitmapCaching, 0, 0, 0, 0x0064D19B);
+	MultiPointer(ptrBitmapCachingResume, 0, 0, 0, 0x0064D1AB);
+	//CodePatch bitmapcachingPAD = { ptrBitmapCaching, "", "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 16, false };
+	CodePatch bitmapcaching = { ptrBitmapCaching, "", "\xE9_BMC", 5, false };
+	NAKED void BitmapCaching()
+	{
+		__asm {
+		mov[esp + 0x30 - 0x18], offset TextureCache_csm_sizeIndices
+		mov[esp + 0x30 - 0x1C], offset TextureCache_csm_cacheDSize
+		jmp ptrBitmapCachingResume
+		}
+	}
+
 	//Patch to handle custom opengl32.dll's
 	MultiPointer(wglGetDefaultProcAddress, 0, 0, 0x0071B86F, 0x0072BE5B);
 	CodePatch wglGetDefaultProcAddressPatch = { wglGetDefaultProcAddress, "", "glGetTexLevelParameteriv", 24, false };
@@ -44,8 +84,8 @@ namespace OpenGLFixes
 		int x = window.left;
 		int y = window.top;
 		Console::eval("bind(mouse,xaxis,TO,\"Nova::handleLoseFocus();Nova::sendWindowToFront();unbind(mouse,xaxis,make);\"); ");
-		//SetWindowPos(getHWND(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-		SetWindowPos(getHWND(), HWND_NOTOPMOST, x, y, 0, 0, SWP_NOSIZE );
+		SetWindowPos(getHWND(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+		//SetWindowPos(getHWND(), HWND_NOTOPMOST, x, y, 0, 0, SWP_NOSIZE );
 		//ShowWindow(getHWND(), SW_RESTORE);
 		//Console::eval("Nova::handleLoseFocus();");
 	}
@@ -414,7 +454,7 @@ namespace OpenGLFixes
 			//WndInsertAfter0.Apply(true);
 			//wglinfowindow_bypass.Apply(true);
 			windowproperiespatch.DoctorRelative((u32)WindowPropertiesPatch, 1).Apply(true);
-			BitmapCtrlLineFix.Apply(true); //Hide seams in chunked bitmaps
+			//BitmapCtrlLineFix.Apply(true); //Hide seams in chunked bitmaps //CAUSES ARTIFACTS IN RESOLUTION SCALING DOWN
 			//introtomaincrashfix.DoctorRelative((u32)IntroToMainCrashFix, 1).Apply(true);
 			minimizecallintercept.DoctorRelative((u32)MinimizeCallIntercept, 1).Apply(true);
 			//goSplash640.Apply(true);
@@ -422,6 +462,11 @@ namespace OpenGLFixes
 			//tempPatch.Apply(true);
 			//gdi_opengl.DoctorRelative((u32)GDI_OpenGL, 1).Apply(true);
 
+			//Expanded cache sizes and indices
+			//surfacetexturecachegetarena.DoctorRelative((u32)SurfaceTextureCacheGetArena, 1).Apply(true);
+
+			//Surface_TextureCache_sm_cacheMagic.Apply(true);
+			//interiorsurfacerendering.Apply(true);
 		}
 	} init;
 };
