@@ -1028,11 +1028,11 @@ namespace ModloaderMain {
 		std::string var = Console::getVariable("pref::mapviewSmoothTerrain");
 		if (var.compare("1") == 0 || var.compare("true") == 0 || var.compare("True") == 0)
 		{
-			OverviewMapFidelity.Apply(false);
+			OverviewMapFidelity.Apply(true);
 		}
 		else
 		{
-			OverviewMapFidelity.Apply(true);
+			OverviewMapFidelity.Apply(false);
 		}
 		return "true";
 	}
@@ -1321,7 +1321,7 @@ namespace ModloaderMain {
 	CodePatch packetRateDefault_patch = {
 		ptrDefPacketRate,
 		"",
-		"\xB9\xFF",
+		"\xB9\xE8\x03",
 		//"\xB9\xE8\x03", //1024
 		3,
 		false
@@ -1387,6 +1387,11 @@ namespace ModloaderMain {
 		 2,
 		 false
 	};
+
+	MultiPointer(ptrPacketRateDefault, 0, 0, 0, 0x0069094E);
+	CodePatch PacketRateDefault = { ptrPacketRateDefault,"","\xE8\x03",1,false };
+	MultiPointer(ptrPacketRateMax, 0, 0, 0, 0x00690974);
+	CodePatch PacketRateMax = { ptrPacketRateMax,"","\xE8\x03",1,false };
 
 	//Constructor bypasses for 1.004. 1.003 does not have any
 	CodePatch constructorBypass01 = { 0x0040206C,"","\xC6\x05\x58\x90\x6D\x00\x01",7,false };
@@ -1741,11 +1746,15 @@ namespace ModloaderMain {
 
 			remoteEvalBufferSize_S_patch.Apply(true);
 			remoteEvalBufferSize_R_patch.Apply(true);
-			packetRate_patch.Apply(true);
+			//packetRate_patch.Apply(true);
 			packetRateCheck_patch.Apply(true);
 			packetRateDefault_patch.Apply(true);
 			packetRateDefaultMax_patch.Apply(true);
 			loopback_packetRate_patch.Apply(true);
+
+			PacketRateDefault.Apply(true);
+			PacketRateMax.Apply(true);
+
 			//packetSize_patch.Apply(true);
 			ignoreMissingServerVolume_patch.Apply(true);
 			invalidPackets1_patch.Apply(true);

@@ -156,6 +156,7 @@
   <ItemGroup>
     <ClInclude Include="Console.h" />
     <ClInclude Include="conversionFunctions.h" />
+    <ClInclude Include="dirent.h" />
     <ClInclude Include="Fear.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="Font.h" />
