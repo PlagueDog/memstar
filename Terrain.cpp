@@ -728,6 +728,53 @@ namespace Terrain {
 		}
 	}
 
+	//Fix fog blending on terrain tiles
+	MultiPointer(ptrGridRenderEnd, 0, 0, 0, 0x005F7AF6);
+	MultiPointer(ptrGridRenderEndResume, 0, 0, 0, 0x005F7B0D);
+	MultiPointer(ptrTerrainOGL_Blend, 0, 0, 0, 0x005F7A77);
+	MultiPointer(stru_4BFCB0, 0, 0, 0, 0x004BFCB0);
+	MultiPointer(stru_4BFC68, 0, 0, 0, 0x004BFC68);
+	MultiPointer(fnDynamicCast, 0, 0, 0, 0x006CBA2C);
+	CodePatch terrainBlendFixReroute = { ptrGridRenderEnd,"","\xE9OGFF",5,false };
+
+	NAKED void TerrainBlendFixReroute() {
+		__asm {
+			call OpenGL::IsActive
+			and al, al
+			jz __jz
+			jmp ptrTerrainOGL_Blend
+
+			__jz:
+			mov		eax, [ebx + 0x2D8]
+			mov     edx, 8
+			mov     ecx, [eax + 4]
+			call    dword ptr[ecx + 0x4C]
+			add     esp, 0x28
+			pop     edi
+			pop     esi
+			pop     ebx
+			jmp ptrGridRenderEndResume
+		}
+	}
+
+	MultiPointer(ptrOGLBlend_Call, 0, 0, 0, 0x005F7AA3);
+	MultiPointer(ptrOGLBlend_Subr, 0, 0, 0, 0x00652064);
+	CodePatch terrainOGL_Blend = { ptrOGLBlend_Call,"","\xE9OGBC",5,false };
+	NAKED void TerrainOGL_Blend() {
+		__asm {
+			call	ptrOGLBlend_Subr
+			mov		eax, [ebx + 0x2D8]
+			mov     edx, 8
+			mov     ecx, [eax + 4]
+			call    dword ptr[ecx + 0x4C]
+			add     esp, 0x28
+			pop     edi
+			pop     esi
+			pop     ebx
+			jmp		ptrGridRenderEndResume
+		}
+	}
+
 	BuiltInFunction("OpenGL::terrainFix", _openglterrainfix)
 	{
 		if (argc != 1)
@@ -747,16 +794,21 @@ namespace Terrain {
 		return "true";
 	}
 
+	MultiPointer(ptrGridRender_drawSqare_mipLevel, 0, 0, 0, 0x005FAFC4);
+	CodePatch gridRenderDrawSqareMipLevelTweak = { ptrGridRender_drawSqare_mipLevel,"\x00\x00\x80\x3F","\x00\x00\x40\x3F",5,false };
+
 	void Open() {
-		//Callback::attach(Callback::OnOpenGL, OnOpenGL);
+		Callback::attach(Callback::OnOpenGL, OnOpenGL);
 
 		//patchOGL_to_Software_terrain_render.Apply(true);
 		//patchOGL_to_Software_terrain_render_bad_mips.Apply(true);
 		
 		//patchOGL_to_Software_tile_render.Apply(true);
 		//patchterrainrender.DoctorRelative((u32)patchTerrainRender, 1).Apply(true);
-		terraindetail.DoctorRelative((u32)terrainDetail, 1).Apply(true);
-		
+		terraindetail.DoctorRelative((u32)terrainDetail, 1).Apply(true);//Actual fix
+		terrainBlendFixReroute.DoctorRelative((u32)TerrainBlendFixReroute, 1).Apply(true);//OGL Blend reroute
+		terrainOGL_Blend.DoctorRelative((u32)TerrainOGL_Blend, 1).Apply(true);//OGL Blend call
+		//gridRenderDrawSqareMipLevelTweak.Apply(true); //Bump up the mip level detail to reduce mip artifacts
 		//
 		//badterrainmipshackfix.DoctorRelative((u32)BadTerrainMipsHackFix, 1).Apply(true);
 		//DEPRECATED
