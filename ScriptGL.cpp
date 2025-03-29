@@ -180,6 +180,9 @@ namespace ScriptGL {
 			char* hudfunction = (pre_or_post) ?
 				"ScriptGL::hud::onPostDraw" : "ScriptGL::hud::onPreDraw";
 
+			char* novafunction = (pre_or_post) ?
+				"ScriptGL::nova::onPostDraw" : "ScriptGL::nova::onPreDraw";
+
 			Vector2i screen;
 			Fear::getScreenDimensions(&screen);
 			String2 dim;
@@ -200,6 +203,11 @@ namespace ScriptGL {
 			if (Console::functionExists(shellfunction) && !Sim::Client()->findObject<Object>(651))
 			{
 				Console::execFunction(1, shellfunction, dim.c_str());
+			}
+
+			if (Console::functionExists(novafunction))
+			{
+				Console::execFunction(1, novafunction, dim.c_str());
 			}
 
 		}
