@@ -15,6 +15,7 @@ using namespace conversionFunctions;
 
 namespace ExtendedVariables
 {
+	u32 dummy, dummy2, dummy3, dummy4, dummy5;
 	MultiPointer(ptrFloatTOInt, 0, 0, 0, 0x00693F08);
 	MultiPointer(_tan, 0, 0, 0, 0x006D0D34);
 	MultiPointer(_atan2, 0, 0, 0, 0x006D0404);
@@ -351,31 +352,35 @@ namespace ExtendedVariables
 		return "true";
 	}
 
-	MultiPointer(ptrAimReticle, 0, 0, 0, 0x0051FE30);
-	MultiPointer(ptrAimReticleResume, 0, 0, 0, 0x0051FE42);
-	CodePatch aimreticlepositions = { ptrAimReticle, "", "\xE9_AIM", 5, false };
+	BuiltInVariable("$vehicle::reticleXPosition", float, clientaimreticle_X, 0);
+	BuiltInVariable("$vehicle::reticleYPosition", float, clientaimreticle_Y, 0);
+	void processReticleVars()
+	{
+		Vector2i screen;
+		Fear::getScreenDimensions(&screen);
+		int width = screen.x;
+		int height = screen.y;
+		clientaimreticle_X = floor((width / 2) - (width * (clientaimreticle_X * 0.5)));
+		clientaimreticle_Y = floor((height / 2) - (height * (clientaimreticle_Y * 0.5)));
+	}
 
-	BuiltInVariable("$vehicle::aimReticleVectorY", float, clientaimreticle1, 1);
-	BuiltInVariable("$vehicle::aimReticleVectorX", float, clientaimreticle2, 1);
-	//BuiltInVariable("$client::aimReticle3", float, clientaimreticle3, 1);
-	//BuiltInVariable("$client::aimReticle4", float, clientaimreticle4, 1);
-	//BuiltInVariable("$client::aimReticle4", float, clientaimreticle5, 1);
-	//BuiltInVariable("$client::aimReticle5", float, clientaimreticle6, 1);
-	//BuiltInVariable("$client::aimReticle6", float, clientaimreticle7, 1);
-	NAKED void aimReticlePositions() {
+	//Formula to calculate the actual vertical offset - (getwindowsize(height)/2)-(getwindowsize(height)*($vehicle::aimReticleY*0.5))
+	MultiPointer(ptrAimReticleVerticalPosition, 0, 0, 0, 0x0051FF9E);
+	MultiPointer(ptrAimReticleVerticalPositionResume, 0, 0, 0, 0x0051FFA4);
+	CodePatch aimreticlevertical = { ptrAimReticleVerticalPosition, "", "\xE9_ARV", 5, false };
+	NAKED void aimReticleVertical() {
 		__asm {
-			mov clientaimreticle1, edx
-			mov		[esp + 0x50 - 0x1C], edx
-			mov     ecx, [eax + 4]
-			mov		[esp + 0x50 - 0x18], ecx
-			mov     eax, [eax + 8]
-			mov clientaimreticle2, eax
-			mov		[esp + 0x50 - 0x14], eax
-			
-			//mov ecx, [esp + 0x50 - 0x2C]
-			//mov clientaimreticle5, ecx
-			//xor ecx, ecx
-			jmp[ptrAimReticleResume]
+			//mov dummy, 0
+			//mov dummy, ecx
+			mov ecx, [esp + 0x50 - 0x44] // X
+			mov clientaimreticle_X, ecx
+			mov ecx, [esp + 0x50 - 0x2C] // Y
+			mov clientaimreticle_Y, ecx
+			call processReticleVars
+			//mov ecx, dummy
+			mov ecx, [ebx + 0x1A8]
+
+			jmp[ptrAimReticleVerticalPositionResume]
 		}
 	}
 
@@ -383,25 +388,27 @@ namespace ExtendedVariables
 		Init() {
 
 			//Vehicle vars
-			codepatch_getkph.DoctorRelative((u32)getKPH, 1).Apply(true);
-			codepatch_getradar.DoctorRelative((u32)getRadar, 1).Apply(true);
-			codepatch_getradarrange.DoctorRelative((u32)getRadarRange, 1).Apply(true);
-			assignhudproperties.DoctorRelative((u32)assignHudProperties, 1).Apply(true);
-			codepatch_getshield.DoctorRelative((u32)getShield, 1).Apply(true);
-			codepatch_getshieldforward.DoctorRelative((u32)getShieldForward, 1).Apply(true);
-			codepatch_getshieldmodrotation.DoctorRelative((u32)getShieldModRotation, 1).Apply(true);
-			codepatch_getenergy.DoctorRelative((u32)getEnergy, 1).Apply(true);
-			codepatch_getthrottle.DoctorRelative((u32)getThrottle, 1).Apply(true);
-			codepatch_getteamyellow.DoctorRelative((u32)getTeamYellow, 1).Apply(true);
-			codepatch_getteamblue.DoctorRelative((u32)getTeamBlue, 1).Apply(true);
-			codepatch_getteamred.DoctorRelative((u32)getTeamRed, 1).Apply(true);
-			codepatch_getteampurple.DoctorRelative((u32)getTeamPurple, 1).Apply(true);
-			aimreticlepositions.DoctorRelative((u32)aimReticlePositions, 1).Apply(true);
-
-			ctreepointers.DoctorRelative((u32)cTreePointers, 1).Apply(true);
-			ctreepointers_nameless.DoctorRelative((u32)cTreePointers_nameless, 1).Apply(true);
-			clienttreewin.DoctorRelative((u32)ClientTreeWin, 1).Apply(true);
+			//codepatch_getkph.DoctorRelative((u32)getKPH, 1).Apply(true);
+			//codepatch_getradar.DoctorRelative((u32)getRadar, 1).Apply(true);
+			//codepatch_getradarrange.DoctorRelative((u32)getRadarRange, 1).Apply(true);
+			//assignhudproperties.DoctorRelative((u32)assignHudProperties, 1).Apply(true);
+			//codepatch_getshield.DoctorRelative((u32)getShield, 1).Apply(true);
+			//codepatch_getshieldforward.DoctorRelative((u32)getShieldForward, 1).Apply(true);
+			//codepatch_getshieldmodrotation.DoctorRelative((u32)getShieldModRotation, 1).Apply(true);
+			//codepatch_getenergy.DoctorRelative((u32)getEnergy, 1).Apply(true);
+			//codepatch_getthrottle.DoctorRelative((u32)getThrottle, 1).Apply(true);
+			//codepatch_getteamyellow.DoctorRelative((u32)getTeamYellow, 1).Apply(true);
+			//codepatch_getteamblue.DoctorRelative((u32)getTeamBlue, 1).Apply(true);
+			//codepatch_getteamred.DoctorRelative((u32)getTeamRed, 1).Apply(true);
+			//codepatch_getteampurple.DoctorRelative((u32)getTeamPurple, 1).Apply(true);
+			//
+			//ctreepointers.DoctorRelative((u32)cTreePointers, 1).Apply(true);
+			//ctreepointers_nameless.DoctorRelative((u32)cTreePointers_nameless, 1).Apply(true);
+			//clienttreewin.DoctorRelative((u32)ClientTreeWin, 1).Apply(true);
 			canvasmousepatch.DoctorRelative((u32)CanvasMousePatch, 1).Apply(true);
+
+			//dev aim-retical positions
+			//aimreticlevertical.DoctorRelative((u32)aimReticleVertical, 1).Apply(true);
 		}
 	}init;
 };

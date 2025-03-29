@@ -594,34 +594,6 @@ namespace ExeFixes {
 	//	}
 	//}
 
-	//MultiPointer(SimGame__registerPlugin, 0, 0, 0, 0x005A0DB4);
-	//MultiPointer(sub_44ABFC, 0, 0, 0, 0x0044ABFC);
-	//MultiPointer(sub_5A3EC8, 0, 0, 0, 0x005A3EC8);
-	//MultiPointer(off_6D833C, 0, 0, 0, 0x006D833C);
-	//MultiPointer(ptrPluginInitsResume, 0, 0, 0, 0x00401526);
-	//MultiPointer(ptrPluginInits, 0, 0, 0, 0x00401502);
-	//CodePatch interiorPluginInsert = { ptrPluginInits, "", "\xE9IPLI", 5, false };
-	//NAKED void InteriorPluginInsert() {
-	//	__asm {
-	//		mov     eax, ebx
-	//		call    [SimGame__registerPlugin]
-	//		push    0x0C
-	//		call    [sub_44ABFC]
-	//		pop     ecx
-	//		mov     esi, eax
-	//		test    eax, eax
-	//		jz      __mov_edx_esi
-	//		mov     eax, esi
-	//		call    [sub_5A3EC8]
-	//		mov     dword ptr[esi], offset [off_6D833C]
-	//		mov     edx, esi
-	//		jmp		[ptrPluginInitsResume]
-	//
-	//		__mov_edx_esi:
-	//		mov edx, esi
-	//	}
-	//}
-
 	MultiPointer(ptrSimShapeDrawBBoxByte, 0, 0, 0x0072CF90, 0x0073D5A8);
 	CodePatch SimShapeBBoxByte0 = { ptrSimShapeDrawBBoxByte, "", "\x00", 1, false };
 	CodePatch SimShapeBBoxByte1 = { ptrSimShapeDrawBBoxByte, "", "\x01", 1, false };
@@ -1167,11 +1139,8 @@ namespace ExeFixes {
 	CodePatch setHudMapViewOffsetPatch2 = { ptrSetHudMapViewOffset2, "", "\xEB\x03", 2, false };
 	CodePatch setHudMapViewOffsetPatch3 = { ptrSetHudMapViewOffset3, "", "\x90\x90\x90", 3, false };
 
-	MultiPointer(ptrSimGameForceSetTime, 0, 0, 0, 0x0059EF58);
-
 	struct Init {
 		Init() {
-
 			//WindowsCompatMode();
 			if (VersionSnoop::GetVersion() == VERSION::vNotGame) {
 				return;
@@ -1281,7 +1250,6 @@ namespace ExeFixes {
 			//Herc
 			uncapHercCameraAnimationRate.Apply(true);
 			uncapHercShapeAnimationRate.Apply(true);
-
 			//uncapHercNetSync.Apply(true); - NOPE, this breaks vehicles when they shoot
 
 			//Query the ENTIRE $Inet::Master array, not just the 1st entry.
@@ -1305,7 +1273,6 @@ namespace ExeFixes {
 			setHudMapViewOffsetPatch1.Apply(true);
 			setHudMapViewOffsetPatch2.Apply(true);
 			setHudMapViewOffsetPatch3.Apply(true);
-
 		}
 	} init;
 }; // namespace ExeFixes
