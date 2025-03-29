@@ -33,6 +33,23 @@ bool isFile(const char* file)
 	return false;
 }
 
+BuiltInFunction("isFile", _novaisfile)
+{
+	if (argc != 1)
+	{
+		Console::echo("%s( file );", self);
+		return 0;
+	}
+	string fileName = argv[0];
+	fileName.erase(std::remove(fileName.begin(), fileName.end(), '"'), fileName.end());
+	const char* rFileName = fileName.c_str();
+	if (isFile(rFileName))
+	{
+		return "true";
+	}
+	return 0;
+}
+
 //static const char* dirCustomVehicles = "vehicles\\*.veh";
 //static const char* dirStandardVehicles_S = "vehicles\\%s.fvh";
 //static const char* dirStandardVehicles = "vehicles\\*.fvh";
@@ -701,7 +718,7 @@ namespace serverDataHandler {
 	BuiltInFunction("modloader::uploadFiletoClient", _mluftc) {
 		if (argc != 3 || !strlen(argv[0]) || !strlen(argv[1]) || !strlen(argv[2]))
 		{
-			Console::echo("%s( file, playerID, token );", self);
+			Console::echo("%s( file, playerID, token);", self);
 			return 0;
 		}
 		if (!isFile(argv[0]))
@@ -740,7 +757,7 @@ namespace serverDataHandler {
 
 		int counter = 0;
 		float throttle = 0.000;
-		//string data = tmp.substr(counter, 254);
+		string data = tmp.substr(counter, 254);
 		while (counter <= tmp_trim.size())
 		{
 			string data1 = tmp_trim.substr(counter, 700); //Start at index 0 and increment by 254 each loop
@@ -754,14 +771,34 @@ namespace serverDataHandler {
 			strcat(eval, "\",\"");
 			strcat(eval, argv[2]);
 			strcat(eval, "\");','");
-			//Need to micro-schedule all the remoteEvals or larger files will freeze the client mommentarily
-			strcat(eval, tostring(throttle += 0.025));
+			strcat(eval, tostring(throttle += 0.025));//Need to micro-schedule all the remoteEvals or larger files will freeze the client mommentarily
 			strcat(eval, "');");
 			Console::eval(eval);
-			//Console::echo(eval);
 			free(eval);
 			counter += 700;
 		}
+		//while (counter <= tmp_trim.size())
+		//{
+		//	string data = tmp_trim.substr(counter, 700);
+		//	char eval[900];
+		//	strcpy(eval, "remoteEval(\"");
+		//	strcat(eval, argv[1]); //playerID
+		//	strcat(eval, "\",\"");
+		//	strcat(eval, "modloader::recieveFileData"); //function
+		//	strcat(eval, "\",\"");
+		//	strcat(eval, argv[2]); //token
+		//	strcat(eval, "\",\"");
+		//	strcat(eval, argv[0]); //file
+		//	strcat(eval, "\",\"");
+		//	strcat(eval, data.c_str());
+		//	strcat(eval, "\",\"");
+		//	strcat(eval, argv[3]); //offset
+		//	strcat(eval, "\");");
+		//	Console::eval(eval);
+		//	Console::echo(eval);
+		//	free(eval);
+		//	counter += 700;
+		//}
 		return 0;
 	}
 
