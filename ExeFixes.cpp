@@ -1139,6 +1139,9 @@ namespace ExeFixes {
 	CodePatch setHudMapViewOffsetPatch2 = { ptrSetHudMapViewOffset2, "", "\xEB\x03", 2, false };
 	CodePatch setHudMapViewOffsetPatch3 = { ptrSetHudMapViewOffset3, "", "\x90\x90\x90", 3, false };
 
+	MultiPointer(fnCanvas__onMouseMove, 0, 0, 0, 0x005C908C);
+	CodePatch disable_fnCanvasonMouseMove = { fnCanvas__onMouseMove, "", "\xC3", 1, false };
+
 	struct Init {
 		Init() {
 			//WindowsCompatMode();
@@ -1273,6 +1276,9 @@ namespace ExeFixes {
 			setHudMapViewOffsetPatch1.Apply(true);
 			setHudMapViewOffsetPatch2.Apply(true);
 			setHudMapViewOffsetPatch3.Apply(true);
+
+			//Mouse Events
+			disable_fnCanvasonMouseMove.Apply(true); //Disable this function to fix game cursor jumping around when clicking back into the game window
 		}
 	} init;
 }; // namespace ExeFixes
