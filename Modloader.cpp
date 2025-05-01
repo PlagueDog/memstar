@@ -148,6 +148,8 @@ char* flt2hex(float input = 0.00, int type = 0)
 	return hexString;
 }
 
+BuiltInVariable("pref::playGameLaunchSmackers", bool, prefplayGameLaunchSmackers, true);
+
 //OpenGL
 MultiPointer(ptrOGLWidthMin, 0, 0, 0x0063C80C, 0x0064B74C);
 MultiPointer(ptrOGLWidthMax, 0, 0, 0x0063C817, 0x0064B757);
@@ -404,16 +406,16 @@ namespace ModloaderMain {
 
 	BuiltInFunction("disableWindowBorder", _dwd) {
 		LONG lStyle = GetWindowLong(getGameHWND(), GWL_STYLE);
-		lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+		lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
 		SetWindowLong(getGameHWND(), GWL_STYLE, lStyle);
 		return "true";
 	}
 
 	BuiltInFunction("enableWindowBorder", _ewb) {
 		LONG lStyle = GetWindowLong(getGameHWND(), GWL_STYLE);
-		lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU);
+		lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
 		//SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU);
-		SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME | WS_SYSMENU);
+		SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME);
 		return "true";
 	}
 
@@ -423,7 +425,7 @@ namespace ModloaderMain {
 			Console::echo("%s( int_xPosition, int_yPosition, int_windowWidth, int_windowHeight );", self);
 			return 0;
 		}
-		SetWindowPos(getGameHWND(), HWND_TOPMOST, atoi(argv[0]), atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), NULL);
+		SetWindowPos(getGameHWND(), HWND_NOTOPMOST, atoi(argv[0]), atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), NULL);
 		return "True";
 	}
 
@@ -1349,14 +1351,10 @@ namespace ModloaderMain {
 
 	//Packet size controls the approximate size of each packet.
 	//Increase the packetSize cap from 200 to 1000
-	MultiPointer(ptrPacketSize, 0, 0, 0x00680A90, 0x00690960);
-	CodePatch packetSize_patch = {
-		ptrPacketSize,
-		"",
-		"\xB9\x09\x01",
-		3,
-		false
-	};
+	MultiPointer(ptrPacketSizeDefault, 0, 0, 0, 0x00690961);
+	CodePatch packetSizeDefault_patch = { ptrPacketSizeDefault,"","\xE8\x03",2,false};
+	MultiPointer(ptrUncappedPacketSettings, 0, 0, 0, 0x0069096C);
+	CodePatch packetUncapped = { ptrUncappedPacketSettings,"","\xEB\x2F",2,false };
 	//Packet rate controls the number of packets per second sent from the server to the client.
 	//Increase the packetRate cap from 30 to 255
 	MultiPointer(ptrPacketRateCap, 0, 0, 0x00680A9E, 0x0069096E);
@@ -1389,9 +1387,9 @@ namespace ModloaderMain {
 	};
 
 	MultiPointer(ptrPacketRateDefault, 0, 0, 0, 0x0069094E);
-	CodePatch PacketRateDefault = { ptrPacketRateDefault,"","\xE8\x03",1,false };
+	CodePatch PacketRateDefault = { ptrPacketRateDefault,"","\x00\x10",2,false };
 	MultiPointer(ptrPacketRateMax, 0, 0, 0, 0x00690974);
-	CodePatch PacketRateMax = { ptrPacketRateMax,"","\xE8\x03",1,false };
+	CodePatch PacketRateMax = { ptrPacketRateMax,"","\xE8\x03",2,false };
 
 	//Constructor bypasses for 1.004. 1.003 does not have any
 	CodePatch constructorBypass01 = { 0x0040206C,"","\xC6\x05\x58\x90\x6D\x00\x01",7,false };
@@ -1748,12 +1746,15 @@ namespace ModloaderMain {
 			remoteEvalBufferSize_R_patch.Apply(true);
 			//packetRate_patch.Apply(true);
 			packetRateCheck_patch.Apply(true);
-			packetRateDefault_patch.Apply(true);
-			packetRateDefaultMax_patch.Apply(true);
+			//packetRateDefault_patch.Apply(true);
+			//packetRateDefaultMax_patch.Apply(true);
 			loopback_packetRate_patch.Apply(true);
 
 			PacketRateDefault.Apply(true);
-			PacketRateMax.Apply(true);
+			//PacketRateMax.Apply(true);
+
+			packetSizeDefault_patch.Apply(true);
+			packetUncapped.Apply(true);
 
 			//packetSize_patch.Apply(true);
 			ignoreMissingServerVolume_patch.Apply(true);
