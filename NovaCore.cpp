@@ -21,6 +21,8 @@
 #include <cmath>
 #include <VersionHelpers.h>
 #include <WinBase.h>
+#include <cassert>
+#include <cmath>
 
 using namespace std;
 using namespace Fear;
@@ -301,6 +303,15 @@ namespace NovaCore
 			Console::echo("%s( float );", self);
 		}
 		return tostring(trunc(atof(argv[0])));
+	}
+
+	BuiltInFunction("pow", _pow)
+	{
+		if (argc != 2)
+		{
+			Console::echo("%s( input, power );", self);
+		}
+		return tostring(pow(stod(argv[0]), stod(argv[1])));
 	}
 
 	MultiPointer(ptrExecuteConsole, 0, 0, 0x00402050, 0x00402057);
@@ -618,6 +629,13 @@ namespace NovaCore
 	MultiPointer(ptrHudDLGChatboxWidth, 0, 0, 0, 0x0052CB5E);
 	CodePatch huddlgchatboxwidth = { ptrHudDLGChatboxWidth,"","\x76\x02",2,false };
 
+	void SupportEnd1003() {
+		int choice = MessageBoxW(NULL, L"Nova no longer supports v1.003r. Use the v1.004r executable instead.", L"v1.003r Support", MB_OKCANCEL | MB_ICONSTOP | MB_SETFOREGROUND);
+		if (choice) {
+			exit(EXIT_SUCCESS);
+		}
+	}
+
 	struct Init {
 		Init() {
 
@@ -625,7 +643,7 @@ namespace NovaCore
 				clientinitredirect.DoctorRelative((u32)ClientInitRedirect_1004r, 1).Apply(true);
 			}
 			if (VersionSnoop::GetVersion() == VERSION::v001003) {
-				clientinitredirect.DoctorRelative((u32)ClientInitRedirect_1003r, 1).Apply(true);
+				SupportEnd1003();
 			}
 			weaponinit.DoctorRelative((u32)WeaponInit, 1).Apply(true);
 			weaponinitend.DoctorRelative((u32)WeaponInitEnd, 1).Apply(true);
