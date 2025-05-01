@@ -383,7 +383,7 @@ namespace Intercepts {
 	}
 
 	MultiPointer(ptrMouseMove, 0, 0, 0x005C26A3, 0x005C5EBF);
-	MultiPointer(ptrMouseMoveResume, 0, 0, 0x005C26A9, 0x005C5EC5);
+	MultiPointer(ptrMouseMoveResume, 0, 0, 0, 0x005C5ED0);
 	CodePatch getcursor = { ptrMouseMove, "", "\xE9GCPS", 5, false };
 	BuiltInVariable("Nova::cursorLocX", float, cursor_x, 0);
 	BuiltInVariable("Nova::cursorLocY", float, cursor_y, 0);
@@ -456,6 +456,194 @@ namespace Intercepts {
 		return 0;
 	}
 
+	u32 lastKeyDown = 0;
+	void DirectInputToLabel()
+	{
+		char* chr;
+		if (lastKeyDown == 0x01) { chr = "escape";}
+		if (lastKeyDown == 0x02) { chr = "1";}
+		if (lastKeyDown == 0x03) { chr = "2";}
+		if (lastKeyDown == 0x04) { chr = "3";}
+		if (lastKeyDown == 0x05) { chr = "4";}
+		if (lastKeyDown == 0x06) { chr = "5";}
+		if (lastKeyDown == 0x07) { chr = "6";}
+		if (lastKeyDown == 0x08) { chr = "7";}
+		if (lastKeyDown == 0x09) { chr = "8";}
+		if (lastKeyDown == 0x0A) { chr = "9";}
+		if (lastKeyDown == 0x0B) { chr = "0";}
+		if (lastKeyDown == 0x0C) { chr = "-";}
+		if (lastKeyDown == 0x0D) { chr = "=";}
+		if (lastKeyDown == 0x0E) { chr = "backspace";}
+		if (lastKeyDown == 0x0F) { chr = "tab";}
+		if (lastKeyDown == 0x10) { chr = "q";}
+		if (lastKeyDown == 0x11) { chr = "w";}
+		if (lastKeyDown == 0x12) { chr = "e";}
+		if (lastKeyDown == 0x13) { chr = "r";}
+		if (lastKeyDown == 0x14) { chr = "t";}
+		if (lastKeyDown == 0x15) { chr = "y";}
+		if (lastKeyDown == 0x16) { chr = "u";}
+		if (lastKeyDown == 0x17) { chr = "i";}
+		if (lastKeyDown == 0x18) { chr = "o";}
+		if (lastKeyDown == 0x19) { chr = "p";}
+		if (lastKeyDown == 0x1A) { chr = "[";}
+		if (lastKeyDown == 0x1B) { chr = "]";}
+		if (lastKeyDown == 0x1C) { chr = "enter";}
+		if (lastKeyDown == 0x1D) { chr = "lcontrol";}
+		if (lastKeyDown == 0x1E) { chr = "a";}
+		if (lastKeyDown == 0x1F) { chr = "s";}
+		if (lastKeyDown == 0x20) { chr = "d";}
+		if (lastKeyDown == 0x21) { chr = "f";}
+		if (lastKeyDown == 0x22) { chr = "g";}
+		if (lastKeyDown == 0x23) { chr = "h";}
+		if (lastKeyDown == 0x24) { chr = "j";}
+		if (lastKeyDown == 0x25) { chr = "k";}
+		if (lastKeyDown == 0x26) { chr = "l";}
+		if (lastKeyDown == 0x27) { chr = ";";}
+		if (lastKeyDown == 0x28) { chr = "'";}
+		if (lastKeyDown == 0x29) { chr = "`";}
+		if (lastKeyDown == 0x2A) { chr = "lshift";}
+		if (lastKeyDown == 0x2B) { chr = "backslash";}
+		if (lastKeyDown == 0x2C) { chr = "z";}
+		if (lastKeyDown == 0x2D) { chr = "x";}
+		if (lastKeyDown == 0x2E) { chr = "c";}
+		if (lastKeyDown == 0x2F) { chr = "v";}
+		if (lastKeyDown == 0x30) { chr = "b";}
+		if (lastKeyDown == 0x31) { chr = "n";}
+		if (lastKeyDown == 0x32) { chr = "m";}
+		if (lastKeyDown == 0x33) { chr = ",";}
+		if (lastKeyDown == 0x34) { chr = ".";}
+		if (lastKeyDown == 0x35) { chr = "slash";}
+		if (lastKeyDown == 0x36) { chr = "rshift";}
+		if (lastKeyDown == 0x37) { chr = "*";}
+		if (lastKeyDown == 0x38) { chr = "lmenu";}
+		if (lastKeyDown == 0x39) { chr = "space";}
+		if (lastKeyDown == 0x3A) { chr = "capslock";}
+		if (lastKeyDown == 0x3B) { chr = "f1";}
+		if (lastKeyDown == 0x3C) { chr = "f2";}
+		if (lastKeyDown == 0x3D) { chr = "f3";}
+		if (lastKeyDown == 0x3E) { chr = "f4";}
+		if (lastKeyDown == 0x3F) { chr = "f5";}
+		if (lastKeyDown == 0x40) { chr = "f6";}
+		if (lastKeyDown == 0x41) { chr = "f7";}
+		if (lastKeyDown == 0x42) { chr = "f8";}
+		if (lastKeyDown == 0x43) { chr = "f9";}
+		if (lastKeyDown == 0x44) { chr = "f10";}
+		if (lastKeyDown == 0x45) { chr = "numlock";}
+		if (lastKeyDown == 0x46) { chr = "scroll";}
+		if (lastKeyDown == 0x47) { chr = "numpad7";}
+		if (lastKeyDown == 0x48) { chr = "numpad8";}
+		if (lastKeyDown == 0x49) { chr = "numpad9";}
+		if (lastKeyDown == 0x4A) { chr = "numpad-";}
+		if (lastKeyDown == 0x4B) { chr = "numpad4";}
+		if (lastKeyDown == 0x4C) { chr = "numpad5";}
+		if (lastKeyDown == 0x4D) { chr = "numpad6";}
+		if (lastKeyDown == 0x4E) { chr = "numpad+";}
+		if (lastKeyDown == 0x4F) { chr = "numpad1";}
+		if (lastKeyDown == 0x50) { chr = "numpad2";}
+		if (lastKeyDown == 0x51) { chr = "numpad3";}
+		if (lastKeyDown == 0x52) { chr = "numpad0";}
+		if (lastKeyDown == 0x53) { chr = "numpad.";}
+		if (lastKeyDown == 0x56) { chr = "rt102key";}
+		if (lastKeyDown == 0x57) { chr = "f11";}
+		if (lastKeyDown == 0x58) { chr = "f12";}
+		if (lastKeyDown == 0x64) { chr = "f13";}
+		if (lastKeyDown == 0x65) { chr = "f14";}
+		if (lastKeyDown == 0x66) { chr = "f15";}
+		if (lastKeyDown == 0x70) { chr = "kana";}
+		if (lastKeyDown == 0x73) { chr = "abntc1";}
+		if (lastKeyDown == 0x79) { chr = "convert";}
+		if (lastKeyDown == 0x7B) { chr = "nonconvert";}
+		if (lastKeyDown == 0x7D) { chr = "yen";}
+		if (lastKeyDown == 0x7E) { chr = "abntc2";}
+		if (lastKeyDown == 0x8D) { chr = "numpad=";}
+		if (lastKeyDown == 0x90) { chr = "prevtrack";}
+		if (lastKeyDown == 0x91) { chr = "@";}
+		if (lastKeyDown == 0x92) { chr = ":";}
+		if (lastKeyDown == 0x93) { chr = "_";}
+		if (lastKeyDown == 0x94) { chr = "kanji";}
+		if (lastKeyDown == 0x95) { chr = "stop";}
+		if (lastKeyDown == 0x96) { chr = "ax";}
+		if (lastKeyDown == 0x97) { chr = "unlabeled";}
+		if (lastKeyDown == 0x99) { chr = "nexttrack";}
+		if (lastKeyDown == 0x9C) { chr = "numpadenter";}
+		if (lastKeyDown == 0x9D) { chr = "rcontrol";}
+		if (lastKeyDown == 0xA0) { chr = "mute";}
+		if (lastKeyDown == 0xA1) { chr = "calculator";}
+		if (lastKeyDown == 0xA2) { chr = "playpause";}
+		if (lastKeyDown == 0xA4) { chr = "mediastop";}
+		if (lastKeyDown == 0xAE) { chr = "volumedown";}
+		if (lastKeyDown == 0xB0) { chr = "volumeup";}
+		if (lastKeyDown == 0xB2) { chr = "webhome";}
+		if (lastKeyDown == 0xB3) { chr = "numpadcomma";}
+		if (lastKeyDown == 0xB5) { chr = "numpaddivide";}
+		if (lastKeyDown == 0xB7) { chr = "sysrq";}
+		if (lastKeyDown == 0xB8) { chr = "rmenu";}
+		if (lastKeyDown == 0xC5) { chr = "pause";}
+		if (lastKeyDown == 0xC7) { chr = "home";}
+		if (lastKeyDown == 0xC8) { chr = "up";}
+		if (lastKeyDown == 0xC9) { chr = "pageup";}
+		if (lastKeyDown == 0xCB) { chr = "left";}
+		if (lastKeyDown == 0xCD) { chr = "right";}
+		if (lastKeyDown == 0xCF) { chr = "end";}
+		if (lastKeyDown == 0xD0) { chr = "down";}
+		if (lastKeyDown == 0xD1) { chr = "pagedown";}
+		if (lastKeyDown == 0xD2) { chr = "insert";}
+		if (lastKeyDown == 0xD3) { chr = "delete";}
+		if (lastKeyDown == 0xDB) { chr = "lwin";}
+		if (lastKeyDown == 0xDC) { chr = "rwin";}
+		if (lastKeyDown == 0xDD) { chr = "apps";}
+		if (lastKeyDown == 0xDE) { chr = "power";}
+		if (lastKeyDown == 0xDF) { chr = "sleep";}
+		if (lastKeyDown == 0xE3) { chr = "wake";}
+		if (lastKeyDown == 0xE5) { chr = "websearch";}
+		if (lastKeyDown == 0xE6) { chr = "webfavorites";}
+		if (lastKeyDown == 0xE7) { chr = "webrefresh";}
+		if (lastKeyDown == 0xE8) { chr = "webstop";}
+		if (lastKeyDown == 0xE9) { chr = "webforward";}
+		if (lastKeyDown == 0xEA) { chr = "webback";}
+		if (lastKeyDown == 0xEB) { chr = "computer";}
+		if (lastKeyDown == 0xEC) { chr = "mail";}
+		if (lastKeyDown == 0xED) { chr = "mediaselect";}
+
+		Console::setVariable("nova::lastKeyDown", chr);
+		if (Console::functionExists("Canvas::onKeyDown"))
+		{
+			Console::eval("Canvas::onKeyDown($nova::lastKeyDown);");
+		}
+	}
+
+	MultiPointer(ptrCanvasOnKeyDown, 0, 0, 0, 0x005C81B4);
+	MultiPointer(ptrCanvasOnKeyDownResume, 0, 0, 0, 0x005C81C3);
+	MultiPointer(loc_5C81D2, 0, 0, 0, 0x005C81D2);
+	MultiPointer(loc_5C8210, 0, 0, 0, 0x005C8210);
+	CodePatch canvaskeyintercept = { ptrCanvasOnKeyDown, "", "\xE9GCKD", 5, false };
+	NAKED void canvasKeyIntercept() {
+		__asm {
+			xor ecx, ecx
+			mov cl, [edx + 0x2C]
+			mov lastKeyDown, ecx
+
+			mov dummy, ecx
+			mov dummy2, eax
+			mov dummy3, edx
+			mov dummy4, ebx
+			call DirectInputToLabel
+			mov ecx, dummy
+			mov eax, dummy2
+			mov edx, dummy3
+			mov ebx, dummy4
+			cmp ecx, 0xCB
+			jg __jg
+			jz __jz
+			jmp ptrCanvasOnKeyDownResume
+
+			__jg:
+			jmp loc_5C81D2
+
+			__jz:
+			jmp loc_5C8210
+		}
+	}
 
 	//BuiltInFunction("Nova::gameCursorPos", _novacursorposition)
 	//{
@@ -586,7 +774,7 @@ NAKED void playerOnMessage() {
 		
 		mov eax, [ptrConsoleBuffer]
 		push eax
-		call Console::echo
+		call printf //Just throw the message sprint to printf. We must handle this input else the subroutine will crash.
 		add esp, 0x18
 		mov dummy, eax
 		call onPlayerMessage
@@ -635,11 +823,11 @@ NAKED void guiButtonSelectFace() {
 //Create a empty player::onMessage(); initially
 BuiltInFunction("player::onMessage", _playeronmessage) { return 0; }
 
-BuiltInFunction("Nova::CursorPatch", _novacursorpatch)
-{
-	getcursor.DoctorRelative((u32)GetCursor, 1).Apply(true);
-	return "true";
-}
+//BuiltInFunction("Nova::CursorPatch", _novacursorpatch)
+//{
+//	getcursor.DoctorRelative((u32)GetCursor, 1).Apply(true);
+//	return "true";
+//}
 
 void overrideFadeEvent()
 {
@@ -806,6 +994,12 @@ void overrideFadeEvent()
 				ffeventpatch0.Apply(true);
 				ffeventpatch1.DoctorRelative((u32)ffEventPatch1, 1).Apply(true);
 				ffeventpatch2.DoctorRelative((u32)ffEventPatch2, 1).Apply(true);
+
+				//Gets cursor coordinates
+				getcursor.DoctorRelative((u32)GetCursor, 1).Apply(true);
+
+				//Capture key presses to a variable
+				canvaskeyintercept.DoctorRelative((u32)canvasKeyIntercept, 1).Apply(true);
 		}
 	} init;
 }
