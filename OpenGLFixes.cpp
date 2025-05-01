@@ -20,10 +20,12 @@ using namespace std;
 
 namespace OpenGLFixes
 {
-
+	u32 dummy, dummy2, dummy3, dummy4, dummy5;
 	CodePatch Surface_TextureCache_sm_cacheMagic = { 0x0072A5A4, "", "\x00\x00\x00\x01", 4, false };
-	const UINT32 TextureCache_csm_sizeIndices[10] = { 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 };
-	const UINT32 TextureCache_csm_cacheDSize[10] = { 40960, 40960, 40960, 40960, 40960, 40960, 40960, 40960, 40960, 40960};
+	const uint32_t TextureCache_csm_sizeIndices[10] = { 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096};
+	const uint32_t TextureCache_csm_cacheDSize[10] = { 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096};
+	int num_ofIndices = sizeof(TextureCache_csm_sizeIndices) / sizeof(TextureCache_csm_sizeIndices[0]);
+
 	MultiPointer(ptrSurfaceTextureCacheGetArena, 0, 0, 0, 0x0064CEF0);
 	CodePatch surfacetexturecachegetarena = { ptrSurfaceTextureCacheGetArena, "", "\xE9STCH", 5, false };
 	NAKED void SurfaceTextureCacheGetArena()
@@ -37,7 +39,7 @@ namespace OpenGLFixes
 			jbe retn__
 			inc eax
 			add ecx, 4
-			cmp eax, 10
+			cmp eax, num_ofIndices
 			jl  jl__
 			mov eax, 0xF00FF00F
 
@@ -47,6 +49,30 @@ namespace OpenGLFixes
 		}
 	}
 
+	MultiPointer(ptrGWCanvas_onSysKey, 0, 0, 0, 0x0057AFD0);
+	MultiPointer(ptrGWCanvas_onSysKeyResume, 0, 0, 0, 0x0057AFD6);
+	CodePatch disableF10_sysMenu = { ptrGWCanvas_onSysKey, "", "\xE9SYSM", 5, false };
+	NAKED void Disable_F10_sysMenu()
+	{
+		__asm {
+			push ebp
+			mov  ebp, esp
+			push ebx
+			mov  ebx, edx
+			cmp  edx, 0x79 //VK_F10 system menu
+			je __abort
+			jmp ptrGWCanvas_onSysKeyResume
+
+			__abort:
+			pop ebx
+			pop ebp
+			retn
+		}
+	}
+
+	//Switch the texture internal format to GL_RGBA32F
+	MultiPointer(ptrTexture_interalFormat, 0, 0, 0, 0x0064D145);
+	CodePatch use_GL_RGBA32F = { ptrTexture_interalFormat, "", "\x14\x88", 2, false };
 
 	MultiPointer(ptrBitmapCaching, 0, 0, 0, 0x0064D19B);
 	MultiPointer(ptrBitmapCachingResume, 0, 0, 0, 0x0064D1AB);
@@ -55,8 +81,14 @@ namespace OpenGLFixes
 	NAKED void BitmapCaching()
 	{
 		__asm {
-		mov[esp + 0x30 - 0x18], offset TextureCache_csm_sizeIndices
-		mov[esp + 0x30 - 0x1C], offset TextureCache_csm_cacheDSize
+		mov dummy, eax
+		lea eax, TextureCache_csm_sizeIndices
+		mov[esp + 0x30 - 0x18], eax
+
+		lea eax, TextureCache_csm_cacheDSize
+		mov[esp + 0x30 - 0x1C], eax
+
+		mov eax, dummy
 		jmp ptrBitmapCachingResume
 		}
 	}
@@ -77,18 +109,15 @@ namespace OpenGLFixes
 	BuiltInVariable("pref::WIN_POS_X", int, prefwinposx, 0);
 	BuiltInVariable("pref::WIN_POS_Y", int, prefwinposy, 0);
 	BuiltInFunction("Nova::handleLoseFocus", novahandlelosefocus) { return 0; }
-	void SetWindowPriority()
-	{
-		RECT window;
-		GetWindowRect(getHWND(), &window);
-		int x = window.left;
-		int y = window.top;
-		Console::eval("bind(mouse,xaxis,TO,\"Nova::handleLoseFocus();Nova::sendWindowToFront();unbind(mouse,xaxis,make);\"); ");
-		SetWindowPos(getHWND(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-		//SetWindowPos(getHWND(), HWND_NOTOPMOST, x, y, 0, 0, SWP_NOSIZE );
-		//ShowWindow(getHWND(), SW_RESTORE);
-		//Console::eval("Nova::handleLoseFocus();");
-	}
+	//void SetWindowPriority()
+	//{
+	//	RECT window;
+	//	GetWindowRect(getHWND(), &window);
+	//	int x = window.left;
+	//	int y = window.top;
+		//Console::eval("bind(mouse,xaxis,TO,\"Nova::handleLoseFocus();Nova::sendWindowToFront();unbind(mouse,xaxis,make);\"); ");
+	//	SetWindowPos(getHWND(), HWND_NOTOPMOST, x, y, 0, 0, SWP_NOSIZE );
+	//}
 
 	MultiPointer(ptrMinimizeWindowCall, 0, 0, 0x005777E5, 0x0057A9ED);
 	MultiPointer(ptrMinimizeWindowCallRetn, 0, 0, 0x00577812, 0x0057AA1A);
@@ -96,7 +125,7 @@ namespace OpenGLFixes
 	NAKED void MinimizeCallIntercept()
 	{
 		__asm {
-			call SetWindowPriority
+			//call SetWindowPriority
 			jmp ptrMinimizeWindowCallRetn
 		}
 	}
@@ -225,6 +254,8 @@ namespace OpenGLFixes
 	MultiPointer(ptrSkyOpenGLDraw_f_BLUE, 0, 0, 0x006438CB, 0x00653287);
 
 	MultiPointer(ptrInteriorOpenGLDraw, 0, 0, 0, 0x00652A71);
+
+	MultiPointer(ptrDTSOpenGLDraw, 0, 0, 0, 0x00652F7A);
 	//MultiPointer(ptrInteriorOpenGLDraw_TEX1, 0, 0, 0, 0x00652A49);
 	//MultiPointer(ptrInteriorOpenGLDraw_TEX0, 0, 0, 0, 0x00652A51);
 
@@ -338,6 +369,9 @@ namespace OpenGLFixes
 			AMDtankAA.Apply(false);
 		}
 	}
+
+	MultiPointer(ptrCanvasSurfaceChanged, 0, 0, 0, 0x005C8F60);
+	CodePatch disableCanvasForcedOverlap = { ptrCanvasSurfaceChanged, "", "\xC3", 1, false };
 
 	//OPENGL SCALING FUNCTIONS
 	//Scaling
@@ -456,17 +490,25 @@ namespace OpenGLFixes
 			windowproperiespatch.DoctorRelative((u32)WindowPropertiesPatch, 1).Apply(true);
 			//BitmapCtrlLineFix.Apply(true); //Hide seams in chunked bitmaps //CAUSES ARTIFACTS IN RESOLUTION SCALING DOWN
 			//introtomaincrashfix.DoctorRelative((u32)IntroToMainCrashFix, 1).Apply(true);
-			minimizecallintercept.DoctorRelative((u32)MinimizeCallIntercept, 1).Apply(true);
+
 			//goSplash640.Apply(true);
 			//goSplash480.Apply(true);
 			//tempPatch.Apply(true);
 			//gdi_opengl.DoctorRelative((u32)GDI_OpenGL, 1).Apply(true);
 
 			//Expanded cache sizes and indices
-			//surfacetexturecachegetarena.DoctorRelative((u32)SurfaceTextureCacheGetArena, 1).Apply(true);
+			surfacetexturecachegetarena.DoctorRelative((u32)SurfaceTextureCacheGetArena, 1).Apply(true);
+			bitmapcaching.DoctorRelative((u32)BitmapCaching, 1).Apply(true);
 
 			//Surface_TextureCache_sm_cacheMagic.Apply(true);
 			//interiorsurfacerendering.Apply(true);
+
+			//use_GL_RGBA32F.Apply(true);
+
+			disableF10_sysMenu.DoctorRelative((u32)Disable_F10_sysMenu, 1).Apply(true);
+
+			minimizecallintercept.DoctorRelative((u32)MinimizeCallIntercept, 1).Apply(true);
+			disableCanvasForcedOverlap.Apply(true); //Used with minimizecallintercept to disable Canvas::surfaceChanged
 		}
 	} init;
 };
