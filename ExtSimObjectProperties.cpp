@@ -365,10 +365,10 @@ namespace ExtendedVariables
 	}
 
 	//Formula to calculate the actual vertical offset - (getwindowsize(height)/2)-(getwindowsize(height)*($vehicle::aimReticleY*0.5))
-	MultiPointer(ptrAimReticleVerticalPosition, 0, 0, 0, 0x0051FF9E);
-	MultiPointer(ptrAimReticleVerticalPositionResume, 0, 0, 0, 0x0051FFA4);
-	CodePatch aimreticlevertical = { ptrAimReticleVerticalPosition, "", "\xE9_ARV", 5, false };
-	NAKED void aimReticleVertical() {
+	MultiPointer(ptrAimReticlePosition, 0, 0, 0, 0x0051FF9E);
+	MultiPointer(ptrAimReticlePositionResume, 0, 0, 0, 0x0051FFA4);
+	CodePatch aimreticleposition = { ptrAimReticlePosition, "", "\xE9_ARV", 5, false };
+	NAKED void aimReticlePosition() {
 		__asm {
 			//mov dummy, 0
 			//mov dummy, ecx
@@ -379,36 +379,96 @@ namespace ExtendedVariables
 			call processReticleVars
 			//mov ecx, dummy
 			mov ecx, [ebx + 0x1A8]
-
-			jmp[ptrAimReticleVerticalPositionResume]
+			jmp[ptrAimReticlePositionResume]
 		}
 	}
 
+	BuiltInVariable("$vehicle::reticleMissilesLocked", int, clientaimreticle_missileslocked, 0);
+	MultiPointer(ptrAimReticleMissilesLocked, 0, 0, 0, 0x00472383);
+	MultiPointer(ptrAimReticleMissilesLockedResume, 0, 0, 0, 0x00472389);
+	CodePatch aimreticlelockedmissiles = { ptrAimReticleMissilesLocked, "", "\xE9_ARM", 5, false };
+	NAKED void aimReticleLockedMissiles() {
+		__asm {
+			mov edx, [edx + 0x1A0]
+			mov clientaimreticle_missileslocked, 1
+			jmp[ptrAimReticleMissilesLockedResume]
+		}
+	}
+
+	BuiltInVariable("$vehicle::reticleOnTarget", int, clientaimreticle_ontarget, 0);
+	MultiPointer(ptrAimReticleOnTarget, 0, 0, 0, 0x0051FD52);
+	MultiPointer(ptrAimReticleOnTargetResume, 0, 0, 0, 0x0051FD58);
+	CodePatch aimreticleontarget = { ptrAimReticleOnTarget, "", "\xE9_AOT", 5, false };
+	NAKED void aimReticleOnTarget() {
+		__asm {
+			mov clientaimreticle_ontarget, eax
+			mov clientaimreticle_missileslocked, 0
+			mov edx, [ebx + 0x1CC]
+			jmp	[ptrAimReticleOnTargetResume]
+
+		}
+	}
+
+	MultiPointer(ptrAimReticleRender, 0, 0, 0, 0x0051F8AF);
+	MultiPointer(ptrAimReticleRenderResume, 0, 0, 0, 0x0051F8B5);
+	CodePatch aimreticleonrender = { ptrAimReticleRender, "", "\xE9_AOR", 5, false };
+	NAKED void aimReticleOnRender() {
+		__asm {
+			mov clientaimreticle_missileslocked, 0
+			//mov clientaimreticle_ontarget, 0
+			call dword ptr[edx + 0x13C]
+			jmp[ptrAimReticleRenderResume]
+		}
+	}
+
+	//Gets the hud palette color index integer from the loaded HudLayout.prf
+	BuiltInVariable("$pref::hud::paletteIndex", int, prefhudpaletteindex, 1);
+	MultiPointer(ptrHudPalIndex, 0, 0, 0, 0x0051062C);
+	MultiPointer(ptrHudPalIndexResume, 0, 0, 0, 0x00510632);
+	CodePatch hudpalindex = { ptrHudPalIndex, "", "\xE9HPAL", 5, false };
+	NAKED void hudPalIndex() {
+		__asm {
+			push ebx
+			push esi
+			push edi
+			push ecx
+			mov ebx, eax
+			mov prefhudpaletteindex, edx
+			jmp[ptrHudPalIndexResume]
+
+		}
+	}
 	struct Init {
 		Init() {
 
 			//Vehicle vars
-			//codepatch_getkph.DoctorRelative((u32)getKPH, 1).Apply(true);
-			//codepatch_getradar.DoctorRelative((u32)getRadar, 1).Apply(true);
-			//codepatch_getradarrange.DoctorRelative((u32)getRadarRange, 1).Apply(true);
-			//assignhudproperties.DoctorRelative((u32)assignHudProperties, 1).Apply(true);
-			//codepatch_getshield.DoctorRelative((u32)getShield, 1).Apply(true);
-			//codepatch_getshieldforward.DoctorRelative((u32)getShieldForward, 1).Apply(true);
-			//codepatch_getshieldmodrotation.DoctorRelative((u32)getShieldModRotation, 1).Apply(true);
-			//codepatch_getenergy.DoctorRelative((u32)getEnergy, 1).Apply(true);
-			//codepatch_getthrottle.DoctorRelative((u32)getThrottle, 1).Apply(true);
-			//codepatch_getteamyellow.DoctorRelative((u32)getTeamYellow, 1).Apply(true);
-			//codepatch_getteamblue.DoctorRelative((u32)getTeamBlue, 1).Apply(true);
-			//codepatch_getteamred.DoctorRelative((u32)getTeamRed, 1).Apply(true);
-			//codepatch_getteampurple.DoctorRelative((u32)getTeamPurple, 1).Apply(true);
-			//
-			//ctreepointers.DoctorRelative((u32)cTreePointers, 1).Apply(true);
-			//ctreepointers_nameless.DoctorRelative((u32)cTreePointers_nameless, 1).Apply(true);
-			//clienttreewin.DoctorRelative((u32)ClientTreeWin, 1).Apply(true);
+			codepatch_getkph.DoctorRelative((u32)getKPH, 1).Apply(true);
+			codepatch_getradar.DoctorRelative((u32)getRadar, 1).Apply(true);
+			codepatch_getradarrange.DoctorRelative((u32)getRadarRange, 1).Apply(true);
+			assignhudproperties.DoctorRelative((u32)assignHudProperties, 1).Apply(true);
+			codepatch_getshield.DoctorRelative((u32)getShield, 1).Apply(true);
+			codepatch_getshieldforward.DoctorRelative((u32)getShieldForward, 1).Apply(true);
+			codepatch_getshieldmodrotation.DoctorRelative((u32)getShieldModRotation, 1).Apply(true);
+			codepatch_getenergy.DoctorRelative((u32)getEnergy, 1).Apply(true);
+			codepatch_getthrottle.DoctorRelative((u32)getThrottle, 1).Apply(true);
+			codepatch_getteamyellow.DoctorRelative((u32)getTeamYellow, 1).Apply(true);
+			codepatch_getteamblue.DoctorRelative((u32)getTeamBlue, 1).Apply(true);
+			codepatch_getteamred.DoctorRelative((u32)getTeamRed, 1).Apply(true);
+			codepatch_getteampurple.DoctorRelative((u32)getTeamPurple, 1).Apply(true);
+			
+			ctreepointers.DoctorRelative((u32)cTreePointers, 1).Apply(true);
+			ctreepointers_nameless.DoctorRelative((u32)cTreePointers_nameless, 1).Apply(true);
+			clienttreewin.DoctorRelative((u32)ClientTreeWin, 1).Apply(true);
 			canvasmousepatch.DoctorRelative((u32)CanvasMousePatch, 1).Apply(true);
 
-			//dev aim-retical positions
-			//aimreticlevertical.DoctorRelative((u32)aimReticleVertical, 1).Apply(true);
+			//retical positions
+			aimreticleposition.DoctorRelative((u32)aimReticlePosition, 1).Apply(true);
+
+			aimreticlelockedmissiles.DoctorRelative((u32)aimReticleLockedMissiles, 1).Apply(true);
+			aimreticleontarget.DoctorRelative((u32)aimReticleOnTarget, 1).Apply(true);
+			aimreticleonrender.DoctorRelative((u32)aimReticleOnRender, 1).Apply(true);
+
+			hudpalindex.DoctorRelative((u32)hudPalIndex, 1).Apply(true);
 		}
 	}init;
 };
