@@ -24,6 +24,8 @@
 #include <cassert>
 #include <cmath>
 
+MultiPointer(ptrConsole, 0, 0, 0, 0x00722FA4);
+
 using namespace std;
 using namespace Fear;
 namespace NovaCore
@@ -636,6 +638,38 @@ namespace NovaCore
 		}
 	}
 
+	BuiltInVariable("nova::bayesLoadedAlready", bool, novabayesloadedalready, 0);
+	MultiPointer(ptrUnk_Bayes, 0, 0, 0, 0x00445E8A);
+	MultiPointer(ptrUnk_BayesResume, 0, 0, 0, 0x00445E92);
+	MultiPointer(ptrInitBayesEdit, 0, 0, 0, 0x00445EC4);
+	CodePatch bayesInitPatch = { 0x00445FD3,"","\x90\x90\x90\x90\x90\x90",6,false };
+	CodePatch manualbayesedit = { ptrUnk_Bayes,"","\xE9MBAYE",5,false };
+	int bayesEditLoadBool = 0;
+	int bayesEditLoadedOnce = 0;
+	NAKED void manualBayesEdit() {
+		__asm {
+			cmp bayesEditLoadBool, 1
+			je __loadBaysEdit
+			sub ecx, 0x401
+			jz __loadBaysEdit
+			jmp ptrUnk_BayesResume
+
+			__loadBaysEdit:
+			mov bayesEditLoadBool, 0
+			call ptrInitBayesEdit
+			mov novabayesloadedalready, 1
+			retn
+		}
+	}
+
+	BuiltInFunction("Nova::loadBayesEditor", _novaloadbayeseditor)
+	{
+		bayesEditLoadBool = 1;
+		Console::eval("newObject(BayesInitObject, Turret, 1);");
+		Console::eval("schedule('deleteObject(BayesInitObject);',0.1);");
+		return "true";
+	}
+
 	struct Init {
 		Init() {
 
@@ -664,10 +698,14 @@ namespace NovaCore
 			//messageboxpatch.DoctorRelative((u32)messageBoxPatch, 1).Apply(true);
 
 			//RVectorRead/Write size
-			RVectorAllocSize1.Apply(true);
-			RVectorAllocSize2.Apply(true);
+			//RVectorAllocSize1.Apply(true);
+			//RVectorAllocSize2.Apply(true);
 			SoftwareMode_BitmapDatabasePadSize.Apply(true);
 			SoftwareMode_BitmapDataSize.Apply(true);
+
+			//Manual triggering of the Bayesian Network Editor (AI)
+			manualbayesedit.DoctorRelative((u32)manualBayesEdit, 1).Apply(true);
+			bayesInitPatch.Apply(true);
 		}
 	} init;
 }

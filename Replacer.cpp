@@ -7,6 +7,10 @@
 #include "Callback.h"
 #include "Terrain.h"
 #include "OpenGL_Pointers.h"
+#include <xstring>
+#include <string>
+
+using namespace std;
 
 namespace Replacer {
 
@@ -74,14 +78,100 @@ namespace Replacer {
 		mFiles.Grok("mods/Replacements");
 	}
 
+	char* resourceManagerAsset;
+	MultiPointer(ptrResourceManagerFind, 0, 0, 0, 0x00572D5C);
+	MultiPointer(ptrResourceManagerFindResume, 0, 0, 0, 0x00572D62);
+	//Intercept ResourceManager::find to grab the file name that is being loaded and feed it to Scan
+	CodePatch resourcemanagerloadasset = { ptrResourceManagerFind, "", "\xE9RMAL", 5, false };
+	NAKED void ResourceManagerLoadAsset() {
+		__asm {
+			push ebx
+			add esp, 0xFFFFFFF8
+			mov ebx, eax
+			mov resourceManagerAsset, edx
+			jmp ptrResourceManagerFindResume
+		}
+	}
+
 	void Scan(Fear::GFXBitmap* bmp) {
 		if (Terrain::TexImageCheck(bmp->bitmapData))
 			return;
 
 		lastFoundCRC = HashBytes(bmp->bitmapData, bmp->width * bmp->height);
+
+		//std::string ForceCapturing = Console::getVariable("Nova::ForceCapturing");
+		//if (ForceCapturing.compare("true") == 0 && lastFoundCRC != NULL)
+		//{
+		//	char function[MAX_PATH];
+		//	sprintf(function, "Memstar::addReplacement(\"%x\",\"temp.tga\");", lastFoundCRC);
+		//	Console::eval(function);
+		//}
+
 		const String* file = FindOriginalName(lastFoundCRC);
 		if (file != NULL && prefEchoMatchedTextures)
-			Console::echo("Matched texture %s", file->c_str());
+		{
+			Console::echo("Matched texture %s [%x]", file->c_str(), lastFoundCRC);
+		}
+			//std::string loadedAsset = resourceManagerAsset;
+
+		//if (loadedAsset.length() >= 4)
+		//{
+		//	if (!file && loadedAsset.substr(loadedAsset.length() - 4, 4).compare(".bmp") > 0)
+		//	{
+		//		char* tgaImage = const_cast<char*>(loadedAsset.replace(loadedAsset.length() - 3, 3, "tga").c_str());
+		//		Console::echo("Replacer: Adding %s(hash:%x)", tgaImage, lastFoundCRC);
+		//		mOriginals.Insert(lastFoundCRC, String2(tgaImage));
+		//	}
+		//}
+
+			std::string capturing = Console::getVariable("Nova::capturingTextureCRC");
+			if (capturing.compare("true") == 0 && file == NULL)
+			{
+				//Do not run if the texture dimensions are greater than 256 as those textures are 'chunked' into seperate 256x256 textures and the replacer does not work with those
+				if (bmp->width <= 256 && bmp->height <= 256)
+				{
+					//Console::echo("texture %x", lastFoundCRC);
+					char outputCRC[MAX_PATH];
+					char crchash[MAX_PATH];
+					sprintf(crchash, "%x", lastFoundCRC);
+
+					//Check for bad CRC, preppend zeros if it is bad
+					if (strlen(crchash) == 4)
+					{
+						sprintf(crchash, "0000%x", lastFoundCRC);
+						Console::setVariable("Nova::textureCRC", crchash);
+						sprintf(crchash, "Memstar::addReplacement(\"0000%x\",\"%s\");", lastFoundCRC, Console::getVariable("Nova::textureName"));
+					}
+					else if (strlen(crchash) == 5)
+					{
+						sprintf(crchash, "000%x", lastFoundCRC);
+						Console::setVariable("Nova::textureCRC", crchash);
+						sprintf(crchash, "Memstar::addReplacement(\"000%x\",\"%s\");", lastFoundCRC, Console::getVariable("Nova::textureName"));
+					}
+					else if (strlen(crchash) == 6)
+					{
+						sprintf(crchash, "00%x", lastFoundCRC);
+						Console::setVariable("Nova::textureCRC", crchash);
+						sprintf(crchash, "Memstar::addReplacement(\"00%x\",\"%s\");", lastFoundCRC, Console::getVariable("Nova::textureName"));
+					}
+					else if (strlen(crchash) == 7)
+					{
+						sprintf(crchash, "0%x", lastFoundCRC);
+						Console::setVariable("Nova::textureCRC", crchash);
+						sprintf(crchash, "Memstar::addReplacement(\"0%x\",\"%s\");", lastFoundCRC, Console::getVariable("Nova::textureName"));
+					}
+					else
+					{
+						Console::setVariable("Nova::textureCRC", crchash);
+						sprintf(crchash, "Memstar::addReplacement(\"%x\",\"%s\");", lastFoundCRC, Console::getVariable("Nova::textureName"));
+					}
+
+
+					Console::setVariable("Nova::textureHashFunction", crchash);
+					Console::setVariable("Nova::capturingTextureCRC", 0);
+				}
+			}
+
 		foundLastCRC = (file != NULL);
 		lastMatchedTexture = FindReplacement(file);
 		lastScanMatched = (lastMatchedTexture != NULL);
@@ -103,11 +193,70 @@ namespace Replacer {
 					mOriginals.Insert(crc, String2(argv[1]));
 				}
 			}
+			else
+			{
+				Console::echo("Replacer: Failed to add CRC! (image:%s) (hash:%x)", argv[1], crc);
+				return 0;
+			}
 		}
 
 		return "true";
 	}
 
+	//BuiltInFunction("Nova::openHashDirectory", _novaopenhashdirectory) {
+	//	if (argc >= 1)
+	//	{
+	//		return "true";
+	//		exit;
+	//	}
+	//	ShellExecute(0, "explore", ".\\mods\\textureHasher", NULL, NULL, SW_SHOWNORMAL);
+	//	return "true";
+	//}
+
+	//BuiltInFunction("Nova::openHashOutput", _novaopenhashoutput) {
+	//
+	//	if (argc >= 1)
+	//	{
+	//		return "true";
+	//		exit;
+	//	}
+	//	ShellExecuteA(0, "edit", ".\\mods\\textureHasher\\textureHasherOutput.cs", NULL, NULL, SW_SHOWDEFAULT);
+	//	return "true";
+	//}
+
+	bool SetClipboardText(const std::string& text) {
+		if (!OpenClipboard(nullptr)) {
+			return false;
+		}
+		EmptyClipboard();
+		HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, text.size() + 1);
+		if (!hGlobal) {
+			CloseClipboard();
+			return false;
+		}
+		char* data = static_cast<char*>(GlobalLock(hGlobal));
+		if (!data) {
+			CloseClipboard();
+			GlobalFree(hGlobal);
+			return false;
+		}
+		strcpy_s(data, text.size() + 1, text.c_str());
+		GlobalUnlock(hGlobal);
+		SetClipboardData(CF_TEXT, hGlobal);
+		CloseClipboard();
+		return true;
+	}
+
+	BuiltInFunction("Nova::copyToClipboard", _novacopytoclipboard) {
+
+		if (argc != 1)
+		{
+			Console::echo("%s( string );", self);
+			return 0;
+		}
+		SetClipboardText(argv[0]);
+		return "true";
+	}
 
 	u32 fnglTexImage2D, fnglTexSubImage2D, fnFlushTexture;
 
@@ -282,6 +431,7 @@ namespace Replacer {
 				return;
 			}
 			Callback::attach(Callback::OnStarted, OnStarted);
+			//resourcemanagerloadasset.DoctorRelative((u32)ResourceManagerLoadAsset, 1).Apply(true);
 		}
 	} init;
 

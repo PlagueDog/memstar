@@ -50,6 +50,14 @@ char* despace(char* input)
 	return output;
 }
 
+HWND getGameHWND() {
+	MultiPointer(ptrHWND, 0, 0, 0x00705C5C, 0x007160CC);
+	uintptr_t HWND_PTR = ptrHWND;
+	int GAME_HWND = *reinterpret_cast<int*>(HWND_PTR);
+	HWND SS_HWND = reinterpret_cast<HWND>(GAME_HWND);
+	return SS_HWND;
+}
+
 namespace Intercepts {
 	u32 dummy, dummy2, dummy3, dummy4, dummy5;
 //GuiLoad
@@ -829,82 +837,19 @@ BuiltInFunction("player::onMessage", _playeronmessage) { return 0; }
 //	return "true";
 //}
 
-void overrideFadeEvent()
-{
-	std::string gui = currentGui;
-	if (gui.compare("playgui") != 0 || gui.compare("playGui") != 0)
+	BuiltInFunction("Nova::disableFadeEvents", _novadisablefadeevents)
 	{
-		Console::eval("schedule(\"ffEvent(0, 0, 0, 0);\");\",0);");
+		CodePatch fadeEventRedirect = { 0x006DE910, "", "\x3C\xDC\x45\x00", 4, false }; //Switch the Persistent::TaggedClass<CameraLockFocusEvent>
+		fadeEventRedirect.Apply(true);
+		return "true";
 	}
-}
 
-	MultiPointer(ptrFadeEvent, 0, 0, 0, 0x0045DD28);
-	CodePatch fadeeventpatch = { ptrFadeEvent, "\x8B\xD8", "\xEB\x45", 2, false };
-
-	MultiPointer(ptrFadeEventPacket, 0, 0, 0, 0x00691D58);
-	MultiPointer(ptrFadeEventPacketHandle, 0, 0, 0, 0x00691D6D);
-	MultiPointer(ptrFadeEventPacketBad, 0, 0, 0, 0x00691D5E);
-	MultiPointer(ptrFadeEventPacketDrop, 0, 0, 0, 0x00691F50);
-	CodePatch fadeeventpacketpatch = { ptrFadeEventPacket, "", "\xE9_FPP", 5, false };
-	CodePatch fadeeventpacketpatchback = { ptrFadeEventPacket, "", "\x8B\xF8\x85\xFF\x75\x0F", 6, false };
-
-	void enableFadeEvents()
+	BuiltInFunction("Nova::enableFadeEvents", _novaenablefadeevents)
 	{
-		fadeeventpacketpatchback.Apply(true);
-		fadeeventpatch.Apply(false);
+		CodePatch fadeEventRedirect = { 0x006DE910, "", "\x1C\xDD\x45\x00", 4, false }; //Switch to the Persistent::TaggedClass<FadeEvent>
+		fadeEventRedirect.Apply(true);
+		return "true";
 	}
-
-	MultiPointer(ptrWaitroomCloseToPlayGui, 0, 0, 0, 0x0054112E);
-	MultiPointer(sub5C6C54, 0, 0, 0, 0x005C6C54);
-	MultiPointer(ptrCloseWaitroomGui, 0, 0, 0, 0x00541136);
-	CodePatch waitroomclosetoplaygui = { ptrWaitroomCloseToPlayGui, "", "\xE9_FPP", 5, false };
-	//Intercept the call to join the map to re-enable server side fade events (Disabled fade events breaks player spawn packets)
-	NAKED void WaitroomCloseToPlayGUI() {
-		__asm {
-			call enableFadeEvents
-			mov eax, [esi + 0x58]
-			call sub5C6C54
-			jmp ptrCloseWaitroomGui
-		}
-	}
-
-	NAKED void fadeEventPacketPatch() {
-		__asm {
-			mov edi, eax
-			cmp[edi], 0
-			je __je
-			test edi, edi
-			jnz __jnz
-			jmp ptrFadeEventPacketBad
-			__je :
-			jmp ptrFadeEventPacketDrop
-				__jnz :
-			jmp ptrFadeEventPacketHandle
-		}
-	}
-
-	//Used to drop fade event packets from the server
-	//BuiltInFunction("Nova::fadeEvents", _novafadeevents)
-	//{
-	//	if (argc != 1)
-	//	{
-	//		return 0;
-	//	}
-	//
-	//	std::string boolean = argv[0];
-	//	if (boolean.compare("0") == 0 || boolean.compare("false") == 0 || boolean.compare("False") == 0)
-	//	{
-	//		fadeeventpacketpatch.DoctorRelative((u32)fadeEventPacketPatch, 1).Apply(true);
-	//		fadeeventpatch.Apply(true);
-	//	}
-	//	else if (boolean.compare("1") == 0 || boolean.compare("true") == 0 || boolean.compare("True") == 0)
-	//	{
-	//		fadeeventpacketpatchback.Apply(true);
-	//		fadeeventpatch.Apply(false);
-	//		Console::eval("ffevent(0,0,0,0);");
-	//	}
-	//	return "true";
-	//}
 
 	//Allow ffevent without PlayerPacketStream
 	MultiPointer(ptrffevent_packetstreamcheck, 0, 0, 0, 0x004B796D);
@@ -916,11 +861,11 @@ void overrideFadeEvent()
 	MultiPointer(ptrffevent_err1_resume, 0, 0, 0, 0x004B7A5D);
 	NAKED void ffEventPatch1() {
 		__asm {
-			cmp edx , 0
+			cmp edx, 0
 			je __je
 			fadd dword ptr[edx + 0x8C]
 			jmp ptrffevent_err1_resume
-			__je:
+			__je :
 			jmp ptrffevent_err1_resume
 		}
 	}
@@ -935,8 +880,50 @@ void overrideFadeEvent()
 			je __je
 			fadd dword ptr[ecx + 0x8C]
 			jmp ptrffevent_err2_resume
-			__je:
+			__je :
 			jmp ptrffevent_err2_resume
+		}
+	}
+
+	BuiltInVariable("canvas::Xaxis", int, canvasxaxis, 0);
+	BuiltInVariable("canvas::Yaxis", int, canvasyaxis, 0);
+
+	void getWindowCoords()
+	{
+		RECT window;
+		GetWindowRect(getGameHWND(), &window);
+		canvasxaxis = window.left;
+		canvasyaxis = window.top;
+	}
+
+	//MultiPointer(ptrGWWindow_onMove, 0, 0, 0, 0x00579854);
+	MultiPointer(ptrGWWindow__onWindowPosChanged, 0, 0, 0, 0x00579844);
+	MultiPointer(GWWindow__defWindowProc, 0, 0, 0, 0x00577D9C);
+	CodePatch windowmoved = { ptrGWWindow__onWindowPosChanged, "", "\xE9GWPC", 5, false };
+	//NAKED void windowMoved() {
+	//	__asm {
+	//		movzx   edx, dx
+	//		movzx   ecx, cx
+	//		mov canvasxaxis, edx
+	//		mov canvasyaxis, ecx
+	//		shl     ecx, 0x10
+	//		or		edx, ecx
+	//		push    edx
+	//		mov     edx, 3
+	//		xor		ecx, ecx
+	//		call    GWWindow__defWindowProc
+	//		//call	getWindowCoords
+	//		retn
+	//	}
+	//}
+	NAKED void windowMoved() {
+		__asm {
+			push    edx
+			xor		ecx, ecx
+			mov     edx, 0x47
+			call    GWWindow__defWindowProc
+			call	getWindowCoords
+			retn
 		}
 	}
 
@@ -985,21 +972,18 @@ void overrideFadeEvent()
 				guibuttoninitialface.DoctorRelative((u32)guiButtonInitialFace, 1).Apply(true);
 				guibuttonselectface.DoctorRelative((u32)guiButtonSelectFace, 1).Apply(true);
 
-				//Disable fade event packets to prevent scriptGL fading as well
-				//waitroomclosetoplaygui.DoctorRelative((u32)WaitroomCloseToPlayGUI, 1).Apply(true);
-				//fadeeventpacketpatch.DoctorRelative((u32)fadeEventPacketPatch, 1).Apply(true);
-				//fadeeventpatch.Apply(true);
-
-				//Allow ffevent to be used without a playerpacketstream
-				ffeventpatch0.Apply(true);
-				ffeventpatch1.DoctorRelative((u32)ffEventPatch1, 1).Apply(true);
-				ffeventpatch2.DoctorRelative((u32)ffEventPatch2, 1).Apply(true);
-
 				//Gets cursor coordinates
 				getcursor.DoctorRelative((u32)GetCursor, 1).Apply(true);
 
 				//Capture key presses to a variable
 				canvaskeyintercept.DoctorRelative((u32)canvasKeyIntercept, 1).Apply(true);
+
+				//Allow ffEvent to be used without a playerPacketStream
+				ffeventpatch1.DoctorRelative((u32)ffEventPatch1, 1).Apply(true);
+				ffeventpatch2.DoctorRelative((u32)ffEventPatch2, 1).Apply(true);
+
+				//onWindowPosChanging - save the position of the canvas to variables
+				windowmoved.DoctorRelative((u32)windowMoved, 1).Apply(true);
 		}
 	} init;
 }

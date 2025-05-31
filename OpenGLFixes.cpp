@@ -209,7 +209,7 @@ namespace OpenGLFixes
 			WindowMinimizeOnLoseFocus.Apply(true);
 			CodePatch genericCodePatch = { ptrOGLFullScreen1,"","\x00",1,false };
 			genericCodePatch.Apply(true);
-			CodePatch genericCodePatch0 = { ptrOGLFullScreen2,"","\x0A",1,false };
+			CodePatch genericCodePatch0 = { ptrOGLFullScreen2,"", "\x08",1,false};
 			genericCodePatch0.Apply(true);
 			//patchchangedisplaysettings.DoctorRelative((u32)patchChangeDisplaySettings, 1).Apply(true);
 			//SetWindowPos(windowHandle, HWND_TOP, 0, 0, screen.x, screen.y, 0);
@@ -422,31 +422,38 @@ namespace OpenGLFixes
 	//	cmdSetGuiShift(atof(argv[0]));
 	//	return "true";
 	//}
-	//u32 PFD_OGL_BITS = 0x24;
 
+	//u32 PFD_OGL_BITS = 0x24;
+	//
 	//void GDIvarBool()
 	//{
-	//	string GDIvar = Console::getVariable("pref::UseGDI");
-	//	if (GDIvar.compare("true") == 0 || GDIvar.compare("1") == 0)
+	//	//Don't read the file as binary
+	//	std::ifstream fin("defaultPrefs.cs", std::ios::in); //Input file
+	//	std::vector<std::string> field{ "$pref::UseGDI = \"1\";" }; //String to find
+	//	std::string fileContent(std::istreambuf_iterator<char>(fin), {});
+	//	for (const std::string& l : field)
 	//	{
-	//		PFD_OGL_BITS = 0x14;
-	//	}
-	//	else
-	//	{
-	//		PFD_OGL_BITS = 0x24;
+	//		if (std::search(fileContent.begin(), fileContent.end(), l.begin(), l.end()) != fileContent.end())
+	//		{
+	//			PFD_OGL_BITS = 0x1034;
+	//			break;
+	//		}
 	//	}
 	//}
 
-	//MultiPointer(ptrOpenGL_dwFlags, 0, 0, 0, 0x0064BA89);
-	//MultiPointer(ptrOpenGL_dwFlags_resume, 0, 0, 0, 0x0064BA95);
-	//CodePatch gdi_opengl = { ptrOpenGL_dwFlags, "", "\xE9OGLF", 5, false };
-	//NAKED void GDI_OpenGL() {
-	//	__asm {
-	//		call GDIvarBool
-	//		mov edx, PFD_OGL_BITS // PFD_DRAW_TO_WINDOW (0x4) | PFD_SUPPORT_GDI (0x10)
-	//		jmp [ptrOpenGL_dwFlags_resume]
-	//	}
-	//}
+	MultiPointer(ptrOpenGL_dwFlags, 0, 0, 0, 0x0064BA89);
+	MultiPointer(ptrOpenGL_dwFlags_resume, 0, 0, 0, 0x0064BA95);
+	CodePatch gdi_opengl = { ptrOpenGL_dwFlags, "", "\xE9OGLF", 5, false };
+	NAKED void GDI_OpenGL() {
+		__asm {
+			//mov dummy, eax
+			//call GDIvarBool
+			//mov eax, dummy
+			mov edx, PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_GENERIC_ACCELERATED// PFD_DRAW_TO_WINDOW (0x4) | PFD_SUPPORT_GDI (0x10)
+			jmp [ptrOpenGL_dwFlags_resume]
+		}
+	}
+
 	//
 	//BuiltInVariable("pref::UseGDI", bool, prefusegdi, false);
 	////And our function to toggle GDI
@@ -494,7 +501,7 @@ namespace OpenGLFixes
 			//goSplash640.Apply(true);
 			//goSplash480.Apply(true);
 			//tempPatch.Apply(true);
-			//gdi_opengl.DoctorRelative((u32)GDI_OpenGL, 1).Apply(true);
+			gdi_opengl.DoctorRelative((u32)GDI_OpenGL, 1).Apply(true);
 
 			//Expanded cache sizes and indices
 			surfacetexturecachegetarena.DoctorRelative((u32)SurfaceTextureCacheGetArena, 1).Apply(true);

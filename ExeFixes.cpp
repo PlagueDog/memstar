@@ -453,11 +453,11 @@ namespace ExeFixes {
 	BuiltInFunction("Nova::EnableHiresShadows", _memehs)
 	{
 		CodePatch hiresShadowsPatch0 = { ptrShadowResLOD0, "", "\x00\x01", 2, false }; hiresShadowsPatch0.Apply(true);
-		CodePatch hiresShadowsBlurPatch0 = { ptrShadowResLOD0_Blur, "", "\x05", 1, false }; hiresShadowsBlurPatch0.Apply(true);
-		CodePatch hiresShadowsPatch1 = { ptrShadowResLOD1, "", "\x00\x01", 2, false }; hiresShadowsPatch1.Apply(true);
-		CodePatch hiresShadowsPatch2 = { ptrShadowResLOD2, "", "\x00\x01", 2, false }; hiresShadowsPatch2.Apply(true);
-		CodePatch hiresShadowsPatch3 = { ptrShadowResLOD3, "", "\x00\x01", 2, false }; hiresShadowsPatch3.Apply(true);
-		CodePatch hiresShadowsPatch4 = { ptrShadowResLOD4, "", "\x00\x01", 2, false }; hiresShadowsPatch4.Apply(true);
+		CodePatch hiresShadowsBlurPatch0 = { ptrShadowResLOD0_Blur, "", "\x02", 1, false }; hiresShadowsBlurPatch0.Apply(true);
+		CodePatch hiresShadowsPatch1 = { ptrShadowResLOD1, "", "\x80\x00", 2, false }; hiresShadowsPatch1.Apply(true);
+		CodePatch hiresShadowsPatch2 = { ptrShadowResLOD2, "", "\x80\x00", 2, false }; hiresShadowsPatch2.Apply(true);
+		CodePatch hiresShadowsPatch3 = { ptrShadowResLOD3, "", "\x80\x00", 2, false }; hiresShadowsPatch3.Apply(true);
+		CodePatch hiresShadowsPatch4 = { ptrShadowResLOD4, "", "\x80\x00", 2, false }; hiresShadowsPatch4.Apply(true);
 		Console::eval("$pref::HiresShadows = true;flushtexturecache();");
 		return 0;
 	}
@@ -910,7 +910,8 @@ namespace ExeFixes {
 			test ecx, ecx //Test for 0x00000000 (Invalid part parent for mount)
 			je __crashEscape
 			mov eax, ecx
-			mov ecx, [eax]
+			mov edx, [eax + 4]
+
 			jmp[ptrVehicleMountConfigButtonResume] //Jump back into the native function
 			__crashEscape:
 			jmp[ptrVehicleMountConfigButtonNext]
@@ -1142,6 +1143,9 @@ namespace ExeFixes {
 	MultiPointer(fnCanvas__onMouseMove, 0, 0, 0, 0x005C908C);
 	CodePatch disable_fnCanvasonMouseMove = { fnCanvas__onMouseMove, "", "\xC3", 1, false };
 
+	MultiPointer(ptrSimguiTextEditColor, 0, 0, 0, 0x005D1E11);
+	CodePatch setTextEditColor = { ptrSimguiTextEditColor, "", "\xFB", 1, false };
+
 	struct Init {
 		Init() {
 			//WindowsCompatMode();
@@ -1279,6 +1283,9 @@ namespace ExeFixes {
 
 			//Mouse Events
 			disable_fnCanvasonMouseMove.Apply(true); //Disable this function to fix game cursor jumping around when clicking back into the game window
+
+			//Set the background color of Simgui::TextEdit to 0x00
+			setTextEditColor.Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes

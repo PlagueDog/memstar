@@ -438,6 +438,201 @@ namespace ExtendedVariables
 
 		}
 	}
+
+	//BuiltInVariable("$pref::hudMtrShieldsCoords", float, prefhudmtrshieldscoords, 0);
+	//MultiPointer(ptrHudMtrShieldsCoords, 0, 0, 0, 0x00700908);
+	//
+	//MultiPointer(ptrHudLayout, 0, 0, 0, 0x0050E1A8);
+	//MultiPointer(ptrHudLayoutResume, 0, 0, 0, 0x0050E1AE);
+	//MultiPointer(dword_7008C8, 0, 0, 0, 0x007008C8);
+	//CodePatch hudlayout = { ptrHudLayout, "", "\xE9HMTR", 5, false };
+	//NAKED void hudLayout() {
+	//	__asm {
+	//		mov edx, dword_7008C8
+	//		mov eax, ptrHudMtrShieldsCoords
+	//		mov prefhudmtrshieldscoords, eax
+	//		jmp[ptrHudLayoutResume]
+	//
+	//	}
+	//}
+
+
+	char* vehicleInspectSkin;
+	char* vehicleInspectMass;
+
+	void setVehicleVars()
+	{
+		Console::setVariable("inspector::vehicleSkin", vehicleInspectSkin);
+		Console::setVariable("inspector::vehicleMass", vehicleInspectMass);
+	}
+	MultiPointer(ptrVehicleInspect, 0, 0, 0, 0x004712AD);
+	MultiPointer(ptrVehicleInspectResume, 0, 0, 0, 0x004712B3);
+	CodePatch vehicleinspect = { ptrVehicleInspect, "", "\xE9VINS", 5, false };
+	NAKED void vehicleInspect() {
+		__asm {
+			mov vehicleInspectSkin, 0
+			lea eax, [esp + 0x408 - 0x2CC - 0x4]
+			mov vehicleInspectSkin, eax
+
+			mov vehicleInspectMass, 0
+			lea eax, [esp + 0x408 - 0x118 - 0x4]
+			mov vehicleInspectMass, eax
+
+			call setVehicleVars
+
+			add esp, 0x3F4
+
+			jmp[ptrVehicleInspectResume]
+
+		}
+	}
+
+	int objectTeam = 0;
+	void setObjectTeamVar()
+	{
+		char* team = "Neutral";
+		if (objectTeam == 0) { team = "Neutral"; }
+		else if (objectTeam == 1) { team = "Yellow"; }
+		else if (objectTeam == 2) { team = "Blue"; }
+		else if (objectTeam == 4) { team = "Red"; }
+		else if (objectTeam == 8) { team = "Purple"; }
+		Console::setVariable("inspector::objectTeam", team);
+	}
+	MultiPointer(ptrInspectObjectTeam, 0, 0, 0, 0x0041BDA6);
+	MultiPointer(ptrInspectObjectTeamResume, 0, 0, 0, 0x0041BDB0);
+	CodePatch objectteaminspect = { ptrInspectObjectTeam, "", "\xE9OTEA", 5, false };
+	NAKED void objectTeamInspect() {
+		__asm {
+			mov[esp + 0x40 - 0x14], 0xD
+			mov eax, edx
+			mov objectTeam, eax
+
+			mov dummy, eax
+			call setObjectTeamVar
+			mov eax, dummy
+			jmp[ptrInspectObjectTeamResume]
+
+		}
+	}
+
+	int guiObject_Xpos;
+	int guiObject_Ypos;
+	int guiObject_Xext;
+	int guiObject_Yext;
+	u32 guiObject_ControlID;
+	void setGuiVars()
+	{
+		int _guiObject_Xpos = *reinterpret_cast<int*>(guiObject_Xpos);
+		int _guiObject_Ypos = *reinterpret_cast<int*>(guiObject_Ypos);
+		Console::setVariable("inspector::gObjectX", tostring(_guiObject_Xpos));
+		Console::setVariable("inspector::gObjectY", tostring(_guiObject_Ypos));
+		int _guiObject_Xext = *reinterpret_cast<int*>(guiObject_Xext);
+		int _guiObject_Yext = *reinterpret_cast<int*>(guiObject_Yext);
+		Console::setVariable("inspector::gObjectXext", tostring(_guiObject_Xext));
+		Console::setVariable("inspector::gObjectYext", tostring(_guiObject_Yext));
+		Console::setVariable("inspector::gObjectControlID", tostring(guiObject_ControlID));
+	}
+
+	MultiPointer(ptrGuiObjectInspect, 0, 0, 0, 0x005CC1D3);
+	MultiPointer(ptrGuiObjectInspectResume, 0, 0, 0, 0x005CC1D9);
+	CodePatch guiobjectinspect = { ptrGuiObjectInspect, "", "\xE9GOVS", 5, false };
+	NAKED void guiObjectInspect() {
+		__asm {
+
+			//GuiObject Position
+			mov guiObject_Xpos, 0
+			mov guiObject_Ypos, 0
+			mov guiObject_Ypos, 0
+			lea eax, [esp + 0x204 - 0x200 - 0x4]
+			mov guiObject_Xpos, eax
+			lea eax, [esp + 0x208 - 0x200 - 0x4]
+			mov guiObject_Ypos, eax
+
+			//GuiObject Extent
+			mov guiObject_Xext, 0
+			mov guiObject_Yext, 0
+			lea eax, [esp + 0x204 - 0x1F8 - 0x4]
+			mov guiObject_Xext, eax
+			lea eax, [esp + 0x208 - 0x1F8 - 0x4]
+			mov guiObject_Yext, eax
+
+			//GuiObject Control-ID
+			mov guiObject_ControlID, 0
+			mov edi, [ebx + 0x84]
+			mov guiObject_ControlID, edi
+
+			call setGuiVars
+
+			//add esp, 0x1F4
+
+			jmp[ptrGuiObjectInspectResume]
+
+		}
+	}
+
+	float simShapeRotX;
+	float simShapeRotY;
+	float simShapeRotZ;
+	void setSimShapeVars()
+	{
+		//int _guiObject_Xpos = *reinterpret_cast<int*>(guiObject_Xpos);
+		//int _guiObject_Ypos = *reinterpret_cast<int*>(guiObject_Ypos);
+		Console::setVariable("inspector::ObjectRotX", tostring(simShapeRotX));
+		Console::setVariable("inspector::ObjectRotY", tostring(simShapeRotY));
+		Console::setVariable("inspector::ObjectRotZ", tostring(simShapeRotZ));
+	}
+	MultiPointer(ptrSimShapeInspect, 0, 0, 0, 0x00697617);
+	MultiPointer(ptrSimShapeInspectResume, 0, 0, 0, 0x0069761D);
+	CodePatch simshapeinspect = { ptrSimShapeInspect, "", "\xE9SSOB", 5, false };
+	NAKED void simShapeInspect() {
+		__asm {
+
+			mov simShapeRotX, 0
+			mov simShapeRotY, 0
+			mov simShapeRotZ, 0
+			//mov ecx, [esp + 0xC8 - 0x24]
+			//mov simShapeRotX, ecx
+			//mov	[esp + 0xC8 - 0x18], ecx
+			//mov eax, [esp + 0xC8 - 0x20]
+			//mov simShapeRotY, eax
+			//mov	[esp + 0xC8 - 0x14], eax
+			//mov eax, esi
+			//mov edx, [esp + 0xC8 - 0x1C]
+			//mov simShapeRotZ, edx
+
+			mov ecx, [esp + 0xA4]
+			mov simShapeRotX, ecx
+			mov ecx, [esp + 0xA8]
+			mov simShapeRotY, ecx
+			mov ecx, [esp + 0xAC]
+			mov simShapeRotZ, ecx
+			//mov dummy, eax
+			call setSimShapeVars
+			//mov eax, dummy
+
+			//add esp, 0x1F4
+
+			add esp, 0xBC
+
+			jmp[ptrSimShapeInspectResume]
+
+		}
+	}
+
+	MultiPointer(ptrInspectWindowOnAdd, 0, 0, 0, 0x005A4480);
+	BuiltInFunction("Nova::disableInspectWindow", _novadisableinspectwindow)
+	{
+		CodePatch inspectWindowState = { ptrInspectWindowOnAdd, "", "\xC3", 1, false };
+		inspectWindowState.Apply(true);
+		return "true";
+	}
+	BuiltInFunction("Nova::enableInspectWindow", _novaenableinspectwindow)
+	{
+		CodePatch inspectWindowState = { ptrInspectWindowOnAdd, "", "\x53", 1, false };
+		inspectWindowState.Apply(true);
+		return "true";
+	}
+
 	struct Init {
 		Init() {
 
@@ -469,6 +664,15 @@ namespace ExtendedVariables
 			aimreticleonrender.DoctorRelative((u32)aimReticleOnRender, 1).Apply(true);
 
 			hudpalindex.DoctorRelative((u32)hudPalIndex, 1).Apply(true);
+			//hudlayout.DoctorRelative((u32)hudLayout, 1).Apply(true);
+
+			//vehicleSkin and VehicleMass vars
+			vehicleinspect.DoctorRelative((u32)vehicleInspect, 1).Apply(true);
+
+			//Gui Object vars
+			guiobjectinspect.DoctorRelative((u32)guiObjectInspect, 1).Apply(true);
+			simshapeinspect.DoctorRelative((u32)simShapeInspect, 1).Apply(true);
+			objectteaminspect.DoctorRelative((u32)objectTeamInspect, 1).Apply(true);
 		}
 	}init;
 };

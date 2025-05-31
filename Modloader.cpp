@@ -360,7 +360,7 @@ namespace ModloaderMain {
 	BuiltInFunction("getDirectory", _gd)
 	{
 		std::string path = argv[0];
-		if (path.find(":") != -1)
+		if (path.find(":") != -1 || path.find("..") != -1)
 		{
 			Console::echo("Cannot escape the Starsiege directory.");
 			return 0;
@@ -415,8 +415,20 @@ namespace ModloaderMain {
 		LONG lStyle = GetWindowLong(getGameHWND(), GWL_STYLE);
 		lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
 		//SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU);
-		SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME);
+		//SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME);
+		SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_BORDER | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU);
 		return "true";
+	}
+
+	MultiPointer(ptrOpenglWindowStyle, 0, 0, 0, 0x0064BA49);
+	MultiPointer(ptrOpenglWindowStyleResume, 0, 0, 0, 0x0064BA4F);
+	CodePatch openglwindowstyle = { ptrOpenglWindowStyle, "", "\xE9OGLW", 5, false };
+	NAKED void openGLWindowStyle() {
+		__asm {
+			push DS_MODALFRAME | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU
+			push esi
+			jmp ptrOpenglWindowStyleResume
+		}
 	}
 
 	BuiltInFunction("setWindowPos", _swp) {
@@ -1787,6 +1799,7 @@ namespace ModloaderMain {
 			CreateDirectory(".\\mods\\session", NULL);
 			CreateDirectory(".\\temp", NULL);
 			CreateDirectory(".\\savedGames", NULL);
+			CreateDirectory(".\\mods\\textureHasher", NULL);
 
 			//Modloader: Append pilot data to campaign
 			campaigninit.DoctorRelative((u32)CampaignInit, 1).Apply(true);
@@ -1798,6 +1811,8 @@ namespace ModloaderMain {
 
 			//Enumerate OpenGL resolutions up to the desktop resolution
 			OpenGLenumDesktopModes();
+
+			openglwindowstyle.DoctorRelative((u32)openGLWindowStyle, 1).Apply(true);
 		}
 	} init;
 	}
