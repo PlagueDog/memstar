@@ -21,8 +21,10 @@ using namespace std;
 using namespace Fear;
 
 MultiPointer(ptrMemLibModule, 0, 0, 0, 0x0044ABFC);
+
 namespace modloaderFunctions
 {
+
 //Big endian to little endian
 string BEtoLE(string& str)
 {
@@ -405,29 +407,53 @@ namespace ModloaderMain {
 	//}
 
 	BuiltInFunction("disableWindowBorder", _dwd) {
-		LONG lStyle = GetWindowLong(getGameHWND(), GWL_STYLE);
+		return 0;
+		HWND gameHWND = getGameHWND();
+		LONG lStyle = GetWindowLong(gameHWND, GWL_STYLE);
+		LONG ex_lStyle = GetWindowLong(gameHWND, GWL_STYLE);
 		lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
-		SetWindowLong(getGameHWND(), GWL_STYLE, lStyle);
+		//SetWindowLong(getGameHWND(), GWL_STYLE, lStyle);
+		SetWindowLong(gameHWND, GWL_STYLE, lStyle | WS_DLGFRAME);
+		//SetWindowLong(gameHWND, GWL_EXSTYLE, ex_lStyle | WS_EX_DLGMODALFRAME | WS_EX_LTRREADING);
 		return "true";
 	}
 
 	BuiltInFunction("enableWindowBorder", _ewb) {
-		LONG lStyle = GetWindowLong(getGameHWND(), GWL_STYLE);
+		HWND gameHWND = getGameHWND();
+		LONG lStyle = GetWindowLong(gameHWND, GWL_STYLE);
+		LONG ex_lStyle = GetWindowLong(gameHWND, GWL_EXSTYLE);
 		lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
 		//SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU);
 		//SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME);
-		SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_BORDER | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU);
+		SetWindowLong(gameHWND, GWL_STYLE, lStyle | WS_BORDER | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU );
+		//SetWindowLong(gameHWND, GWL_EXSTYLE, WS_EX_LAYERED);
 		return "true";
 	}
 
-	MultiPointer(ptrOpenglWindowStyle, 0, 0, 0, 0x0064BA49);
-	MultiPointer(ptrOpenglWindowStyleResume, 0, 0, 0, 0x0064BA4F);
-	CodePatch openglwindowstyle = { ptrOpenglWindowStyle, "", "\xE9OGLW", 5, false };
+	//MultiPointer(ptrOpenglWindowStyle, 0, 0, 0, 0x0064BA49);
+	//MultiPointer(ptrOpenglWindowStyleResume, 0, 0, 0, 0x0064BA4F);
+	//CodePatch openglwindowstyle = { ptrOpenglWindowStyle, "", "\xE9OGLW", 5, false };
+	//NAKED void openGLWindowStyle() {
+	//	__asm {
+	//		push DS_MODALFRAME | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU
+	//		push esi
+	//		jmp ptrOpenglWindowStyleResume
+	//	}
+	//}
+	MultiPointer(ptrWindowStyle, 0, 0, 0, 0x005776CE);
+	MultiPointer(ptrWindowStyleResume, 0, 0, 0, 0x005776DB);
+	CodePatch openglwindowstyle = { ptrWindowStyle, "", "\xE9OGLW", 5, false };
 	NAKED void openGLWindowStyle() {
 		__asm {
-			push DS_MODALFRAME | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU
-			push esi
-			jmp ptrOpenglWindowStyleResume
+			mov edx, WS_BORDER | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU
+			push edx
+			mov ecx, [ebp - 0x4]
+			push ecx //lpWindowName
+			mov  eax, [edi]
+			push eax //lpClassName
+			push 0  //dwExStyle
+
+			jmp ptrWindowStyleResume
 		}
 	}
 
@@ -806,6 +832,13 @@ namespace ModloaderMain {
 		//hardcallf(r, g, b);
 		//return "true";
 	//}
+
+		BuiltInFunction("subroutine", _hc) {
+		typedef int (*FunctionType)();
+		FunctionType hardcallf = (FunctionType)0x0051062C;
+		hardcallf();
+		return "true";
+	}
 
 	//BuiltInFunction("SimStarfield::setBottomVisible", _ssfsbv) {
 	//	typedef int (*FunctionType)(bool v);
@@ -1812,7 +1845,7 @@ namespace ModloaderMain {
 			//Enumerate OpenGL resolutions up to the desktop resolution
 			OpenGLenumDesktopModes();
 
-			openglwindowstyle.DoctorRelative((u32)openGLWindowStyle, 1).Apply(true);
+			//openglwindowstyle.DoctorRelative((u32)openGLWindowStyle, 1).Apply(true); //Prevents the AI editor window from loading
 		}
 	} init;
 	}

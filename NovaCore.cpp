@@ -25,11 +25,14 @@
 #include <cmath>
 
 MultiPointer(ptrConsole, 0, 0, 0, 0x00722FA4);
+MultiPointer(fnConsoleEval, 0, 0, 0, 0x005E6DF0);
 
 using namespace std;
 using namespace Fear;
 namespace NovaCore
 {
+	u32 dummy, dummy2, dummy3, dummy4, dummy5, dummy6, dummy7;
+
 	BuiltInVariable("pref::novaNotifyText", bool, prefnovanotifytext, true);
 	//Big endian to little endian
 	string BEtoLE(string& str)
@@ -339,12 +342,28 @@ namespace NovaCore
 
 	MultiPointer(ptrSwitchToWindowed, 0, 0, 0x00578313, 0x0057B51B);
 	CodePatch disableWindowed = { ptrSwitchToWindowed, "", "\xEB", 1, false };
+
+	//Disable double tapping the title bar to go to windowed
+	MultiPointer(ptrTitleBarToWindowed, 0, 0, 0, 0x0057B15B);
+	CodePatch disabletitlebarwindowed = { ptrTitleBarToWindowed, "", "\xE9TBTW", 5, false };
+	NAKED void disableTitleBarWindowed() {
+		__asm {
+			pop edi
+			pop esi
+			pop ebx
+			mov esp, ebp
+			pop ebp
+			retn 4
+		}
+	}
+
 	BuiltInFunction("Nova::disableWindowed", _novadisabledwindowed)
 	{
 		std::string var = Console::getVariable("pref::GWC::SIM_FS_MODE");
 		if (var.compare("Upscaled") == 0)
 		{
 			disableWindowed.Apply(true);
+			disabletitlebarwindowed.DoctorRelative((u32)disableTitleBarWindowed, 1).Apply(true);
 		}
 	}
 
@@ -670,6 +689,145 @@ namespace NovaCore
 		return "true";
 	}
 
+	MultiPointer(ptrVehicleOnAction, 0, 0, 0, 0x00484234); //4 bytes
+	MultiPointer(ptrVehicleOnAction_Cloak, 0, 0, 0, 0x004843D1);
+	CodePatch vehicleOnAction_patch1 = { ptrVehicleOnAction,"","\x90\x90\x90\x90",4,false };
+	CodePatch vehicleOnAction_patch2 = { ptrVehicleOnAction_Cloak,"","\x90\x90\x90\x90",4,false };
+
+	MultiPointer(ptrGpuStrings, 0, 0, 0, 0x0064BF62);
+	MultiPointer(ptrGpuStringsResume, 0, 0, 0, 0x0064BF88);
+	MultiPointer(glGetString, 0, 0, 0, 0x00656678);
+	char* gpuVendor;
+	char* gpuName;
+	char* gpuDriver;
+	char* gpuExtensions;
+
+	void pushGpuStrings()
+	{
+		Console::setVariable("pref::GPU::Vendor", gpuVendor);
+		Console::setVariable("pref::GPU::Name", gpuName);
+		Console::setVariable("pref::GPU::Driver", gpuDriver);
+	}
+
+	CodePatch gpuinfo = { ptrGpuStrings,"","\xE9GPUI",5,false };
+	NAKED void gpuInfo() {
+		__asm {
+			push    0x1F00 //GL_VENDOR
+			call    glGetString
+			mov     esi, eax
+			mov	gpuVendor, eax
+			push    0x1F01 //GL_NAME
+			call    glGetString
+			mov     ebp, eax
+			mov gpuName, eax
+			push    1F02h //GL_GL_VERSION
+			call    glGetString
+			mov gpuDriver, eax
+			mov		[esp + 0xF4 - 0xE8], eax
+
+			mov dummy, eax
+			call	pushGpuStrings
+			mov eax, dummy
+
+			jmp		ptrGpuStringsResume
+		}
+	}
+
+	MultiPointer(ptrPause, 0, 0, 0, 0x0045C518);
+	MultiPointer(ptrPauseResume, 0, 0, 0, 0x0045C521);
+	static const char* pauseEval = "GuiPushDialog(simCanvas,\"Prefs.dlg\");if(isCampaign()){$_campaignPaused=1;}";
+	CodePatch pauseevent = { ptrPause, "", "\xE9PAUS", 5, false };
+	NAKED void pauseEvent() {
+		__asm {
+			push 0
+			push 0
+			mov edx, pauseEval
+			jmp ptrPauseResume
+		}
+	}
+
+	MultiPointer(ptrSimPrefsPause, 0, 0, 0, 0x0045C90F);
+	MultiPointer(ptrSimPrefsPauseResume, 0, 0, 0, 0x0045C918);
+	static const char* simPrefsEval = "GuiPushDialog(simCanvas,\"Prefs.dlg\");if(isCampaign()){$_campaignPaused=1;}";
+	CodePatch simprefspauseevent = { ptrSimPrefsPause, "", "\xE9SPAU", 5, false };
+	NAKED void simPrefsPauseEvent() {
+		__asm {
+			push 0
+			push 0
+			mov edx, simPrefsEval
+			jmp ptrPauseResume
+		}
+	}
+
+	MultiPointer(ptrCanvasHandleDLGClose, 0, 0, 0, 0x005C87E4);
+	MultiPointer(ptrCanvasHandleDLGCloseResume, 0, 0, 0, 0x005C87EA);
+	static const char* dlgPopUnpause = "$_campaignPaused=0;$suspended=0;";
+	CodePatch canvas_handledlgclose = { ptrCanvasHandleDLGClose, "", "\xE9_DLG", 5, false };
+	NAKED void canvas_handleDLGClose() {
+		__asm {
+
+			push ebx
+			push esi
+			mov esi, edx
+			mov ebx, eax
+
+			push 0
+			push 0
+			mov edx, dlgPopUnpause
+			xor ecx, ecx
+			mov dummy, esi
+			mov eax, ptrConsole
+			call fnConsoleEval
+			mov eax, ptrConsole
+
+			jmp ptrCanvasHandleDLGCloseResume
+		}
+	}
+
+	//void vehicleOnAction_turbo()
+	//{
+	//	Console::eval("vehicle::onAction(useTurbo, true);");
+	//}
+	//MultiPointer(ptrVehicle_turboUse, 0, 0, 0, 0x00484301);
+	//MultiPointer(ptrVehicle_turboUseResume, 0, 0, 0, 0x00484308);
+	//MultiPointer(loc_48430A, 0, 0, 0, 0x0048430A);
+	//MultiPointer(ptrVehicleEvent__executeScript, 0, 0, 0, 0x0047A404);
+	//MultiPointer(sub_40F07C, 0, 0, 0, 0x0040F07C);
+	//static const char* UseTurbo = "UseTurbo";
+	//CodePatch vehicleturbo = { ptrVehicle_turboUse, "", "\xE9VTUR", 5, false };
+	//NAKED void vehicleTurbo() {
+	//	__asm {
+	//		mov dl, 1
+	//		call sub_40F07C
+	//		mov dummy, eax
+	//		call vehicleOnAction_turbo
+	//		mov eax, dummy
+	//
+	//		jmp ptrVehicle_turboUseResume
+	//	}
+	//}
+
+	void consoleIsActiveToggle()
+	{
+		Console::eval("$console::isActive^=1;");
+	}
+
+	MultiPointer(ptrGuiConsoleToggle, 0, 0, 0, 0x005A121D);
+	MultiPointer(ptrGuiConsoleToggleResume, 0, 0, 0, 0x005A1224);
+	MultiPointer(fnSimGuiConsolePlugin__active, 0, 0, 0, 0x005938E4);
+	BuiltInVariable("console::isActive", bool, consoleisactive, 0);
+	CodePatch consoleactive = { ptrGuiConsoleToggle, "", "\xE9_COA", 5, false };
+	NAKED void consoleActive() {
+		__asm {
+			call fnSimGuiConsolePlugin__active
+			mov dummy, eax
+			call consoleIsActiveToggle
+			mov eax, dummy
+			test al, al
+			jmp ptrGuiConsoleToggleResume
+		}
+	}
+
 	struct Init {
 		Init() {
 
@@ -687,6 +845,9 @@ namespace NovaCore
 			numberweaponscheck.Apply(true);
 			numbervehiclescheck.Apply(true);
 			numbercomponentscheck.Apply(true);
+
+			vehicleOnAction_patch1.Apply(true);
+			vehicleOnAction_patch2.Apply(true);
 
 			//Simgui patches
 			simguislidercolor.Apply(true);
@@ -706,6 +867,20 @@ namespace NovaCore
 			//Manual triggering of the Bayesian Network Editor (AI)
 			manualbayesedit.DoctorRelative((u32)manualBayesEdit, 1).Apply(true);
 			bayesInitPatch.Apply(true);
+
+			//GPU info
+			gpuinfo.DoctorRelative((u32)gpuInfo, 1).Apply(true);
+
+			//Campaign pause dialogs
+			pauseevent.DoctorRelative((u32)pauseEvent, 1).Apply(true);
+			simprefspauseevent.DoctorRelative((u32)simPrefsPauseEvent, 1).Apply(true);
+			canvas_handledlgclose.DoctorRelative((u32)canvas_handleDLGClose, 1).Apply(true);
+
+			//Vehicle::onAction events
+			//vehicleturbo.DoctorRelative((u32)vehicleTurbo, 1).Apply(true);
+
+			//Console statuses
+			consoleactive.DoctorRelative((u32)consoleActive, 1).Apply(true);
 		}
 	} init;
 }

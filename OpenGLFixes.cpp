@@ -208,8 +208,8 @@ namespace OpenGLFixes
 			CodePatch WindowMinimizeOnLoseFocus = { ptrMinimizeWindowMessage,"","\x30",1,false };
 			WindowMinimizeOnLoseFocus.Apply(true);
 			CodePatch genericCodePatch = { ptrOGLFullScreen1,"","\x00",1,false };
-			genericCodePatch.Apply(true);
-			CodePatch genericCodePatch0 = { ptrOGLFullScreen2,"", "\x08",1,false};
+			//genericCodePatch.Apply(true);
+			CodePatch genericCodePatch0 = { ptrOGLFullScreen2,"", "\x0A",1,false}; //CDS_FULLSCREEN
 			genericCodePatch0.Apply(true);
 			//patchchangedisplaysettings.DoctorRelative((u32)patchChangeDisplaySettings, 1).Apply(true);
 			//SetWindowPos(windowHandle, HWND_TOP, 0, 0, screen.x, screen.y, 0);
@@ -501,7 +501,7 @@ namespace OpenGLFixes
 			//goSplash640.Apply(true);
 			//goSplash480.Apply(true);
 			//tempPatch.Apply(true);
-			gdi_opengl.DoctorRelative((u32)GDI_OpenGL, 1).Apply(true);
+			//gdi_opengl.DoctorRelative((u32)GDI_OpenGL, 1).Apply(true);
 
 			//Expanded cache sizes and indices
 			surfacetexturecachegetarena.DoctorRelative((u32)SurfaceTextureCacheGetArena, 1).Apply(true);

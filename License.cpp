@@ -22,7 +22,8 @@ namespace Licence {
 		Console::echo("------------------");
 		//Console::echo("%s", VER_LEGALCOPYRIGHT_STR);
 		//Console::echo("This extension would not be possible without everyone that blazed the trail before me");
-		Console::echo("The initial versions were written and published by NoFix and floodyberry.");
+		Console::echo("Initial version of mem.dll written and published by NoFix and floodyberry.");
+		Console::echo("mem.dll continued on via Nova by PlagueDog.");
 
 		return "true";
 	}

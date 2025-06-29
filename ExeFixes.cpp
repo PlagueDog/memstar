@@ -1119,7 +1119,7 @@ namespace ExeFixes {
 	//Crash occuring on map load
 	MultiPointer(unk667E90, 0, 0, 0, 0x00667EA6);
 	MultiPointer(unk667E90_loop, 0, 0, 0, 0x00667EAC);
-	CodePatch maploadPatch = { unk667E90, "", "\xE9MPPT", 5, false };
+	CodePatch maploadpatch = { unk667E90, "", "\xE9MPPT", 5, false };
 	NAKED void mapLoadPatch() {
 		__asm {
 			mov ebx, [eax + 8]
@@ -1129,6 +1129,36 @@ namespace ExeFixes {
 			jmp [unk667E90_loop]
 			__je:
 			jmp [unk667E90_loop]
+		}
+	}
+
+	MultiPointer(ptrTerrainGridAllocate, 0, 0, 0, 0x00667E90);
+	MultiPointer(ptrTerrainGridAllocateResume, 0, 0, 0, 0x00667E96);
+	CodePatch maploadpatch2 = { ptrTerrainGridAllocate, "", "\xE9MPT2", 5, false };
+	NAKED void mapLoadPatch2() {
+		__asm {
+			mov[isBadPtr], 0
+			mov dummy, eax
+			mov dummy3, edx
+
+			lea edx, [edx + 5]
+			mov inputPtr, edx
+
+			call CheckForBadReadPtr
+
+			mov eax, dummy
+			mov edx, dummy3
+
+			cmp isBadPtr, 0
+			je __je
+			push ebx
+			xor ecx, ecx
+			mov cl, [edx + 5]
+			jmp ptrTerrainGridAllocateResume
+
+			__je :
+			pop ebx
+			retn
 		}
 	}
 
@@ -1145,6 +1175,57 @@ namespace ExeFixes {
 
 	MultiPointer(ptrSimguiTextEditColor, 0, 0, 0, 0x005D1E11);
 	CodePatch setTextEditColor = { ptrSimguiTextEditColor, "", "\xFB", 1, false };
+
+	MultiPointer(ptrHudMouseInput, 0, 0, 0, 0x004877F3);
+	MultiPointer(ptrHudMouseInputResume, 0, 0, 0, 0x004877FC);
+	MultiPointer(ptrHudMouseInputAbort, 0, 0, 0, 0x00487846);
+	CodePatch hudmouseinput = { ptrHudMouseInput, "", "\xE9HMIN", 5, false };
+	NAKED void hudMouseInput() {
+		__asm {
+			test edx, edx
+			jz __NULL_POINTER
+			mov [edx + 4], eax
+			mov dword ptr[edx], 1
+			jmp ptrHudMouseInputResume
+			__NULL_POINTER :
+			jmp ptrHudMouseInputAbort
+		}
+	}
+
+	MultiPointer(ptrHudMovementInput, 0, 0, 0, 0x004875E8);
+	MultiPointer(ptrHudMovementInputResume, 0, 0, 0, 0x004875F5);
+	MultiPointer(ptrHudMovementInputAbort, 0, 0, 0, 0x00487644);
+	CodePatch hudmovementinput = { ptrHudMovementInput, "", "\xE9HMOI", 5, false };
+	NAKED void hudMovementInput() {
+		__asm {
+			push dword ptr[esi]
+			test dl, 8
+			setz dl
+			and edx, 1
+			mov eax, ecx
+			test eax, eax
+			jz __NULL_POINTER
+			jmp ptrHudMovementInputResume
+			__NULL_POINTER:
+			jmp ptrHudMovementInputAbort
+		}
+	}
+
+	MultiPointer(ptrVehicleCrouchInput, 0, 0, 0, 0x00487C6C);
+	MultiPointer(ptrVehicleCrouchInputResume, 0, 0, 0, 0x00487C72);
+	MultiPointer(ptrVehicleCrouchInputAbort, 0, 0, 0, 0x00487CA7);
+	CodePatch vehiclecrouchinput = { ptrVehicleCrouchInput, "", "\xE9VCRI", 5, false };
+	NAKED void vehicleCrouchInput() {
+		__asm {
+			test eax, eax
+			jz __NULL_POINTER
+			lea edx, [eax + 8]
+			cmp edx, [eax + 4]
+			jmp ptrVehicleCrouchInputResume
+			__NULL_POINTER :
+			jmp ptrVehicleCrouchInputAbort
+		}
+	}
 
 	struct Init {
 		Init() {
@@ -1274,7 +1355,8 @@ namespace ExeFixes {
 			SPBarSlideDuration.Apply(true);
 
 			//Map load patch which fixes crashing after creating a local server, dropping into the map, exiting the server, and repeating
-			maploadPatch.DoctorRelative((u32)mapLoadPatch, 1).Apply(true);
+			maploadpatch.DoctorRelative((u32)mapLoadPatch, 1).Apply(true);
+			maploadpatch2.DoctorRelative((u32)mapLoadPatch2, 1).Apply(true);
 
 			//Allow setHudMapViewOffset on other servers
 			setHudMapViewOffsetPatch1.Apply(true);
@@ -1282,10 +1364,15 @@ namespace ExeFixes {
 			setHudMapViewOffsetPatch3.Apply(true);
 
 			//Mouse Events
-			disable_fnCanvasonMouseMove.Apply(true); //Disable this function to fix game cursor jumping around when clicking back into the game window
+			//disable_fnCanvasonMouseMove.Apply(true); //Disable this function to fix game cursor jumping around when clicking back into the game window
 
 			//Set the background color of Simgui::TextEdit to 0x00
 			setTextEditColor.Apply(true);
+
+			//Prevent mouse input on the hud if the player has their camera attached to a vehicle they do not control
+			hudmouseinput.DoctorRelative((u32)hudMouseInput, 1).Apply(true);
+			hudmovementinput.DoctorRelative((u32)hudMovementInput, 1).Apply(true);
+			vehiclecrouchinput.DoctorRelative((u32)vehicleCrouchInput, 1).Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes

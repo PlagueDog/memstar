@@ -766,6 +766,42 @@ void onPlayerMessage()
 	//return "true";
 }
 
+char* chatMessage;
+BuiltInVariable("pref::echoPlayerMessages", bool, prefechoplayermessages, 0);
+void onClientRecvChat()
+{
+	if (chatMessage != NULL)
+	{
+		Console::setVariable("Nova::chatMessage", chatMessage);
+		if (Console::functionExists("client::onChatMessage"))
+		{
+			Console::eval("client::onChatMessage($chatMessage);");
+		}
+		if (prefechoplayermessages)
+		{
+			if (strlen(chatMessage) <= 500) //Don't exceed the consoles scratch buffer
+			{
+				Console::echo("Client-MSG: %s", chatMessage);
+			}
+		}
+	}
+}
+
+MultiPointer(ptrChatMessage, 0, 0, 0, 0x005C9E96);
+MultiPointer(ptrChatMessageResume, 0, 0, 0, 0x005C9E9C);
+CodePatch clientonmessage = { ptrChatMessage, "", "\xE9_CHM", 5, false };
+NAKED void clientOnMessage() {
+	__asm {
+		mov [ebp - 0x2C], ecx
+		mov eax, [ebp - 0x2C]
+		mov chatMessage, eax
+		mov dummy, eax
+		call onClientRecvChat
+		mov eax, dummy
+		jmp ptrChatMessageResume
+	}
+}
+
 NAKED void playerOnMessage() {
 	__asm {
 		mov [dummy], 0
@@ -927,6 +963,31 @@ BuiltInFunction("player::onMessage", _playeronmessage) { return 0; }
 		}
 	}
 
+	BuiltInVariable("$Nova::vehicleDamageEvents", bool, nova_vehicledamageevents, 1);
+	MultiPointer(ptr_serverVehicleDamageEvent, 0, 0, 0, 0x004749BC);
+	MultiPointer(ptr_serverVehicleDamageEventResume, 0, 0, 0, 0x004749C2);
+	CodePatch vehicledamageevent = { ptr_serverVehicleDamageEvent, "", "\xE9SVDE", 5, false };
+	NAKED void vehicleDamageEvent() {
+		__asm {
+			push    ebx
+			mov     ebx, eax
+			push    esi
+			push    edi
+			push    ebp
+			cmp nova_vehicledamageevents, 1
+			je __je
+
+			pop     ebp
+			pop     edi
+			pop     esi
+			pop     ebx
+			retn
+
+			__je:
+			jmp ptr_serverVehicleDamageEventResume
+		}
+	}
+
 	struct Init 
 	{
 		Init() 
@@ -959,9 +1020,11 @@ BuiltInFunction("player::onMessage", _playeronmessage) { return 0; }
 				//guivehcontrollerloadvehicle.DoctorRelative((u32)GuiVehControllerLoadVehicle, 1).Apply(true);
 				vehiclefilelookup.DoctorRelative((u32)VehicleFileLookup, 1).Apply(true);
 
-				//player::onMessage
+				//player::onMessage (Server side)
 				playeronmessage.DoctorRelative((u32)playerOnMessage, 1).Apply(true);
-				
+				//client::onChatMessage (Client side)
+				clientonmessage.DoctorRelative((u32)clientOnMessage, 1).Apply(true);
+
 				//OpenGL DEV
 				//openglmodeextend.DoctorRelative((u32)OpenGLModeExtend, 1).Apply(true);
 
@@ -984,6 +1047,9 @@ BuiltInFunction("player::onMessage", _playeronmessage) { return 0; }
 
 				//onWindowPosChanging - save the position of the canvas to variables
 				windowmoved.DoctorRelative((u32)windowMoved, 1).Apply(true);
+
+				//Server Events
+				vehicledamageevent.DoctorRelative((u32)vehicleDamageEvent, 1).Apply(true);
 		}
 	} init;
 }

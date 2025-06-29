@@ -421,6 +421,10 @@ namespace ExtendedVariables
 		}
 	}
 
+	void hudPalFlushTextureCache()
+	{
+		Console::eval("schedule('flushTextureCache();',0);");
+	}
 	//Gets the hud palette color index integer from the loaded HudLayout.prf
 	BuiltInVariable("$pref::hud::paletteIndex", int, prefhudpaletteindex, 1);
 	MultiPointer(ptrHudPalIndex, 0, 0, 0, 0x0051062C);
@@ -434,6 +438,21 @@ namespace ExtendedVariables
 			push ecx
 			mov ebx, eax
 			mov prefhudpaletteindex, edx
+
+			mov dummy, eax
+			mov dummy2, ecx
+			mov dummy3, edx
+			mov dummy4, esi
+			mov dummy5, ebx
+
+			call hudPalFlushTextureCache
+
+			mov eax, dummy
+			mov ecx, dummy2
+			mov edx, dummy3
+			mov esi, dummy4
+			mov ebx, dummy5
+
 			jmp[ptrHudPalIndexResume]
 
 		}
@@ -498,18 +517,25 @@ namespace ExtendedVariables
 		else if (objectTeam == 8) { team = "Purple"; }
 		Console::setVariable("inspector::objectTeam", team);
 	}
-	MultiPointer(ptrInspectObjectTeam, 0, 0, 0, 0x0041BDA6);
-	MultiPointer(ptrInspectObjectTeamResume, 0, 0, 0, 0x0041BDB0);
+	MultiPointer(ptrInspectObjectTeam, 0, 0, 0, 0x0041BDE4);
+	MultiPointer(ptrInspectObjectTeamResume, 0, 0, 0, 0x0041BDEA);
 	CodePatch objectteaminspect = { ptrInspectObjectTeam, "", "\xE9OTEA", 5, false };
 	NAKED void objectTeamInspect() {
 		__asm {
-			mov[esp + 0x40 - 0x14], 0xD
-			mov eax, edx
+			mov dummy, eax
+
+			mov eax, [esp + 0x40 - 0x14 + 4]
 			mov objectTeam, eax
 
-			mov dummy, eax
+			//mov dummy, eax
 			call setObjectTeamVar
 			mov eax, dummy
+
+			add esp, 0x34
+			pop edi
+			pop esi
+			pop ebx
+
 			jmp[ptrInspectObjectTeamResume]
 
 		}
@@ -606,9 +632,9 @@ namespace ExtendedVariables
 			mov simShapeRotY, ecx
 			mov ecx, [esp + 0xAC]
 			mov simShapeRotZ, ecx
-			//mov dummy, eax
+			mov dummy, eax
 			call setSimShapeVars
-			//mov eax, dummy
+			mov eax, dummy
 
 			//add esp, 0x1F4
 
@@ -624,13 +650,48 @@ namespace ExtendedVariables
 	{
 		CodePatch inspectWindowState = { ptrInspectWindowOnAdd, "", "\xC3", 1, false };
 		inspectWindowState.Apply(true);
+		Console::eval("if(isObject(\"objectInspector\")){deleteObject(\"objectInspector\");}");
 		return "true";
 	}
 	BuiltInFunction("Nova::enableInspectWindow", _novaenableinspectwindow)
 	{
 		CodePatch inspectWindowState = { ptrInspectWindowOnAdd, "", "\x53", 1, false };
 		inspectWindowState.Apply(true);
+		Console::eval("if(isObject(\"objectInspector\")){deleteObject(\"objectInspector\");}");
 		return "true";
+	}
+
+	MultiPointer(ptrCockpitCameraYawLimit, 0, 0, 0, 0x0048784C);
+	MultiPointer(ptrCockpitCameraPitchLimit, 0, 0, 0, 0x00487850);
+	BuiltInFunction("Nova::enableFarLook", _novaenablefarlook)
+	{
+		CodePatch camYaw = { ptrCockpitCameraYawLimit, "", "\x00\x00\xC0\x3F", 4, false };
+		CodePatch camPitch = { ptrCockpitCameraPitchLimit, "", "\x00\x00\xC0\xBF", 4, false };
+		camYaw.Apply(true);
+		camPitch.Apply(true);
+		return "true";
+	}
+
+	BuiltInFunction("Nova::disableFarLook", _novadisablefarlook)
+	{
+		CodePatch camYaw = { ptrCockpitCameraYawLimit, "", "\x00\x00\x80\x3F", 4, false };
+		CodePatch camPitch = { ptrCockpitCameraPitchLimit, "", "\x00\x00\x80\xBF", 4, false };
+		camYaw.Apply(true);
+		camPitch.Apply(true);
+		return "true";
+	}
+
+	BuiltInVariable("MEtextList::hlColorIndex", int, metextlisthlcolor, 0xFE);
+	MultiPointer(ptrMEtextListHighlight, 0, 0, 0, 0x005DDB37);
+	MultiPointer(ptrMEtextListHighlightResume, 0, 0, 0, 0x005DDB3F);
+	CodePatch metextlisthighlight = { ptrMEtextListHighlight, "", "\xE9_MTH", 5, false };
+	NAKED void meTextlistHighlight() {
+		__asm {
+			mov ecx, metextlisthlcolor
+			mov esi, [eax + 4]
+			jmp[ptrMEtextListHighlightResume]
+
+		}
 	}
 
 	struct Init {
@@ -673,6 +734,9 @@ namespace ExtendedVariables
 			guiobjectinspect.DoctorRelative((u32)guiObjectInspect, 1).Apply(true);
 			simshapeinspect.DoctorRelative((u32)simShapeInspect, 1).Apply(true);
 			objectteaminspect.DoctorRelative((u32)objectTeamInspect, 1).Apply(true);
+
+			//MEtextList Highlight
+			metextlisthighlight.DoctorRelative((u32)meTextlistHighlight, 1).Apply(true);
 		}
 	}init;
 };

@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <algorithm>
 #include "hunzip.h"
+#include <dirent.h>
 
 using namespace std;
 using namespace Fear;
@@ -270,7 +271,7 @@ namespace clientDataHandler {
 		}
 		string path = argv[0];
 		string ext = path.substr(path.size() - 4, path.size());
-		if (path.find(":") != -1)
+		if (path.find(":") != -1 || path.find("..") != -1)
 		{
 			Console::echo("Cannot set a vehicle directory located outside of the Starsiege directory.");
 			return "false";
@@ -407,7 +408,7 @@ namespace clientDataHandler {
 		}
 		string path = argv[0];
 		string ext = path.substr(path.size() - 4, path.size());
-		if (path.find(":") != -1)
+		if (path.find(":") != -1 || path.find("..") != -1)
 		{
 			Console::echo("Cannot remove files that are located outside of the Starsiege directory.");
 			return "false";
@@ -444,7 +445,7 @@ namespace clientDataHandler {
 		}
 		string path = argv[0];
 		//string ext = path.substr(path.size() - 4, path.size());
-		if (path.find(":") != -1)
+		if (path.find(":") != -1 || path.find("..") != -1)
 		{
 			Console::echo("Cannot remove files that are located outside of the Starsiege directory.");
 			return "false";
@@ -472,7 +473,7 @@ namespace clientDataHandler {
 		}
 		string path = argv[0];
 		//string ext = path.substr(path.size() - 4, path.size());
-		if (path.find(":") != -1)
+		if (path.find(":") != -1 || path.find("..") != -1)
 		{
 			Console::echo("Cannot remove files that are located outside of the Starsiege directory.");
 			return "false";
@@ -511,7 +512,7 @@ namespace clientDataHandler {
 		}
 		string path = argv[0];
 		string ext = path.substr(path.size() - 4, path.size());
-		if (path.find(":") != -1)
+		if (path.find(":") != -1 || path.find("..") != -1)
 		{
 			Console::echo("Cannot read files outside of the Starsiege directories.");
 			return "false";
@@ -538,7 +539,7 @@ namespace clientDataHandler {
 		}
 		string path = argv[0];
 		string ext = path.substr(path.size() - 4, path.size());
-		if (path.find(":") != -1)
+		if (path.find(":") != -1 || path.find("..") != -1)
 		{
 			Console::echo("Cannot read files that are located outside of the Starsiege directory.");
 			return "false";
@@ -598,7 +599,7 @@ namespace clientDataHandler {
 	BuiltInFunction("fileWriteHex", _fwh) {
 		string path = argv[0];
 		string ext = path.substr(path.size() - 4, path.size());
-		if (path.find(":") != -1)
+		if (path.find(":") != -1 || path.find("..") != -1)
 		{
 			Console::echo("Cannot write files outside of the Starsiege directories.");
 			return "false";
@@ -687,7 +688,7 @@ namespace serverDataHandler {
 		}
 		string path = argv[0];
 		string ext = path.substr(path.size() - 4, path.size());
-		if (path.find(":") != -1)
+		if (path.find(":") != -1 || path.find("..") != -1)
 		{
 			Console::echo("Cannot read files outside of the Starsiege directories.");
 			return "false";
@@ -728,7 +729,7 @@ namespace serverDataHandler {
 		}
 		string path = argv[0];
 		string ext = path.substr(path.size() - 4, path.size());
-		if (path.find(":") != -1)
+		if (path.find(":") != -1 || path.find("..") != -1)
 		{
 			Console::echo("Cannot read files outside of the Starsiege directories.");
 			return "false";
@@ -814,7 +815,7 @@ namespace serverDataHandler {
 			return 0;
 		}
 		string path = argv[0];
-		if (path.find(":") != -1)
+		if (path.find(":") != -1 || path.find("..") != -1)
 		{
 			Console::echo("Cannot read files outside of the Starsiege directories.");
 			return "false";
@@ -853,7 +854,7 @@ namespace serverDataHandler {
 			return 0;
 		}
 		string path = argv[0];
-		if (path.find(":") != -1)
+		if (path.find(":") != -1 || path.find("..") != -1)
 		{
 			Console::echo("Cannot read files outside of the Starsiege directories.");
 			return "false";
@@ -875,5 +876,27 @@ namespace serverDataHandler {
 			}
 		}
 		return "false";
+	}
+
+	BuiltInFunction("Nova::purgeTedFiles", _novapurgetedfiles) {
+		struct dirent* entry;
+		DIR* dir = opendir(".");
+
+		if (dir == NULL) {
+			return 0;
+		}
+
+		std::stringstream fileListing;
+		int counter = 0;
+		while ((entry = readdir(dir)) != NULL) {
+			std::string fileName = entry->d_name;
+			if (fileName.find("terrain.dat") != -1 || fileName.find(".grid.dat") != -1 || fileName.find(".terrain.dml") != -1)
+			{
+				std::remove(entry->d_name);
+			}
+		}
+		closedir(dir);
+		Console::eval("appendSearchPath();");
+		return "true";
 	}
 }

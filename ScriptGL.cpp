@@ -190,21 +190,25 @@ namespace ScriptGL {
 
 			mCompiler->Clear();
 
+			//Standard playGUI function
 			if (Console::functionExists(simfunction) && Sim::Client()->findObject<Object>(651))
 			{
 				Console::execFunction(1, simfunction, dim.c_str());
 			}
 
+			//If on the hud
 			if (Console::functionExists(hudfunction) && Sim::Client()->findObject<Object>(651))
 			{
 				Console::execFunction(1, hudfunction, dim.c_str());
 			}
 
+			//If inside a shell menu
 			if (Console::functionExists(shellfunction) && !Sim::Client()->findObject<Object>(651))
 			{
 				Console::execFunction(1, shellfunction, dim.c_str());
 			}
 
+			//Used globally by Nova
 			if (Console::functionExists(novafunction))
 			{
 				Console::execFunction(1, novafunction, dim.c_str());

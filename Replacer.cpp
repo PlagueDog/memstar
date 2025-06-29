@@ -190,6 +190,9 @@ namespace Replacer {
 				}
 				else {
 					Console::echo("Replacer: Adding %s(hash:%x)", argv[1], crc);
+					char hashTable[MAX_PATH];
+					sprintf(hashTable, "Nova::addReplacement('%x','%s');", crc, argv[1]);
+					Console::eval(hashTable);
 					mOriginals.Insert(crc, String2(argv[1]));
 				}
 			}
@@ -203,15 +206,24 @@ namespace Replacer {
 		return "true";
 	}
 
-	//BuiltInFunction("Nova::openHashDirectory", _novaopenhashdirectory) {
-	//	if (argc >= 1)
-	//	{
-	//		return "true";
-	//		exit;
-	//	}
-	//	ShellExecute(0, "explore", ".\\mods\\textureHasher", NULL, NULL, SW_SHOWNORMAL);
-	//	return "true";
-	//}
+	MultiPointer(ptrCmdLineJoinCursorOn, 0, 0, 0, 0x0053F7CF);
+	CodePatch autocursordisable = { ptrCmdLineJoinCursorOn, "", "\xEB\x20", 2, false };
+	BuiltInFunction("Memstar::disableCursorAutoOn", memstardisablecursorautoon)
+	{
+		autocursordisable.Apply(true);
+		return "true";
+	}
+
+
+	BuiltInFunction("Nova::openHashDirectory", _novaopenhashdirectory) {
+		if (argc >= 1)
+		{
+			return "true";
+			exit;
+		}
+		ShellExecute(0, "explore", ".\\mods\\textureHasher", NULL, NULL, SW_SHOWNORMAL);
+		return "true";
+	}
 
 	//BuiltInFunction("Nova::openHashOutput", _novaopenhashoutput) {
 	//
