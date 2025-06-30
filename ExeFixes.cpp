@@ -1227,6 +1227,26 @@ namespace ExeFixes {
 		}
 	}
 
+	BuiltInVariable("pref::lensflare", bool, preflensflare, true);
+	MultiPointer(ptrLensFlareRender, 0, 0, 0, 0x006B3FC4);
+	MultiPointer(ptrLensFlareRenderResume, 0, 0, 0, 0x006B3FCE);
+	CodePatch lensflarerender = { ptrLensFlareRender, "", "\xE9LFLR", 5, false };
+	NAKED void lensFlareRender() {
+		__asm {
+			cmp preflensflare, 0
+			je __dontRender
+			push    ebx
+			push    esi
+			push    edi
+			push    ebp
+			add     esp, 0xFFFFFD6C
+			jmp ptrLensFlareRenderResume
+
+			__dontRender:
+			retn
+		}
+	}
+
 	struct Init {
 		Init() {
 			//WindowsCompatMode();
@@ -1373,6 +1393,9 @@ namespace ExeFixes {
 			hudmouseinput.DoctorRelative((u32)hudMouseInput, 1).Apply(true);
 			hudmovementinput.DoctorRelative((u32)hudMovementInput, 1).Apply(true);
 			vehiclecrouchinput.DoctorRelative((u32)vehicleCrouchInput, 1).Apply(true);
+
+			//Lensflare Patches
+			lensflarerender.DoctorRelative((u32)lensFlareRender, 1).Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes
