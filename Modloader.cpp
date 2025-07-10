@@ -1212,7 +1212,7 @@ namespace ModloaderMain {
 		return "true";
 	}
 
-	BuiltInVariable("pref::NoCockpitFadein", bool, prefCockpitFadein, true);
+	BuiltInVariable("pref::NoCockpitFadein", bool, prefCockpitFadein, false);
 	BuiltInFunction("Nova::toggleCockpitFadeIn", _tcf) {
 		MultiPointer(ptrSimFadein01, 0, 0, 0x0045AA7E, 0x0045BF42);
 		MultiPointer(ptrSimFadein02, 0, 0, 0x0045AA97, 0x0045BF5B);
