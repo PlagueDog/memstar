@@ -1069,7 +1069,7 @@ namespace ModloaderMain {
 
 	MultiPointer(ptrMapViewFidelity, 0, 0, 0x005155DC, 0x00517A78);
 	CodePatch OverviewMapFidelity = { ptrMapViewFidelity,	"\x00\x00\x00\x42\x00\x00\x80\x3E",	"\x00\x00\xC0\x42\x00\x00\xB0\x3E",	8,	false};
-	BuiltInVariable("pref::mapviewSmoothTerrain", int, prefmapviewsmoothterrain, 1);
+	BuiltInVariable("pref::mapviewSmoothTerrain", int, prefmapviewsmoothterrain, 0);
 	BuiltInFunction("Nova::toggleMapviewSmoothTerrain", _novatogglemapviewsmoothterrain)
 	{
 		std::string var = Console::getVariable("pref::mapviewSmoothTerrain");
