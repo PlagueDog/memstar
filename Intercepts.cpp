@@ -1042,6 +1042,7 @@ BuiltInFunction("player::onMessage", _playeronmessage) { return 0; }
 				canvaskeyintercept.DoctorRelative((u32)canvasKeyIntercept, 1).Apply(true);
 
 				//Allow ffEvent to be used without a playerPacketStream
+				ffeventpatch0.Apply(true);
 				ffeventpatch1.DoctorRelative((u32)ffEventPatch1, 1).Apply(true);
 				ffeventpatch2.DoctorRelative((u32)ffEventPatch2, 1).Apply(true);
 
