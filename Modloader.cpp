@@ -987,19 +987,21 @@ namespace ModloaderMain {
 	//}
 
 	MultiPointer(ptrFlyerThrottleInit, 0, 0, 0x004386E8, 0x00439BA0);
-	CodePatch FlyerThrottle = { ptrFlyerThrottleInit, "\x01", "\x00", 1, false };
+	CodePatch FlyerThrottleStandard = { ptrFlyerThrottleInit, "", "\x01", 1, false };
+	CodePatch FlyerThrottleAlt = { ptrFlyerThrottleInit, "", "\x00", 1, false };
 	BuiltInFunction("Nova::flyerCampaignStateCheck", _novaflyercampaignstatecheck)
 	{
+		return 0;
 		uintptr_t ptr = ptrCampaignByte;
 		int boolean = *reinterpret_cast<int*>(ptr);
-
-		if(boolean)
+		//Console::echo(tostring(boolean));
+		if(boolean == 1)
 		{
-			FlyerThrottle.Apply(false);
+			FlyerThrottleStandard.Apply(true);
 		}
 		else
 		{
-			FlyerThrottle.Apply(true);
+			FlyerThrottleAlt.Apply(true);
 		}
 		return "true";
 	}

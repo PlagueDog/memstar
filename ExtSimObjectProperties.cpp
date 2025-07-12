@@ -694,6 +694,25 @@ namespace ExtendedVariables
 		}
 	}
 
+	//Disable server terrain updates
+	MultiPointer(ptrSimTerrain_unpackUpdate, 0, 0, 0, 0x005836B4);
+	BuiltInFunction("Nova::disableTerrainUpdates", _novadisableterrainupdates)
+	{
+		CodePatch noUnpacks = { ptrSimTerrain_unpackUpdate, "", "\xC3", 1, false };
+		noUnpacks.Apply(true);
+		return "true";
+	}
+
+	BuiltInFunction("Nova::enableTerrainUpdates", _novaenableterrainupdates)
+	{
+		CodePatch allowUnpacks = { ptrSimTerrain_unpackUpdate, "", "\x53", 1, false };
+		allowUnpacks.Apply(true);
+		return "true";
+	}
+
+	MultiPointer(ptrSimTerrain_setVisibility, 0, 0, 0, 0x0057E93D);
+	CodePatch simTerrainVisibilityPatch = { ptrSimTerrain_setVisibility, "", "\xEB", 1, false };
+
 	struct Init {
 		Init() {
 
@@ -737,6 +756,9 @@ namespace ExtendedVariables
 
 			//MEtextList Highlight
 			metextlisthighlight.DoctorRelative((u32)meTextlistHighlight, 1).Apply(true);
+
+			//Allow the client to set its terrain visibility
+			simTerrainVisibilityPatch.Apply(true);
 		}
 	}init;
 };

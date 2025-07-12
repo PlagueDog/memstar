@@ -690,7 +690,7 @@ namespace NovaCore
 	}
 
 	MultiPointer(ptrVehicleOnAction, 0, 0, 0, 0x00484234); //4 bytes
-	MultiPointer(ptrVehicleOnAction_Cloak, 0, 0, 0, 0x004843D1);
+	MultiPointer(ptrVehicleOnAction_Cloak, 0, 0, 0, 0x004843D7);
 	CodePatch vehicleOnAction_patch1 = { ptrVehicleOnAction,"","\x90\x90\x90\x90",4,false };
 	CodePatch vehicleOnAction_patch2 = { ptrVehicleOnAction_Cloak,"","\x90\x90\x90\x90",4,false };
 
@@ -828,6 +828,19 @@ namespace NovaCore
 		}
 	}
 
+	MultiPointer(ptrInitHudSim, 0, 0, 0, 0x00460FB7);
+	MultiPointer(ptrInitHudSimResume, 0, 0, 0, 0x00460FC0);
+	static const char* setHudTimer = "Nova::campaignCompat();setHudTimer(-1,1,\"\",1);";
+	CodePatch inithudtimers = { ptrInitHudSim, "", "\xE9_NCC", 5, false };
+	NAKED void initHudTimers() {
+		__asm {
+			push 0
+			push 0
+			mov edx, setHudTimer
+			jmp ptrInitHudSimResume
+		}
+	}
+
 	struct Init {
 		Init() {
 
@@ -881,6 +894,9 @@ namespace NovaCore
 
 			//Console statuses
 			consoleactive.DoctorRelative((u32)consoleActive, 1).Apply(true);
+
+			//Patch the initial hud timers to execute our Nova::campaignCompat function in recordings
+			inithudtimers.DoctorRelative((u32)initHudTimers, 1).Apply(true);
 		}
 	} init;
 }
