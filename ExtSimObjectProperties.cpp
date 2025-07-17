@@ -107,16 +107,6 @@ namespace ExtendedVariables
 		}
 	}
 
-	//BuiltInFunction("getRadar", _getRadar)
-	//{
-	//	if (strlen(vehicleRadarMode))
-	//	{
-	//		Console::echo(vehicleRadarMode);
-	//		Console::echo(tostring(vehicleRadarRange));
-	//	}
-	//	return 0;
-	//}
-
 	MultiPointer(ptrgetenergy, 0, 0, 0, 0x0051B06F);
 	MultiPointer(ptrEnergyResume, 0, 0, 0, 0x0051B075);
 	CodePatch codepatch_getenergy = { ptrgetenergy, "", "\xE9GENG", 5, false };
@@ -205,19 +195,6 @@ namespace ExtendedVariables
 			jmp[ptrShieldModRotationResume]
 		}
 	}
-
-	//BuiltInFunction("Nova::getEnergy", _novagetEnergy)
-	//{
-	//	if ((energyValue * 100) > 99.8)
-	//	{
-	//		return "100";
-	//	}
-	//	if (energyValue)
-	//	{
-	//		return tostring(energyValue * 100);
-	//	}
-	//	return 0;
-	//}
 
 	MultiPointer(ptrgetthrottle, 0, 0, 0, 0x0051B318);
 	MultiPointer(ptrthrottleResume, 0, 0, 0, 0x0051B31E);
@@ -458,24 +435,6 @@ namespace ExtendedVariables
 		}
 	}
 
-	//BuiltInVariable("$pref::hudMtrShieldsCoords", float, prefhudmtrshieldscoords, 0);
-	//MultiPointer(ptrHudMtrShieldsCoords, 0, 0, 0, 0x00700908);
-	//
-	//MultiPointer(ptrHudLayout, 0, 0, 0, 0x0050E1A8);
-	//MultiPointer(ptrHudLayoutResume, 0, 0, 0, 0x0050E1AE);
-	//MultiPointer(dword_7008C8, 0, 0, 0, 0x007008C8);
-	//CodePatch hudlayout = { ptrHudLayout, "", "\xE9HMTR", 5, false };
-	//NAKED void hudLayout() {
-	//	__asm {
-	//		mov edx, dword_7008C8
-	//		mov eax, ptrHudMtrShieldsCoords
-	//		mov prefhudmtrshieldscoords, eax
-	//		jmp[ptrHudLayoutResume]
-	//
-	//	}
-	//}
-
-
 	char* vehicleInspectSkin;
 	char* vehicleInspectMass;
 
@@ -601,8 +560,6 @@ namespace ExtendedVariables
 	float simShapeRotZ;
 	void setSimShapeVars()
 	{
-		//int _guiObject_Xpos = *reinterpret_cast<int*>(guiObject_Xpos);
-		//int _guiObject_Ypos = *reinterpret_cast<int*>(guiObject_Ypos);
 		Console::setVariable("inspector::ObjectRotX", tostring(simShapeRotX));
 		Console::setVariable("inspector::ObjectRotY", tostring(simShapeRotY));
 		Console::setVariable("inspector::ObjectRotZ", tostring(simShapeRotZ));
@@ -616,15 +573,6 @@ namespace ExtendedVariables
 			mov simShapeRotX, 0
 			mov simShapeRotY, 0
 			mov simShapeRotZ, 0
-			//mov ecx, [esp + 0xC8 - 0x24]
-			//mov simShapeRotX, ecx
-			//mov	[esp + 0xC8 - 0x18], ecx
-			//mov eax, [esp + 0xC8 - 0x20]
-			//mov simShapeRotY, eax
-			//mov	[esp + 0xC8 - 0x14], eax
-			//mov eax, esi
-			//mov edx, [esp + 0xC8 - 0x1C]
-			//mov simShapeRotZ, edx
 
 			mov ecx, [esp + 0xA4]
 			mov simShapeRotX, ecx
@@ -713,52 +661,84 @@ namespace ExtendedVariables
 	MultiPointer(ptrSimTerrain_setVisibility, 0, 0, 0, 0x0057E93D);
 	CodePatch simTerrainVisibilityPatch = { ptrSimTerrain_setVisibility, "", "\xEB", 1, false };
 
+	BuiltInVariable("hudTitleWin::opacity", float, hudtitlewinopacity, 0.7);
+	MultiPointer(ptrHudTitleWinRenderOpacity, 0, 0, 0, 0x0050F7AC);
+	MultiPointer(ptrHudTitleWinRenderOpacityResume, 0, 0, 0, 0x0050F7B3);
+	CodePatch hudtitlewin_opacity = { ptrHudTitleWinRenderOpacity, "", "\xE9HWOP", 5, false };
+	NAKED void hudTitleWin_Opacity() {
+		__asm {
+			push hudtitlewinopacity
+			mov eax, esi
+			jmp[ptrHudTitleWinRenderOpacityResume]
+
+		}
+	}
+	BuiltInVariable("hudTitleWin::colorIndex", int, hudtitlewincolorindex, 0xF7);
+	MultiPointer(ptrHudTitleWinRenderColor, 0, 0, 0, 0x0050F7E0);
+	MultiPointer(ptrHudTitleWinRenderColorResume, 0, 0, 0, 0x0050F7E8);
+	CodePatch hudtitlewin_colorindex = { ptrHudTitleWinRenderColor, "", "\xE9HWCI", 5, false };
+	NAKED void hudTitleWin_ColorIndex() {
+		__asm {
+			mov eax, [ebp - 0xC]
+			mov ecx, hudtitlewincolorindex
+			jmp[ptrHudTitleWinRenderColorResume]
+
+		}
+	}
+
 	struct Init {
 		Init() {
 
-			//Vehicle vars
-			codepatch_getkph.DoctorRelative((u32)getKPH, 1).Apply(true);
-			codepatch_getradar.DoctorRelative((u32)getRadar, 1).Apply(true);
-			codepatch_getradarrange.DoctorRelative((u32)getRadarRange, 1).Apply(true);
-			assignhudproperties.DoctorRelative((u32)assignHudProperties, 1).Apply(true);
-			codepatch_getshield.DoctorRelative((u32)getShield, 1).Apply(true);
-			codepatch_getshieldforward.DoctorRelative((u32)getShieldForward, 1).Apply(true);
-			codepatch_getshieldmodrotation.DoctorRelative((u32)getShieldModRotation, 1).Apply(true);
-			codepatch_getenergy.DoctorRelative((u32)getEnergy, 1).Apply(true);
-			codepatch_getthrottle.DoctorRelative((u32)getThrottle, 1).Apply(true);
-			codepatch_getteamyellow.DoctorRelative((u32)getTeamYellow, 1).Apply(true);
-			codepatch_getteamblue.DoctorRelative((u32)getTeamBlue, 1).Apply(true);
-			codepatch_getteamred.DoctorRelative((u32)getTeamRed, 1).Apply(true);
-			codepatch_getteampurple.DoctorRelative((u32)getTeamPurple, 1).Apply(true);
-			
-			ctreepointers.DoctorRelative((u32)cTreePointers, 1).Apply(true);
-			ctreepointers_nameless.DoctorRelative((u32)cTreePointers_nameless, 1).Apply(true);
-			clienttreewin.DoctorRelative((u32)ClientTreeWin, 1).Apply(true);
-			canvasmousepatch.DoctorRelative((u32)CanvasMousePatch, 1).Apply(true);
+			if (std::filesystem::exists("Nova.vol"))
+			{
+				//Vehicle vars
+				codepatch_getkph.DoctorRelative((u32)getKPH, 1).Apply(true);
+				codepatch_getradar.DoctorRelative((u32)getRadar, 1).Apply(true);
+				codepatch_getradarrange.DoctorRelative((u32)getRadarRange, 1).Apply(true);
+				assignhudproperties.DoctorRelative((u32)assignHudProperties, 1).Apply(true);
+				codepatch_getshield.DoctorRelative((u32)getShield, 1).Apply(true);
+				codepatch_getshieldforward.DoctorRelative((u32)getShieldForward, 1).Apply(true);
+				codepatch_getshieldmodrotation.DoctorRelative((u32)getShieldModRotation, 1).Apply(true);
+				codepatch_getenergy.DoctorRelative((u32)getEnergy, 1).Apply(true);
+				codepatch_getthrottle.DoctorRelative((u32)getThrottle, 1).Apply(true);
+				codepatch_getteamyellow.DoctorRelative((u32)getTeamYellow, 1).Apply(true);
+				codepatch_getteamblue.DoctorRelative((u32)getTeamBlue, 1).Apply(true);
+				codepatch_getteamred.DoctorRelative((u32)getTeamRed, 1).Apply(true);
+				codepatch_getteampurple.DoctorRelative((u32)getTeamPurple, 1).Apply(true);
 
-			//retical positions
-			aimreticleposition.DoctorRelative((u32)aimReticlePosition, 1).Apply(true);
+				ctreepointers.DoctorRelative((u32)cTreePointers, 1).Apply(true);
+				ctreepointers_nameless.DoctorRelative((u32)cTreePointers_nameless, 1).Apply(true);
+				clienttreewin.DoctorRelative((u32)ClientTreeWin, 1).Apply(true);
+				canvasmousepatch.DoctorRelative((u32)CanvasMousePatch, 1).Apply(true);
 
-			aimreticlelockedmissiles.DoctorRelative((u32)aimReticleLockedMissiles, 1).Apply(true);
-			aimreticleontarget.DoctorRelative((u32)aimReticleOnTarget, 1).Apply(true);
-			aimreticleonrender.DoctorRelative((u32)aimReticleOnRender, 1).Apply(true);
+				//retical positions
+				aimreticleposition.DoctorRelative((u32)aimReticlePosition, 1).Apply(true);
 
-			hudpalindex.DoctorRelative((u32)hudPalIndex, 1).Apply(true);
-			//hudlayout.DoctorRelative((u32)hudLayout, 1).Apply(true);
+				aimreticlelockedmissiles.DoctorRelative((u32)aimReticleLockedMissiles, 1).Apply(true);
+				aimreticleontarget.DoctorRelative((u32)aimReticleOnTarget, 1).Apply(true);
+				aimreticleonrender.DoctorRelative((u32)aimReticleOnRender, 1).Apply(true);
 
-			//vehicleSkin and VehicleMass vars
-			vehicleinspect.DoctorRelative((u32)vehicleInspect, 1).Apply(true);
+				hudpalindex.DoctorRelative((u32)hudPalIndex, 1).Apply(true);
+				//hudlayout.DoctorRelative((u32)hudLayout, 1).Apply(true);
 
-			//Gui Object vars
-			guiobjectinspect.DoctorRelative((u32)guiObjectInspect, 1).Apply(true);
-			simshapeinspect.DoctorRelative((u32)simShapeInspect, 1).Apply(true);
-			objectteaminspect.DoctorRelative((u32)objectTeamInspect, 1).Apply(true);
+				//vehicleSkin and VehicleMass vars
+				vehicleinspect.DoctorRelative((u32)vehicleInspect, 1).Apply(true);
 
-			//MEtextList Highlight
-			metextlisthighlight.DoctorRelative((u32)meTextlistHighlight, 1).Apply(true);
+				//Gui Object vars
+				guiobjectinspect.DoctorRelative((u32)guiObjectInspect, 1).Apply(true);
+				simshapeinspect.DoctorRelative((u32)simShapeInspect, 1).Apply(true);
+				objectteaminspect.DoctorRelative((u32)objectTeamInspect, 1).Apply(true);
 
-			//Allow the client to set its terrain visibility
-			simTerrainVisibilityPatch.Apply(true);
+				//MEtextList Highlight
+				metextlisthighlight.DoctorRelative((u32)meTextlistHighlight, 1).Apply(true);
+
+				//Allow the client to set its terrain visibility
+				simTerrainVisibilityPatch.Apply(true);
+
+				//Simgui::HudtitleWin variables
+				hudtitlewin_opacity.DoctorRelative((u32)hudTitleWin_Opacity, 1).Apply(true);
+				hudtitlewin_colorindex.DoctorRelative((u32)hudTitleWin_ColorIndex, 1).Apply(true);
+			}
 		}
 	}init;
 };

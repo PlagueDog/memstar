@@ -130,7 +130,6 @@
     <ClCompile Include="Replacer.cpp" />
     <ClCompile Include="ScriptGL.cpp" />
     <ClCompile Include="NovaCore.cpp" />
-    <ClCompile Include="ForbiddenKnowledge.cpp" />
     <ClCompile Include="IsBadMemPtr.c" />
     <ClCompile Include="StringFunctions.cpp" />
     <ClCompile Include="Terrain.cpp" />

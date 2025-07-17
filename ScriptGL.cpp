@@ -484,15 +484,6 @@ namespace ScriptGL {
 
 	struct Init {
 		Init() {
-			if (VersionSnoop::GetVersion() == VERSION::v001003) {
-				CallPrefsDLG.Apply(true);
-				CallPrefsDLG.Apply(true);
-				CallChatDLG0.Apply(true);
-				CallChatDLG1.Apply(true);
-				CallScoreBoardDLG.Apply(true);
-				CallHudObjectivesDLG.Apply(true);
-				CallExitDLG.Apply(true);
-			}
 
 			Callback::attach(Callback::OnEndframe, GarbageCollect);
 			Callback::attach(Callback::OnGuiDraw, OnGuiDraw);

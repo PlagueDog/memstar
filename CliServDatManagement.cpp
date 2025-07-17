@@ -51,16 +51,6 @@ BuiltInFunction("isFile", _novaisfile)
 	return 0;
 }
 
-//static const char* dirCustomVehicles = "vehicles\\*.veh";
-//static const char* dirStandardVehicles_S = "vehicles\\%s.fvh";
-//static const char* dirStandardVehicles = "vehicles\\*.fvh";
-//static const char* dirVehicleSaves = "vehicles\\%s";
-//static const char* dirVehicleDeletes = "vehicles\\%s.veh";
-//char* dirCustomVehicles;
-//char* dirStandardVehicles;
-//char* dirVehicleSaves;
-//char* dirVehicleDeletes;
-
 namespace clientDataHandler {
 
 	BuiltInFunction("Nova::findInDefaultPrefs", _NovafindInDefaultPrefs)
@@ -90,148 +80,32 @@ namespace clientDataHandler {
 		return "false";
 	}
 
+	BuiltInFunction("Nova::purgeVehicleFiles", novapurgevehiclefiles) {
+		std::filesystem::remove_all(".\\mods\\session");
+		CreateDirectory(".\\mods\\session", NULL);
+		return 0;
+	}
+
 	//Path + %s.fvh
 	MultiPointer(ptrStandardVehicleFileLookup,	0, 0, 0x004A6A58, 0x004A8D74);
 	MultiPointer(ptrStandardVehicleFileLookupResume, 0, 0, 0x004A6A5E, 0x004A8D7A);
-	//CodePatch standardvehiclefilelookup = { ptrStandardVehicleFileLookup, "", "\xE9SVFL", 5, false };
-	//NAKED void StandardVehicleFileLookup() {
-	//	__asm {
-	//		push ebx
-	//		push dirStandardVehicles_S
-	//		jmp [ptrStandardVehicleFileLookupResume]
-	//	}
-	//}
 
 	//Path + *.veh/fvh
 	MultiPointer(ptrVehicleExtensionDirSwitchCase, 0, 0, 0x004F2CA4, 0x004F513C);
 	MultiPointer(ptrVehicleExtensionDirCaseResume, 0, 0, 0x004F2CB7, 0x004F514F);
-	//CodePatch vehicleextensiondirswitchcase = { ptrStandardVehicleFileLookup, "", "\xE9VEDS", 5, false };
-	//NAKED void VehicleExtensionDirSwitchCase() {
-	//	__asm {
-	//		mov dl, [esp + 0x270 - 0x270]
-	//		test dl, dl
-	//		jz __jz
-	//		mov ebp, dirCustomVehicles
-	//		jmp [ptrVehicleExtensionDirCaseResume]
-	//		__jz:
-	//			mov ebp, dirStandardVehicles
-	//	}
-	//}
 
 	MultiPointer(ptrVehicleSaveDir01, 0, 0, 0x00559411, 0x0055C24D);
 	MultiPointer(ptrVehicleSaveDirResume01, 0, 0, 0x00559417, 0x0055C253);
-	//CodePatch vehiclesavedir01 = { ptrVehicleSaveDir01, "", "\xE9VSD1", 5, false };
-	//NAKED void VehicleSaveDir01() {
-	//	__asm {
-	//		push edi
-	//		push dirVehicleSaves
-	//		jmp[ptrVehicleSaveDirResume01]
-	//	}
-	//}
 
 	MultiPointer(ptrVehicleSaveDir02, 0, 0, 0x0046937C, 0x0046ADA0);
 	MultiPointer(ptrVehicleSaveDirResume02, 0, 0, 0x00469382, 0x0046ADA6);
-	//CodePatch vehiclesavedir02 = { ptrVehicleSaveDir02, "", "\xE9VSD2", 5, false };
-	//NAKED void VehicleSaveDir02() {
-	//	__asm {
-	//		push edi
-	//		push dirVehicleSaves
-	//		jmp[ptrVehicleSaveDirResume02]
-	//	}
-	//}
 
 	MultiPointer(ptrVehicleSaveDir03, 0, 0, 0x004F1434, 0x004F38CC);
 	MultiPointer(ptrVehicleSaveDirResume03, 0, 0, 0x004F143A, 0x004F38D2);
 	CodePatch vehiclesavedir03 = { ptrVehicleSaveDir03, "", "\xE9VSD3", 5, false };
-	//NAKED void VehicleSaveDir03() {
-	//	__asm {
-	//		push eax
-	//		push dirVehicleSaves
-	//		jmp[ptrVehicleSaveDirResume03]
-	//	}
-	//}
 
 	MultiPointer(ptrVehicleDeleteDir, 0, 0, 0x004F2F96, 0x004F542E);
 	CodePatch vehicledeletedir = { ptrVehicleDeleteDir, "", "\xE9VDDR", 5, false };
-	//NAKED void VehicleDeleteDir() {
-	//	__asm {
-	//		push eax
-	//		push dirVehicleDeletes
-	//		jmp[ptrVehicleDeleteDir]
-	//	}
-	//}
-
-	//void setCustomVehicleDir(char* vehicles, char* saves, char* deletes)
-	//{
-	//	dirCustomVehicles = vehicles;
-	//	vehicleextensiondirswitchcase.DoctorRelative((u32)VehicleExtensionDirSwitchCase, 1).Apply(true);
-	//
-	//	dirVehicleSaves = saves;
-	//	vehiclesavedir01.DoctorRelative((u32)VehicleSaveDir01, 1).Apply(true);
-	//	vehiclesavedir02.DoctorRelative((u32)VehicleSaveDir02, 1).Apply(true);
-	//	vehiclesavedir03.DoctorRelative((u32)VehicleSaveDir03, 1).Apply(true);
-	//
-	//	dirVehicleDeletes = deletes;
-	//	vehicledeletedir.DoctorRelative((u32)VehicleDeleteDir, 1).Apply(true);
-	//}
-
-	//void setStandardVehicleDir(char* vehicles_S, char* vehicles)
-	//{
-	//	dirStandardVehicles_S = vehicles_S;
-	//	dirStandardVehicles = vehicles;
-	//	vehicleextensiondirswitchcase.DoctorRelative((u32)VehicleExtensionDirSwitchCase, 1).Apply(true);
-	//	standardvehiclefilelookup.DoctorRelative((u32)StandardVehicleFileLookup, 1).Apply(true);
-	//}
-
-	//BuiltInFunction("setCustomVehicleDir", _ssvd) {
-	//	if (argc != 1 || !strlen(argv[0]))
-	//	{
-	//		Console::echo("%s( dir );", self);
-	//		return 0;
-	//	}
-	//	string path = argv[0];
-	//	string ext = path.substr(path.size() - 4, path.size());
-	//	if (path.find(":") != -1 || path.find("..") != -1)
-	//	{
-	//		Console::echo("Cannot set a vehicle directory outside of the Starsiege directory.");
-	//		return "false";
-	//	}
-	//	char dir_vehicles[MAX_PATH];
-	//	char dir_saves[MAX_PATH];
-	//	char dir_deletes[MAX_PATH];
-	//	strcpy(dir_vehicles, argv[0]);
-	//	strcpy(dir_saves, argv[0]);
-	//	strcpy(dir_deletes, argv[0]);
-	//	strcat(dir_vehicles, "\\*.veh");
-	//	strcat(dir_saves, "\\%s");
-	//	strcat(dir_deletes, "\\%s.veh");
-	//	Console::echo("Custom vehicles directory set to \"%s\"", dir_vehicles);
-	//	Console::echo("Save directory set to \"%s\"", dir_saves);
-	//	Console::echo("Delete directory set to \"%s\"", dir_deletes);
-	//	setCustomVehicleDir(dir_vehicles, dir_saves, dir_deletes);
-	//	free(dir_vehicles);
-	//	free(dir_saves);
-	//	free(dir_deletes);
-	//	return "true";
-	//}
-
-	//BuiltInFunction("setStandardVehicleDir", _setstandardvehicledir) {
-	//	if (argc != 1 || !strlen(argv[0]))
-	//	{
-	//		Console::echo("%s( dir );", self);
-	//		return 0;
-	//	}
-	//	char dir_vehicles[MAX_PATH];
-	//	char dir_vehicles_S[MAX_PATH];
-	//	strcpy(dir_vehicles, argv[0]);
-	//	strcat(dir_vehicles, "\\*.fvh");
-	//	strcpy(dir_vehicles_S, argv[0]);
-	//	strcat(dir_vehicles_S, "\\%s.fvh");
-	//	setStandardVehicleDir(dir_vehicles_S, dir_vehicles);
-	//	free(dir_vehicles_S);
-	//	free(dir_vehicles);
-	//	return "true";
-	//}
 
 	MultiPointer(ptrGetVehicleName, 0, 0, 0, 0x004F500C);
 	MultiPointer(ptrGetVehicleNameResume, 0, 0, 0, 0x004F5012);
@@ -353,148 +227,6 @@ namespace clientDataHandler {
 			CodePatch genericCodePatch1c = { 0x004F2F97,"","\x68\x1F\x7A\x6C",4,false }; genericCodePatch1c.Apply(true);
 		}
 		//Console::echo(pathExt);
-		free(pathExt);
-		free(pathExt2);
-		free(pathExt3);
-		return "true";
-	}
-
-	//BuiltInFunction("fileWriteExt", _fw) {
-	//	if (argc != 3 || !strlen(argv[0]) || !strlen(argv[1]) || !strlen(argv[2]))
-	//	{
-	//	error:
-	//		{
-	//			Console::echo("fileWrite(file, append|overwrite, string);");
-	//			return 0;
-	//		}
-	//	}
-	//	string path = argv[0];
-	//	if (path.find(":") != -1)
-	//	{
-	//		Console::echo("Cannot write outside of the Starsiege directory.");
-	//		return "false";
-	//	}
-	//	std::ofstream outputfile;
-	//
-	//	if (strcmp(argv[1], "overwrite") == 0)
-	//	{
-	//		outputfile.open(argv[0], std::ios_base::out);
-	//		outputfile << argv[2];
-	//		outputfile.close();
-	//	}
-	//	else if (strcmp(argv[1], "append") == 0)
-	//	{
-	//		outputfile.open(argv[0], std::ios_base::app);
-	//		outputfile << argv[2];
-	//		outputfile.close();
-	//	}
-	//	else
-	//	{
-	//		goto error;
-	//	}
-	//	return 0;
-	//}
-
-	BuiltInFunction("removeSkinFile", _rsf) {
-		if (argc != 1)
-		{
-			Console::echo("%s( file );", self);
-			return 0;
-		}
-		if (!isFile(argv[0]))
-		{
-			Console::echo("File not found.");
-			return 0;
-		}
-		string path = argv[0];
-		string ext = path.substr(path.size() - 4, path.size());
-		if (path.find(":") != -1 || path.find("..") != -1)
-		{
-			Console::echo("Cannot remove files that are located outside of the Starsiege directory.");
-			return "false";
-		}
-		else if (ext != ".bmp")
-		{
-			Console::echo("File is not a texture.");
-			return "false";
-		}
-		char cachePath[MAX_PATH];
-		strcpy(cachePath, ".\\skins\\");
-		strcat(cachePath, argv[0]);
-		if (!isFile(cachePath))
-		{
-			Console::echo("%s: File not found.", self);
-			return 0;
-		}
-		std::remove(cachePath);
-		free(cachePath);
-		return "true";
-	}
-
-	BuiltInFunction("deleteServerCache", _dsc) {
-		std::filesystem::remove_all(".\\mods\\cache");
-		CreateDirectory(".\\mods\\cache", NULL);
-		return 0;
-	}
-
-	BuiltInFunction("removeCacheFile", _rcf) {
-		if (argc != 1)
-		{
-			Console::echo("%s( file );", self);
-			return 0;
-		}
-		string path = argv[0];
-		//string ext = path.substr(path.size() - 4, path.size());
-		if (path.find(":") != -1 || path.find("..") != -1)
-		{
-			Console::echo("Cannot remove files that are located outside of the Starsiege directory.");
-			return "false";
-		}
-		char cachePath[MAX_PATH];
-		strcpy(cachePath, "mods\\");
-		strcat(cachePath, argv[0]);
-		//Console::echo(cachePath);
-		if (!isFile(cachePath))
-		{
-			Console::echo("%s: File not found.", self);
-			free(cachePath);
-			return 0;
-		}
-		std::remove(cachePath);
-		free(cachePath);
-		return "true";
-	}
-
-	BuiltInFunction("removeTerrainFile", _rtf) {
-		if (argc != 1)
-		{
-			Console::echo("%s( file );", self);
-			return 0;
-		}
-		string path = argv[0];
-		//string ext = path.substr(path.size() - 4, path.size());
-		if (path.find(":") != -1 || path.find("..") != -1)
-		{
-			Console::echo("Cannot remove files that are located outside of the Starsiege directory.");
-			return "false";
-		}
-		if (path.find(".ted.vol") == -1)
-		{
-			Console::echo("Disallowed file extension.");
-			return "false";
-		}
-		char cachePath[MAX_PATH];
-		strcpy(cachePath, ".\\multiplayer\\");
-		strcat(cachePath, argv[0]);
-		//Console::echo(cachePath);
-		if (!isFile(cachePath))
-		{
-			Console::echo("%s: File not found.", self);
-			free(cachePath);
-			return 0;
-		}
-		std::remove(cachePath);
-		free(cachePath);
 		return "true";
 	}
 
@@ -550,31 +282,9 @@ namespace clientDataHandler {
 		in_file.seekg(0, ios::end);
 		int file_size = in_file.tellg();
 		return tostring(file_size);
-		//if (inputFile.is_open())
-		//{
-		//	inputFile.seekg(0, ios::end);
-		//	auto fileSize = inputFile.tellg();
-		//	char fileSize_char[MAX_PATH];
-		//	inputFile.close();
-		//	return itoa(fileSize, fileSize_char, 10);
-		//}
 	}
 
-	BuiltInFunction("createCacheDir", _ccd) {
-		if (argc != 1)
-		{
-			Console::echo("%s( DirectoryName );", self);
-			return "false";
-		}
-		string path = argv[0];
-		char path_[MAX_PATH];
-		strcpy(path_, ".\\mods\\cache\\");
-		strcat(path_, argv[0]);
-		CreateDirectory(path_, NULL);
-		return 0;
-	}
-
-	BuiltInFunction("resetClientScriptFile", _rcsf) {
+	BuiltInFunction("resetScriptFile", _rcsf) {
 		if (argc != 1)
 		{
 			Console::echo("%s( fileName.cs );", self);
@@ -604,12 +314,6 @@ namespace clientDataHandler {
 			Console::echo("Cannot write files outside of the Starsiege directories.");
 			return "false";
 		}
-		//char* fileExt[] = { ".cs", ".mis", ".dts", ".wav", ".bmp", ".vol", ".smk", ".gui", ".pba", ".pft", ".veh", ".fvh", ".div", ".dil", ".dig", ".mlv" };
-		//for (int iter = 0; iter <= sizeof(fileExt); iter++)
-		//{
-		//	Console::echo("Disallowed file extension.");
-		//	return "false";
-		//}
 		if (argc != 2)
 		{
 			Console::echo("fileWriteHex(filename, hex_string[0123456789ABCDEF]);");
@@ -714,93 +418,6 @@ namespace serverDataHandler {
 			return 0;
 		}
 		return cstr;
-	}
-
-	BuiltInFunction("modloader::uploadFiletoClient", _mluftc) {
-		if (argc != 3 || !strlen(argv[0]) || !strlen(argv[1]) || !strlen(argv[2]))
-		{
-			Console::echo("%s( file, playerID, token);", self);
-			return 0;
-		}
-		if (!isFile(argv[0]))
-		{
-			Console::echo("%s: File not found.", self);
-			return 0;
-		}
-		string path = argv[0];
-		string ext = path.substr(path.size() - 4, path.size());
-		if (path.find(":") != -1 || path.find("..") != -1)
-		{
-			Console::echo("Cannot read files outside of the Starsiege directories.");
-			return "false";
-		}
-
-		//char* fileExt[] = { ".cs", ".vol", ".mlv", ".div" };
-		//for(int iter = 0;iter <= sizeof(fileExt);iter++)
-		//{
-		//	Console::echo("Disallowed file extension.");
-		//	return "false";
-		//}
-		unsigned char x;
-
-		std::ifstream fin(argv[0], std::ios::binary);
-
-		std::stringstream buffer;
-		fin >> std::noskipws;
-		while (!fin.eof()) {
-			fin >> x;
-			buffer << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(x);
-		}
-
-		const std::string tmp = buffer.str();
-		const std::string tmp_trim = tmp.substr(0, tmp.length() - 1);
-		//const char* cstr = tmp.c_str();
-
-		int counter = 0;
-		float throttle = 0.000;
-		string data = tmp.substr(counter, 254);
-		while (counter <= tmp_trim.size())
-		{
-			string data1 = tmp_trim.substr(counter, 700); //Start at index 0 and increment by 254 each loop
-			char eval[900];
-			strcpy(eval, "schedule('modloader::parseFileData(");
-			strcat(eval, argv[1]);
-			strcat(eval, ",\"");
-			strcat(eval, argv[0]);
-			strcat(eval, "\",\"");
-			strcat(eval, data1.c_str());
-			strcat(eval, "\",\"");
-			strcat(eval, argv[2]);
-			strcat(eval, "\");','");
-			strcat(eval, tostring(throttle += 0.025));//Need to micro-schedule all the remoteEvals or larger files will freeze the client mommentarily
-			strcat(eval, "');");
-			Console::eval(eval);
-			free(eval);
-			counter += 700;
-		}
-		//while (counter <= tmp_trim.size())
-		//{
-		//	string data = tmp_trim.substr(counter, 700);
-		//	char eval[900];
-		//	strcpy(eval, "remoteEval(\"");
-		//	strcat(eval, argv[1]); //playerID
-		//	strcat(eval, "\",\"");
-		//	strcat(eval, "modloader::recieveFileData"); //function
-		//	strcat(eval, "\",\"");
-		//	strcat(eval, argv[2]); //token
-		//	strcat(eval, "\",\"");
-		//	strcat(eval, argv[0]); //file
-		//	strcat(eval, "\",\"");
-		//	strcat(eval, data.c_str());
-		//	strcat(eval, "\",\"");
-		//	strcat(eval, argv[3]); //offset
-		//	strcat(eval, "\");");
-		//	Console::eval(eval);
-		//	Console::echo(eval);
-		//	free(eval);
-		//	counter += 700;
-		//}
-		return 0;
 	}
 
 	BuiltInFunction("fileHasConstructors", _fhc) {

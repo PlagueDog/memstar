@@ -14,6 +14,7 @@
 #include <iterator>
 #include <algorithm>
 #include "Fear.h"
+#include <filesystem>
 
 using namespace Fear;
 using namespace std;
@@ -494,7 +495,10 @@ namespace OpenGLFixes
 			//GuiLoadLoad2.Apply(true);
 			//WndInsertAfter0.Apply(true);
 			//wglinfowindow_bypass.Apply(true);
-			windowproperiespatch.DoctorRelative((u32)WindowPropertiesPatch, 1).Apply(true);
+			if(std::filesystem::exists("Nova.vol"))
+			{
+				windowproperiespatch.DoctorRelative((u32)WindowPropertiesPatch, 1).Apply(true);
+			}
 			//BitmapCtrlLineFix.Apply(true); //Hide seams in chunked bitmaps //CAUSES ARTIFACTS IN RESOLUTION SCALING DOWN
 			//introtomaincrashfix.DoctorRelative((u32)IntroToMainCrashFix, 1).Apply(true);
 
@@ -514,8 +518,11 @@ namespace OpenGLFixes
 
 			disableF10_sysMenu.DoctorRelative((u32)Disable_F10_sysMenu, 1).Apply(true);
 
-			minimizecallintercept.DoctorRelative((u32)MinimizeCallIntercept, 1).Apply(true);
-			disableCanvasForcedOverlap.Apply(true); //Used with minimizecallintercept to disable Canvas::surfaceChanged
+			if (std::filesystem::exists("Nova.vol"))
+			{
+				minimizecallintercept.DoctorRelative((u32)MinimizeCallIntercept, 1).Apply(true);
+				disableCanvasForcedOverlap.Apply(true); //Used with minimizecallintercept to disable Canvas::surfaceChanged
+			}
 		}
 	} init;
 };

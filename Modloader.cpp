@@ -407,13 +407,12 @@ namespace ModloaderMain {
 	//}
 
 	BuiltInFunction("disableWindowBorder", _dwd) {
-		return 0;
 		HWND gameHWND = getGameHWND();
 		LONG lStyle = GetWindowLong(gameHWND, GWL_STYLE);
 		LONG ex_lStyle = GetWindowLong(gameHWND, GWL_STYLE);
 		lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
 		//SetWindowLong(getGameHWND(), GWL_STYLE, lStyle);
-		SetWindowLong(gameHWND, GWL_STYLE, lStyle | WS_DLGFRAME);
+		SetWindowLong(gameHWND, GWL_STYLE, lStyle );
 		//SetWindowLong(gameHWND, GWL_EXSTYLE, ex_lStyle | WS_EX_DLGMODALFRAME | WS_EX_LTRREADING);
 		return "true";
 	}
@@ -1707,7 +1706,10 @@ namespace ModloaderMain {
 	struct Init {
 		Init() {
 			//Internal
-			gameendframepatch.DoctorRelative((u32)GameEndFramePatch, 1).Apply(true);
+			if (std::filesystem::exists("Nova.vol"))
+			{
+				gameendframepatch.DoctorRelative((u32)GameEndFramePatch, 1).Apply(true);
+			}
 
 			if(VersionSnoop::GetVersion() == VERSION::v001004)
 			{
@@ -1733,12 +1735,12 @@ namespace ModloaderMain {
 				constructorsPatch9.Apply(true);
 				constructorsPatch10.Apply(true);
 				constructorsPatch10a.Apply(true);
-				//constructorsPatch11.Apply(true);
-				//constructorsPatch12.Apply(true);
-				//constructorsPatch13.Apply(true);
-				//constructorsPatch14.Apply(true);
-				//constructorsPatch15.Apply(true);
-				//constructorsPatch16.Apply(true);
+				//constructorsPatch11.Apply(true);//Projectile
+				//constructorsPatch12.Apply(true);//Projectile
+				//constructorsPatch13.Apply(true);//Projectile
+				//constructorsPatch14.Apply(true);//Projectile
+				//constructorsPatch15.Apply(true);//Projectile
+				//constructorsPatch16.Apply(true);//Projectile
 				constructorsPatch17.Apply(true);
 				constructorsPatch19.Apply(true);
 				constructorsPatch20.Apply(true);
@@ -1789,8 +1791,8 @@ namespace ModloaderMain {
 			TankNetUpdate2.Apply(true);
 			TankNetUpdate3.Apply(true);
 
-			remoteEvalBufferSize_S_patch.Apply(true);
-			remoteEvalBufferSize_R_patch.Apply(true);
+			//remoteEvalBufferSize_S_patch.Apply(true);
+			//remoteEvalBufferSize_R_patch.Apply(true);
 			//packetRate_patch.Apply(true);
 			packetRateCheck_patch.Apply(true);
 			//packetRateDefault_patch.Apply(true);
@@ -1825,20 +1827,21 @@ namespace ModloaderMain {
 				datLoad_patch.Apply(true);
 			}
 
-			//Directory Creation
-			CreateDirectory(".\\mods", NULL);
-			CreateDirectory(".\\mods\\fonts", NULL);
-			CreateDirectory(".\\mods\\replacements", NULL);
-			CreateDirectory(".\\mods\\ScriptGL", NULL);
-			CreateDirectory(".\\mods\\cache", NULL);
-			CreateDirectory(".\\mods\\session", NULL);
-			CreateDirectory(".\\temp", NULL);
-			CreateDirectory(".\\savedGames", NULL);
-			CreateDirectory(".\\mods\\textureHasher", NULL);
+			if (std::filesystem::exists("Nova.vol"))
+			{
+				//Directory Creation
+				CreateDirectory(".\\mods", NULL);
+				CreateDirectory(".\\mods\\fonts", NULL);
+				CreateDirectory(".\\mods\\replacements", NULL);
+				CreateDirectory(".\\mods\\ScriptGL", NULL);
+				CreateDirectory(".\\mods\\session", NULL);
+				CreateDirectory(".\\temp", NULL);
+				CreateDirectory(".\\savedGames", NULL);
+				CreateDirectory(".\\mods\\textureHasher", NULL);
 
-			//Modloader: Append pilot data to campaign
-			campaigninit.DoctorRelative((u32)CampaignInit, 1).Apply(true);
-
+				//Modloader: Append pilot data to campaign
+				campaigninit.DoctorRelative((u32)CampaignInit, 1).Apply(true);
+			}
 			//For Upscaling OpenGL
 			//Tiles the Simgui::BitmapCTRL so that the background fits the upscale
 			//MOVE TO FUNCTIONS

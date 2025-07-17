@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include "Strings.h"
 #include <string>
+#include <filesystem>
+
 #include "IsBadMemPtr.c" //Included for the copyright notice
 
 namespace ExeFixes {
@@ -439,6 +441,10 @@ namespace ExeFixes {
 	//Fix IDACTION_COLLISION_DETAIL keybind not working
 	CodePatch IDACTION_COLLISION_DETAILfix = {
 	ptrRenderInCollisionDetailByte, "", "\x01", 1, false };
+
+	MultiPointer(ptrRenderInCollisionDetailBool, 0, 0, 0, 0x0045BA27);
+	CodePatch IDACTION_COLLISION_DETAIL_BOOL = {
+	ptrRenderInCollisionDetailBool, "", "\x01", 1, false };
 
 	MultiPointer(ptrVehicleWorldMovement, 0, 0, 0, 0x00598BBC);
 
@@ -975,14 +981,59 @@ namespace ExeFixes {
 		return 0;
 	}
 
+	//Keymap editor fix (For changing bindCommand() keybinds)
+	MultiPointer(ptrloc_54DBC4, 0, 0, 0, 0x0054DBC4);
+	MultiPointer(ptrloc_54DBC4Resume, 0, 0, 0, 0x0054DBCD);
+	CodePatch keymapeditfix1 = { ptrloc_54DBC4, "", "\xE9KMF1", 5, false };
+	NAKED void keymapEditFix1() {
+		__asm {
+			mov eax, [ebx + 104h]
+			test eax, eax
+			je __bad_IDACTION
+			mov edx, [eax + 4]
+			jmp[ptrloc_54DBC4Resume]
+
+			__bad_IDACTION:
+			mov edx, 0
+			jmp[ptrloc_54DBC4Resume]
+		}
+	}
+
+	MultiPointer(ptrloc_50AC2D, 0, 0, 0, 0x0050AC2A);
+	MultiPointer(ptrloc_50AC2DResume, 0, 0, 0, 0x0050AC30);
+	CodePatch keymapeditfix2 = { ptrloc_50AC2D, "", "\xE9KMF2", 5, false };
+	NAKED void keymapEditFix2() {
+		__asm {
+			mov edx, [ebp - 4]
+			test edx, edx
+			je __bad_IDACTION
+			mov ecx, [edx + 4]
+			jmp[ptrloc_50AC2DResume]
+
+			__bad_IDACTION:
+			pop edi
+			pop esi
+			pop ebx
+			mov esp, ebp
+			pop ebp
+			retn 4
+		}
+	}
 
 	//Waitroomgui crash fix for when players load the waitroomgui in a team based server while being on the neutral team
-	MultiPointer(ptrTeamColorSel, 0, 0, 0, 0x00693F2D);
+	//Also patch fix keymap editor crashing when loading a keymap script into the keymap editor which has bindCommand functions
+	MultiPointer(ptrTeamColorSel, 0, 0, 0, 0x00693F2B);
 	MultiPointer(ptrTeamColorSelResume, 0, 0, 0, 0x00693F33);
 	MultiPointer(ptrTeamColorSelJL, 0, 0, 0, 0x00693F39);
+	MultiPointer(ptrTeamColorSelRetn, 0, 0, 0, 0x00693F53);
 	CodePatch teamselectioncrashfix = { ptrTeamColorSel, "", "\xE9TSCRF", 5, false };
 	NAKED void TeamSelectionCrashFix() {
 		__asm {
+			//cmp esi, 0x00000000
+			test esi, esi
+			je __failAbort
+			mov al, [esi]
+
 			test edx, edx //Test for 0x00000000
 			je __skipBL
 			mov bl, [edx]
@@ -996,6 +1047,9 @@ namespace ExeFixes {
 
 				__jl:
 			jmp[ptrTeamColorSelJL]
+
+				__failAbort:
+			jmp[ptrTeamColorSelRetn]
 		}
 	}
 
@@ -1249,11 +1303,6 @@ namespace ExeFixes {
 
 	struct Init {
 		Init() {
-			//WindowsCompatMode();
-			if (VersionSnoop::GetVersion() == VERSION::vNotGame) {
-				return;
-			}
-
 			//MultiPointer(ptrNavRedirect, 0, 0, 0, 0x0058C322);
 			if (VersionSnoop::GetVersion() == VERSION::v001004) {
 				dosfix.DoctorRelative((u32)DosFix, 1).Apply(true);
@@ -1283,6 +1332,7 @@ namespace ExeFixes {
 			navExploitFix0.Apply(true);
 			navExploitFix1.Apply(true);
 			IDACTION_COLLISION_DETAILfix.Apply(true);
+			IDACTION_COLLISION_DETAIL_BOOL.Apply(true);
 			mapviewObjectLatency.Apply(true);
 			mapviewInterfaceLatency.Apply(true);
 
@@ -1307,15 +1357,17 @@ namespace ExeFixes {
 			//Allow drones to be pilotable by players (NYI)
 			//dronetypeallow.DoctorRelative((u32)droneTypeAllow, 1).Apply(true);
 
-			//Make all combo boxes have a fixed vertical size to prevent them from extending offscreen in upscaled OGL
-			comboboxfixedsize.DoctorRelative((u32)ComboboxFixedSize, 1).Apply(true);
+			if (std::filesystem::exists("Nova.vol"))
+			{
+				//Make all combo boxes have a fixed vertical size to prevent them from extending offscreen in upscaled OGL
+				comboboxfixedsize.DoctorRelative((u32)ComboboxFixedSize, 1).Apply(true);
 
-			//Adjust Simgui::TestButton colors
-			TestButtonFillColor.Apply(true);
-			TestButtonBorderColor.Apply(true);
-			TestButtonSelectedBorderColor.Apply(true);
-			TestButtonFillOpacity.Apply(true);
-
+				//Adjust Simgui::TestButton colors
+				TestButtonFillColor.Apply(true);
+				TestButtonBorderColor.Apply(true);
+				TestButtonSelectedBorderColor.Apply(true);
+				TestButtonFillOpacity.Apply(true);
+			}
 			//Event Patches
 			//dinput8fix.Apply(true);
 
@@ -1330,8 +1382,11 @@ namespace ExeFixes {
 			//volumetriccrashcatcher.DoctorRelative((u32)VolumetricCrashCatcher, 1).Apply(true); //MASSIVE PERFORMANCE LOSS WITH CURRENT METHOD
 			//recordcrashcatcher.DoctorRelative((u32)RecordCrashCatcher, 1).Apply(true);
 
-			//Console open
-			guiconsoleopen.DoctorRelative((u32)GuiConsoleOpen, 1).Apply(true);
+			if (std::filesystem::exists("Nova.vol"))
+			{
+				//Console open
+				guiconsoleopen.DoctorRelative((u32)GuiConsoleOpen, 1).Apply(true);
+			}
 
 			//Neutral team crash fix
 			teamselectioncrashfix.DoctorRelative((u32)TeamSelectionCrashFix, 1).Apply(true);
@@ -1350,10 +1405,13 @@ namespace ExeFixes {
 			//Patches for crashes I don't know what the actual causes are
 			unkCrashPatch01.Apply(true);
 
-			//Update Frequency of damage displays
-			DamageStatDelay.Apply(true);
-			TargetDamageStatDelay.Apply(true);
-			StatusRotateAmount.Apply(true);//Slow down the rotation to align with the uncapped status display fps
+			if (std::filesystem::exists("Nova.vol"))
+			{
+				//Update Frequency of damage displays
+				DamageStatDelay.Apply(true);
+				TargetDamageStatDelay.Apply(true);
+				StatusRotateAmount.Apply(true);//Slow down the rotation to align with the uncapped status display fps
+			}
 
 			//Herc
 			uncapHercCameraAnimationRate.Apply(true);
@@ -1394,8 +1452,15 @@ namespace ExeFixes {
 			hudmovementinput.DoctorRelative((u32)hudMovementInput, 1).Apply(true);
 			vehiclecrouchinput.DoctorRelative((u32)vehicleCrouchInput, 1).Apply(true);
 
-			//Lensflare Patches
-			lensflarerender.DoctorRelative((u32)lensFlareRender, 1).Apply(true);
+			if (std::filesystem::exists("Nova.vol"))
+			{
+				//Lensflare Patches
+				lensflarerender.DoctorRelative((u32)lensFlareRender, 1).Apply(true);
+			}
+
+			//Keymap Editor Fixes
+			keymapeditfix1.DoctorRelative((u32)keymapEditFix1, 1).Apply(true);
+			keymapeditfix2.DoctorRelative((u32)keymapEditFix2, 1).Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes

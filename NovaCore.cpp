@@ -171,42 +171,6 @@ namespace NovaCore
 		return value;
 	}
 
-	BuiltInFunction("Nova::getCompatLayer", _novagetcompatlayer)
-	{
-		char* compatLayer = const_cast<char*>(getEnvVar("__COMPAT_LAYER").c_str());
-		return compatLayer;
-	}
-
-	BuiltInFunction("Nova::IsWindowsXP", _novaiswindowsxp)
-	{
-    DWORD dwVersion = 0; 
-    DWORD dwMajorVersion = 0;
-    DWORD dwMinorVersion = 0; 
-    DWORD dwBuild = 0;
-
-    dwVersion = GetVersion();
- 
-    // Get the Windows version.
-
-    dwMajorVersion = (DWORD)(LOBYTE(LOWORD(dwVersion)));
-    dwMinorVersion = (DWORD)(HIBYTE(LOWORD(dwVersion)));
-
-    // Get the build number.
-
-    if (dwVersion < 0x80000000)              
-        dwBuild = (DWORD)(HIWORD(dwVersion));
-
-		std::string majorVersion = tostring(dwMajorVersion);
-		if (majorVersion.compare("5") == 0)
-		{
-			return "true";
-		}
-		else
-		{
-			return 0;
-		}
-	}
-
 	MultiPointer(ptrRVectorAllocSize1, 0, 0, 0, 0x0056F0FB);
 	MultiPointer(ptrRVectorAllocSize2, 0, 0, 0, 0x0056F161);
 	CodePatch RVectorAllocSize1 = { ptrRVectorAllocSize1, "", "\xFF\xFF\xFF\xFF", 4, false };
@@ -218,14 +182,32 @@ namespace NovaCore
 
 	void executeNova()
 	{
-		Console::eval("IDSTR_MISSING_FILE_TITLE = 00131400,\"Missing File\";");
-		Console::eval("IDSTR_MISSING_FILE_ERROR = 00131401,\"Unable to find '%s'.\\nIt is required for use with mem.dll\";");
-		Console::eval("if($cargv1 != \"-s\"){checkForFile(\"Nova.vol\", \"mods\\\\replacements\\\\NovaAssets.zip\", \"mods\\\\ScriptGL\\\\NovaScriptGLassets.zip\");}");
-		Console::eval("newObject(cDel,ESCSDelegate,false,LOOPBACK,0);");
-		Console::eval("newobject(NovaVol, simVolume, \"Nova.vol\");");
-		Console::eval("exec(\"Nova_Core.cs\");");
-		Console::eval("if($cargv1 != \"-s\"){newObject(simCanvas,SimGui::Canvas,Starsiege,640,480,true,1);}");
-		Console::eval("exec(\"Nova_Start.cs\");");
+		if (std::filesystem::exists("Nova.vol"))
+		{
+			Console::eval("IDSTR_MISSING_FILE_TITLE = 00131400,\"Missing File\";");
+			Console::eval("IDSTR_MISSING_FILE_ERROR = 00131401,\"Unable to find '%s'.\\nIt is required for use with mem.dll\";");
+			Console::eval("if($cargv1 != \"-s\"){checkForFile(\"Nova.vol\", \"mods\\\\replacements\\\\NovaAssets.zip\", \"mods\\\\ScriptGL\\\\NovaScriptGLassets.zip\");}");
+			Console::eval("newObject(cDel,ESCSDelegate,false,LOOPBACK,0);");
+			Console::eval("newobject(NovaVol, simVolume, \"Nova.vol\");");
+			Console::eval("exec(\"Nova_Core.cs\");");
+			Console::eval("if($cargv1 != \"-s\"){newObject(simCanvas,SimGui::Canvas,Starsiege,640,480,true,1);}");
+			Console::eval("exec(\"Nova_Start.cs\");");
+		}
+		else
+		{
+			Console::eval("exec(console);");
+			Console::eval("function noCD4(){control::setVisible(IDMMT_MAIN, 0);control::setVisible(IDMMT_SP, 0);control::setVisible(IDMMT_MP, 1);}");
+			Console::eval("function noCD3(){control::setVisible(IDMMT_MAIN, 0);control::setVisible(IDMMT_MT, 0);control::setVisible(IDMMT_SP, 1);}");
+			Console::eval("function noCD2(){guiload(\"Training.gui\");}");
+			Console::eval("function noCD1(){guiload(\"Tutorial.gui\");}");
+			Console::eval("function MPB::onAction(){control::SetVisible(MM, 0); control::SetVisible(MP, 1);}");
+			Console::eval("function SPB::onAction(){control::SetVisible(MM, 0); control::SetVisible(SP, 1);}");
+			Console::eval("function JGB::onAction(){}");
+			Console::eval("function HGB::onAction(){}");
+			Console::eval("function TRAINB::onAction(){guiload(\"Training.gui\");}");
+			Console::eval("function TUTB::onAction(){guiload(\"Tutorial.gui\");}");
+			Console::eval("function introGUI::onClose(){$basepath = $basepath @ \";multiplayer; \";$consoleworld::defaultsearchpath=$basepath;appendSearchPath();$allowOldClients=true;Console::enable(true);if(!Nova::findInDefaultPrefs('pref::GWC::SIM_FS_DEVICE')){setFullscreenDevice(simcanvas,OpenGL);}deleteFunctions('Nova:*');deleteFunctions('client:*');deleteVariables('Nova*');function introGUI::onClose(){}}");
+		}
 	}
 
 	HWND getHWND() {
@@ -630,23 +612,6 @@ namespace NovaCore
 		return "true";
 	}
 
-
-	BuiltInVariable("pref::disableMasterServerMOTD", bool, prefdisablemasterservermotd, 0);
-	CodePatch messageboxpatch = { 0x00420792,"\x0F\x8F\x85\x00\x00\x00", "\x90\x90\x90\x90\x90\x90",6,false };
-	BuiltInFunction("Nova::disableMasterServerMOTD", _simguidisablemasterservermotd)
-	{
-		std::string var = argv[0];
-		if (var.compare("1") == 0 || var.compare("true") == 0 || var.compare("True") == 0)
-		{
-			messageboxpatch.Apply(true);
-		}
-		else
-		{
-			messageboxpatch.Apply(false);
-		}
-		return "true";
-	}
-
 	MultiPointer(ptrHudDLGChatboxWidth, 0, 0, 0, 0x0052CB5E);
 	CodePatch huddlgchatboxwidth = { ptrHudDLGChatboxWidth,"","\x76\x02",2,false };
 
@@ -841,15 +806,85 @@ namespace NovaCore
 		}
 	}
 
+	BuiltInFunction("client::sendKeyInput", _clientsendkeyinput)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( [up|down|left|right|tab|enter|grave] )");
+			return 0;
+		}
+
+		INPUT ip;
+		ip.type = INPUT_KEYBOARD;
+		ip.ki.time = 0;
+		ip.ki.wVk = 0;
+		ip.ki.dwExtraInfo = 0;
+
+		std::string input = argv[0];
+
+		if (input.compare("up") == 0)
+		{
+			ip.ki.dwFlags = KEYEVENTF_EXTENDEDKEY;
+			ip.ki.wScan = 0x48;
+		}
+
+		else if (input.compare("down") == 0)
+		{
+			ip.ki.dwFlags = KEYEVENTF_EXTENDEDKEY;
+			ip.ki.wScan = 0x50;
+		}
+
+		else if (input.compare("left") == 0)
+		{
+			ip.ki.dwFlags = KEYEVENTF_EXTENDEDKEY;
+			ip.ki.wScan = 0x4B;
+		}
+
+		else if (input.compare("right") == 0)
+		{
+			ip.ki.dwFlags = KEYEVENTF_EXTENDEDKEY;
+			ip.ki.wScan = 0x4D;
+		}
+
+		else if (input.compare("tab") == 0)
+		{
+			ip.ki.dwFlags = KEYEVENTF_SCANCODE;
+			ip.ki.wScan = 0xF;
+		}
+
+		else if (input.compare("enter") == 0)
+		{
+			ip.ki.dwFlags = KEYEVENTF_SCANCODE;
+			ip.ki.wScan = 0x1C;
+		}
+
+		else if (input.compare("grave") == 0)
+		{
+			ip.ki.dwFlags = KEYEVENTF_SCANCODE;
+			ip.ki.wScan = 0x29;
+		}
+		SendInput(1, &ip, sizeof(INPUT));
+
+		//EXTENDEDKEY
+		if (input.compare("up") == 0 || input.compare("down") == 0 || input.compare("left") == 0 || input.compare("right") == 0)
+		{
+			ip.ki.dwFlags = KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP;
+		}
+
+		//SCANCODE
+		else if (input.compare("tab") == 0 || input.compare("enter") == 0 || input.compare("grave") == 0)
+		{
+			ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+		}
+
+		SendInput(1, &ip, sizeof(INPUT));
+		return "true";
+	}
+
+
 	struct Init {
 		Init() {
-
-			if (VersionSnoop::GetVersion() == VERSION::v001004) {
-				clientinitredirect.DoctorRelative((u32)ClientInitRedirect_1004r, 1).Apply(true);
-			}
-			if (VersionSnoop::GetVersion() == VERSION::v001003) {
-				SupportEnd1003();
-			}
+			clientinitredirect.DoctorRelative((u32)ClientInitRedirect_1004r, 1).Apply(true);
 			weaponinit.DoctorRelative((u32)WeaponInit, 1).Apply(true);
 			weaponinitend.DoctorRelative((u32)WeaponInitEnd, 1).Apply(true);
 			clientvehiclecreate.DoctorRelative((u32)ClientVehicleCreate, 1).Apply(true);
@@ -859,44 +894,51 @@ namespace NovaCore
 			numbervehiclescheck.Apply(true);
 			numbercomponentscheck.Apply(true);
 
-			vehicleOnAction_patch1.Apply(true);
-			vehicleOnAction_patch2.Apply(true);
+			if (std::filesystem::exists("Nova.vol"))
+			{
+				//Simgui patches
+				simguislidercolor.Apply(true);
+				//defaultStringTag.Apply(true);
 
-			//Simgui patches
-			simguislidercolor.Apply(true);
-			//defaultStringTag.Apply(true);
+				//Expand the width of the chat input box
+				huddlgchatboxwidth.Apply(true);
+				//Message Box Creation
+				//messageboxpatch.DoctorRelative((u32)messageBoxPatch, 1).Apply(true);
 
-			//Expand the width of the chat input box
-			huddlgchatboxwidth.Apply(true);
-			//Message Box Creation
-			//messageboxpatch.DoctorRelative((u32)messageBoxPatch, 1).Apply(true);
+				//RVectorRead/Write size
+				//RVectorAllocSize1.Apply(true);
+				//RVectorAllocSize2.Apply(true);
+				SoftwareMode_BitmapDatabasePadSize.Apply(true);
+				SoftwareMode_BitmapDataSize.Apply(true);
 
-			//RVectorRead/Write size
-			//RVectorAllocSize1.Apply(true);
-			//RVectorAllocSize2.Apply(true);
-			SoftwareMode_BitmapDatabasePadSize.Apply(true);
-			SoftwareMode_BitmapDataSize.Apply(true);
+				//Manual triggering of the Bayesian Network Editor (AI)
+				manualbayesedit.DoctorRelative((u32)manualBayesEdit, 1).Apply(true);
+				bayesInitPatch.Apply(true);
 
-			//Manual triggering of the Bayesian Network Editor (AI)
-			manualbayesedit.DoctorRelative((u32)manualBayesEdit, 1).Apply(true);
-			bayesInitPatch.Apply(true);
+				//GPU info
+				gpuinfo.DoctorRelative((u32)gpuInfo, 1).Apply(true);
 
-			//GPU info
-			gpuinfo.DoctorRelative((u32)gpuInfo, 1).Apply(true);
+				//Campaign pause dialogs
+				pauseevent.DoctorRelative((u32)pauseEvent, 1).Apply(true);
+				simprefspauseevent.DoctorRelative((u32)simPrefsPauseEvent, 1).Apply(true);
+				canvas_handledlgclose.DoctorRelative((u32)canvas_handleDLGClose, 1).Apply(true);
 
-			//Campaign pause dialogs
-			pauseevent.DoctorRelative((u32)pauseEvent, 1).Apply(true);
-			simprefspauseevent.DoctorRelative((u32)simPrefsPauseEvent, 1).Apply(true);
-			canvas_handledlgclose.DoctorRelative((u32)canvas_handleDLGClose, 1).Apply(true);
+				//Vehicle::onAction events
+				//vehicleturbo.DoctorRelative((u32)vehicleTurbo, 1).Apply(true);
 
-			//Vehicle::onAction events
-			//vehicleturbo.DoctorRelative((u32)vehicleTurbo, 1).Apply(true);
+				//Console statuses
+				consoleactive.DoctorRelative((u32)consoleActive, 1).Apply(true);
 
-			//Console statuses
-			consoleactive.DoctorRelative((u32)consoleActive, 1).Apply(true);
+				//Patch the initial hud timers to execute our Nova::campaignCompat function in recordings
+				inithudtimers.DoctorRelative((u32)initHudTimers, 1).Apply(true);
 
-			//Patch the initial hud timers to execute our Nova::campaignCompat function in recordings
-			inithudtimers.DoctorRelative((u32)initHudTimers, 1).Apply(true);
+			}
+			if (!std::filesystem::exists("Nova.vol"))
+			{
+				//Patch in the recording fix without Nova.vol
+				_1004VersionHandshake.Apply(true);
+				_1004JoinVersionHandshake.Apply(true);
+			}
 		}
 	} init;
 }

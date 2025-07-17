@@ -168,9 +168,6 @@
     <ClCompile Include="NovaCore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ForbiddenKnowledge.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="IsBadMemPtr.c">
       <Filter>Source Files</Filter>
     </ClCompile>

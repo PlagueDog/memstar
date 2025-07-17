@@ -2,6 +2,8 @@
 #include "Callback.h"
 #include "Strings.h"
 #include "VersionSnoop.h"
+#include <filesystem>
+
 namespace Console {
 
 	#define CONSOLE_PTR_1004 0x722FA4
@@ -147,7 +149,14 @@ namespace Console {
 	void OnStarted(bool active) {
 		VariableConstructor::Process();
 		ConsoleConstructor::Process();
-		Console::echo("[mem.dll] (Nova) Initalized Successfully");
+		if (std::filesystem::exists("Nova.vol"))
+		{
+			Console::echo("[mem.dll] (Nova) Initalized Successfully");
+		}
+		else
+		{
+			Console::echo("Base [mem.dll] Initalized Successfully Without Nova.vol");
+		}
 		Console::echo("---------------------------------");
 		Console::execFunction(0, "Memstar::version");
 		Console::echo("---------------------------------");

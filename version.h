@@ -28,17 +28,17 @@
 //#define VER_COMMENT_STR             "Built on 2024-6-23"
 
 // Required Information
-#define VER_FILEVERSION             1,1,0,0
-#define VER_FILEVERSIONSTR          1.1.0.0
+#define VER_FILEVERSION             0.1
+#define VER_FILEVERSIONSTR          0.1
 
-#define VER_PRODUCTVERSION          1,1,0,0
-#define VER_PRODUCTVERSIONSTR       1.1.0.0
+#define VER_PRODUCTVERSION          0.1
+#define VER_PRODUCTVERSIONSTR       0.1
 
 #define VER_COMPANYNAME_STR         "Starsiege Players Community"
-#define VER_PRODUCTNAME_STR         "mem.dll replacement for Starsiege"
-#define VER_FILEDESCRIPTION_STR     "Nova mem.dll"
-#define VER_INTERNALNAME_STR        "memstar.dll"
-#define VER_LEGALCOPYRIGHT_STR      "Copyright (C) 2024 Starsiege Players Community"
+#define VER_PRODUCTNAME_STR         "Nova"
+#define VER_FILEDESCRIPTION_STR     "Nova for Starsiege"
+#define VER_INTERNALNAME_STR        "mem.dll"
+#define VER_LEGALCOPYRIGHT_STR      "Copyright (C) 2025 Starsiege Players Community"
 #define VER_ORIGINALFILENAME_STR    "mem.dll"
 
 #define JOIN(a, b, c, d, e, f, g) JOIN_AGAIN(a, b, c, d, e, f, g)

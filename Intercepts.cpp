@@ -653,57 +653,6 @@ namespace Intercepts {
 		}
 	}
 
-	//BuiltInFunction("Nova::gameCursorPos", _novacursorposition)
-	//{
-	//	if (argc != 1)
-	//	{
-	//		Console::echo("%s( x/y );", self);
-	//		return 0;
-	//	}
-	//	string axis = argv[0];
-	//	if (axis.compare("x") == 0 || axis.compare("X") == 0)
-	//	{
-	//		return tostring(gamecursor_x);
-	//	}
-	//	else if (axis.compare("y") == 0 || axis.compare("Y") == 0)
-	//	{
-	//		return tostring(gamecursor_y);
-	//	}
-	//	return 0;
-	//}
-
-	//BuiltInFunction("Nova::onLoadVehicle", _novaonloadvehicle){return "true";}
-	//MultiPointer(ptrGuiVehControllerLoadVehicle, 0, 0, 0, 0x004F4ECE);
-	//MultiPointer(ptrTextWrap, 0, 0, 0, 0x004F3B20);
-	//MultiPointer(ptrVehicleViewStatusDisp, 0, 0, 0, 0x004F4770);
-	//static const char* NovaLoadVehicle = "Nova::onLoadVehicle();";
-	//char* clientVehicle = "NONE";
-	//CodePatch guivehcontrollerloadvehicle = { ptrGuiVehControllerLoadVehicle, "", "\xE9VEHL", 5, false };
-	//NAKED void GuiVehControllerLoadVehicle() {
-	//	__asm {
-	//		mov edx, edi
-	//		mov clientVehicle, edx
-	//		mov eax, ebx
-	//		call ptrTextWrap
-	//		mov eax, ebx
-	//		call ptrVehicleViewStatusDisp
-	//		add esp, 0x100
-	//
-	//		//Call our function
-	//		push eax
-	//		mov eax, [NovaLoadVehicle]
-	//		push eax
-	//		call Console::eval
-	//		add esp, 0x8
-	//
-	//		pop ebp
-	//		pop edi
-	//		pop esi
-	//		pop ebx
-	//		retn
-	//	}
-	//}
-
 	void fnVehicleFileLookup()
 	{
 		Console::eval("Nova::onVehicleFileLookup();");
@@ -996,6 +945,8 @@ BuiltInFunction("player::onMessage", _playeronmessage) { return 0; }
 				// Gui onOpen & onClose patches
 				/////////////////////////////////////////////////
 					//Nova::getGui();
+			if (std::filesystem::exists("Nova.vol"))
+			{
 				guiopened.DoctorRelative((u32)guiOpened, 1).Apply(true);
 
 				//Nova::guiOpen();
@@ -1051,6 +1002,7 @@ BuiltInFunction("player::onMessage", _playeronmessage) { return 0; }
 
 				//Server Events
 				vehicledamageevent.DoctorRelative((u32)vehicleDamageEvent, 1).Apply(true);
+			}
 		}
 	} init;
 }

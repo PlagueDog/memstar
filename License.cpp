@@ -3,13 +3,19 @@
 #include "Strings.h"
 #include "version.h"
 #include "resource.h"
+#include <filesystem>
 
 namespace Licence {
 
 	BuiltInFunction("Memstar::version", version) {
-		Console::echo("%s", VER_PRODUCTNAME_STR);
-		Console::echo("------------------");
-		Console::echo("Version: %s", VER_FILEVERSION_STR);
+		if (std::filesystem::exists("Nova.vol"))
+		{
+			Console::echo("%s for Starsiege", VER_PRODUCTNAME_STR);
+			Console::echo("------------------");
+			//Console::echo("Version: %s", VER_FILEVERSION_STR);
+			Console::echo("Version: 0.1 DEV", VER_FILEVERSION_STR);
+		}
+
 //#ifdef VER_SPECIAL_STR
 //		Console::dbecho("Special Build Note: %s", VER_SPECIAL_STR);
 //#endif
@@ -24,6 +30,8 @@ namespace Licence {
 		//Console::echo("This extension would not be possible without everyone that blazed the trail before me");
 		Console::echo("Initial version of mem.dll written and published by NoFix and floodyberry.");
 		Console::echo("mem.dll continued on via Nova by PlagueDog.");
+		Console::echo("Source available at https://github.com/PlagueDog/memstar");
+		Console::echo("Client source scripts/assets available via extraction from Nova.vol.");
 
 		return "true";
 	}
