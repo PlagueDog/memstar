@@ -3641,7 +3641,6 @@ Original mOriginalsTable[] = {
 	{ 0x79c9cb21, "spr_ld.tga" },
 	{ 0xff4ae7ae, "spr_s.tga" },
 	{ 0xa0bcf399, "spr_sd.tga" },
-	{ 0xf0d3c36f, "sp_bar.tga" },
 	{ 0x43199dc4, "sp_main.tga" },
 	{ 0x7d22fd03, "sp_popup.tga" },
 	{ 0xfea9dac9, "sp_popupwide1.tga" },
