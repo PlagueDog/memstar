@@ -306,7 +306,7 @@ namespace ExtendedVariables
 			mov dword ptr [ebx + 0x25C], 0x3F800000
 			push ebx
 			lea ebx, [ebx + 0x25C]
-			mov dword ptr ptrMouseSensitivity, ebx
+			mov dword ptr ptrMouseSensitivity, ebx //Store the Canvas cursor sensitivity pointer location
 			pop ebx
 			jmp [ptrCanvasMouseSensitivity_RETN]
 		}

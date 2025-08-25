@@ -129,47 +129,73 @@ namespace ExeFixes {
 	MultiPointer(ptrCDCheck, 0, 0, 0x0053D8C6, 0x0053FDF6);
 	CodePatch NoCDPatch = { ptrCDCheck,"","\x90\x90\x90\x90\x90\x90\x90\x90",8,false };
 
+	//RegOk
+	MultiPointer(ptrRegOk, 0, 0, 0, 0x004BF415);
+	CodePatch regokdisable = { ptrRegOk, "", "\xE9RGOK", 5, false };
+	NAKED void regOkDisable() {
+		__asm {
+			pop  edi
+			pop  esi
+			pop  ebx
+			mov  esp, ebp
+			pop  ebp
+			retn 8
+		}
+	}
+
+	//postAction - obsolete action name (Toss it to printf to avoid spamming the gui console)
+	MultiPointer(ptrPostActionObs, 0, 0, 0, 0x0059FDCA);
+	MultiPointer(ptrPostActionObsResume, 0, 0, 0, 0x0059FDD2);
+	CodePatch postactionobs = { ptrPostActionObs, "", "\xE9PAOB", 5, false };
+	NAKED void postActionObs() {
+		__asm {
+			call printf
+			add esp, 8
+			jmp ptrPostActionObsResume
+		}
+	}
+
+
 	//OpenGL
 	MultiPointer(ptrOGLWidthMin, 0, 0, 0x0063C80B, 0x0064B74B);
 	MultiPointer(ptrOGLWidthMax, 0, 0, 0x0063C816, 0x0064B756);
 	MultiPointer(ptrOGLHeightMin, 0, 0, 0x0063C825, 0x0064B765);
 	MultiPointer(ptrOGLHeightMax, 0, 0, 0x0063C835, 0x0064B775);
 	MultiPointer(ptrOGLBitDepth, 0, 0, 0x0063C847, 0x0064B787);
-	MultiPointer(ptrOGLMipMapping, 0, 0, 0x0063E7FD, 0x0064D90C);
+	MultiPointer(ptrOGLMipMapping, 0, 0, 0, 0x0064D909);
+	MultiPointer(ptrOGLMipMappingResume, 0, 0, 0, 0x0064D922);
 
-	BuiltInFunction("OpenGL::disableMipMapping", _oglDmip)
-	{
-		CodePatch OpenGLMips = { ptrOGLMipMapping,"","\x00\x26",2,false };
-		OpenGLMips.Apply(true);
-		Console::eval("flushtexturecache();");
-		//Console::setVariable("pref::OpenGL::MipMapping", "false");
-		return "true";
-	}
-	BuiltInFunction("OpenGL::enableMipMapping", _oglEmip)
-	{
-		CodePatch OpenGLFiltering = { ptrOGLMipMapping,"","\x01\x27",2,false };
-		OpenGLFiltering.Apply(true);
-		Console::eval("flushtexturecache();");
-		//Console::setVariable("pref::OpenGL::MipMapping", "true");
-		return "true";
+	BuiltInVariable("pref::OpenGL::disableMipMaps", bool, prefopengldisablemipmaps, 0);
+	CodePatch gl_mipmapping = { ptrOGLMipMapping, "", "\xE9OGLM", 5, false };
+	NAKED void GL_mipMapping() {
+		__asm {
+			cmp prefopengldisablemipmaps, 1
+			je __disableMipMaps
+			mov dword ptr[ebp - 8], 0x2701
+			jmp ptrOGLMipMappingResume
+
+			__disableMipMaps :
+			mov dword ptr[ebp - 8], 0x2600
+				jmp ptrOGLMipMappingResume
+		}
 	}
 
-	MultiPointer(ptrOGLTextureFilter, 0, 0, 0x0063E7DD, 0x0064D8EC);
-	BuiltInFunction("OpenGL::enableGL_NEAREST", _oglEgln)
-	{
-		CodePatch OpenGLFiltering = { ptrOGLTextureFilter,"","\x00\x26",2,false };
-		OpenGLFiltering.Apply(true);
-		Console::eval("flushtexturecache();");
-		return "true";
-	}
-	
-	
-	BuiltInFunction("OpenGL::disableGL_NEAREST", _oglDgln)
-	{
-		CodePatch OpenGLFiltering = { ptrOGLTextureFilter,"","\x01\x26",2,false };
-		OpenGLFiltering.Apply(true);
-		Console::eval("flushtexturecache();");
-		return "true";
+	MultiPointer(ptrOGLTextureFilter, 0, 0, 0, 0x0064D8E9);
+	MultiPointer(ptrOGLTextureFilterResume, 0, 0, 0, 0x0064D8F9);
+
+	BuiltInVariable("pref::OpenGL::GL_NEAREST", bool, prefopenglnearest, 0);
+	CodePatch gl_nearest = { ptrOGLTextureFilter, "", "\xE9OGLN", 5, false };
+	NAKED void GL_Nearest() {
+		__asm {
+			cmp prefopenglnearest, 1
+			je __useNearest
+			mov dword ptr[ebp - 4], 0x2601
+			jmp ptrOGLTextureFilterResume
+
+			__useNearest:
+				mov dword ptr[ebp - 4], 0x2600
+				jmp ptrOGLTextureFilterResume
+		}
 	}
 
 	CodePatch OpenGLBitDepth = { ptrOGLBitDepth,"","\x20",1,false };
@@ -333,22 +359,30 @@ namespace ExeFixes {
 	MultiPointer(ptrConsoleKey, 0, 0, 0x0059D9E6, 0x005A1202);
 
 
-	//Mapview grid line count
-	MultiPointer(ptrMapviewPanelLineCount, 0, 0, 0, 0x00514FEC);
-	CodePatch mapviewGridLineCount = { ptrMapviewPanelLineCount,	"\x00\x00\x00\x39","\x00\x00\x00\x00",	4,false };
-	BuiltInVariable("pref::mapviewLineGridVisible", int, prefmapviewlinegridvisible, 1);
-	BuiltInFunction("Nova::toggleMapviewGrid", _novatogglemapviewgrid)
-	{
-		std::string var = Console::getVariable("pref::mapviewLineGridVisible");
-		if (var.compare("1") == 0 || var.compare("true") == 0 || var.compare("True") == 0)
-		{
-			mapviewGridLineCount.Apply(false);
+	//Mapview grid lines
+	MultiPointer(ptrMapviewPanelLineCount, 0, 0, 0, 0x00514D35);
+	MultiPointer(ptrMapviewPanelLineCountResume, 0, 0, 0, 0x00514D43);
+	float flt_gridLinesDefault = 0.00012207031;
+	float flt_gridLinesNone = 0;
+	BuiltInVariable("pref::disableMapGridLines", bool, prefdisablemapgridlines, 0);
+	CodePatch gridlines = { ptrMapviewPanelLineCount, "", "\xE9MDGL", 5, false };
+	NAKED void gridLines() {
+		__asm {
+			cmp prefdisablemapgridlines, 1
+			je __noGridLines
+			fld  dword ptr [flt_gridLinesDefault]
+			fmul [ebp - 0x1C]
+			fst  [ebp - 0x1C]
+			fstp st
+			jmp ptrMapviewPanelLineCountResume
+
+			__noGridLines:
+				fld  dword ptr [flt_gridLinesNone]
+				fmul [ebp - 0x1C]
+				fst  [ebp - 0x1C]
+				fstp st
+				jmp ptrMapviewPanelLineCountResume
 		}
-		else
-		{
-			mapviewGridLineCount.Apply(true);
-		}
-		return "true";
 	}
 
 	//Mapview map panel size
@@ -456,29 +490,47 @@ namespace ExeFixes {
 	MultiPointer(ptrShadowResLOD3, 0, 0, 0x00673888, 0x00683754);
 	MultiPointer(ptrShadowResLOD4, 0, 0, 0x00673898, 0x00683764);
 
-	BuiltInFunction("Nova::EnableHiresShadows", _memehs)
-	{
-		CodePatch hiresShadowsPatch0 = { ptrShadowResLOD0, "", "\x00\x01", 2, false }; hiresShadowsPatch0.Apply(true);
-		CodePatch hiresShadowsBlurPatch0 = { ptrShadowResLOD0_Blur, "", "\x02", 1, false }; hiresShadowsBlurPatch0.Apply(true);
-		CodePatch hiresShadowsPatch1 = { ptrShadowResLOD1, "", "\x80\x00", 2, false }; hiresShadowsPatch1.Apply(true);
-		CodePatch hiresShadowsPatch2 = { ptrShadowResLOD2, "", "\x80\x00", 2, false }; hiresShadowsPatch2.Apply(true);
-		CodePatch hiresShadowsPatch3 = { ptrShadowResLOD3, "", "\x80\x00", 2, false }; hiresShadowsPatch3.Apply(true);
-		CodePatch hiresShadowsPatch4 = { ptrShadowResLOD4, "", "\x80\x00", 2, false }; hiresShadowsPatch4.Apply(true);
-		Console::eval("$pref::HiresShadows = true;flushtexturecache();");
-		return 0;
+	MultiPointer(ptrBaseShadowRenderImage, 0, 0, 0, 0x006836F3);
+	MultiPointer(ptrBaseShadowRenderImageResume, 0, 0, 0, 0x006836F3);
+	MultiPointer(loc_683705, 0, 0, 0, 0x00683705);
+	MultiPointer(loc_683724, 0, 0, 0, 0x00683724);
+	MultiPointer(loc_68376D, 0, 0, 0, 0x0068376D);
+	MultiPointer(flt_6837CC, 0, 0, 0, 0x006837CC);
+	BuiltInVariable("pref::hiresShadows", bool, prefhiresShadows, 0);
+	CodePatch highresshadows = { ptrBaseShadowRenderImage, "", "\xE9_BSR", 5, false };
+	NAKED void highResShadows() {
+		__asm {
+				jb  __highResMedDist
+
+				cmp prefhiresShadows, 1
+				je __useHighRes
+				mov dword ptr[ecx + 20h], 0x40
+				mov dword ptr[ecx + 1Ch], 0x17
+				jmp loc_68376D
+
+				__useHighRes:
+				mov dword ptr[ecx + 20h], 0x80
+				mov dword ptr[ecx + 1Ch], 2
+				jmp loc_68376D
+
+			__highResMedDist:
+				fld[esp + 0xC - 4]
+				fcomp ds : flt_6837CC
+				fnstsw ax
+				sahf
+				jb __farDist
+
+				cmp prefhiresShadows, 1
+				je __useHighRes
+				mov dword ptr[ecx + 0x20], 0x40
+				mov dword ptr[ecx + 0x1C], 0x17
+				jmp loc_68376D
+
+			__farDist:
+				jmp loc_683724
+		}
 	}
 
-	BuiltInFunction("Nova::DisableHiresShadows", _memdhs)
-	{
-		CodePatch hiresShadowsPatch0 = { ptrShadowResLOD0, "", "\x40\x00", 2, false }; hiresShadowsPatch0.Apply(true);
-		CodePatch hiresShadowsBlurPatch0 = { ptrShadowResLOD0_Blur, "", "\x17", 1, false }; hiresShadowsBlurPatch0.Apply(true);
-		CodePatch hiresShadowsPatch1 = { ptrShadowResLOD1, "", "\x40\x00", 2, false }; hiresShadowsPatch1.Apply(true);
-		CodePatch hiresShadowsPatch2 = { ptrShadowResLOD2, "", "\x20\x00", 2, false }; hiresShadowsPatch2.Apply(true);
-		CodePatch hiresShadowsPatch3 = { ptrShadowResLOD3, "", "\x10\x00", 2, false }; hiresShadowsPatch3.Apply(true);
-		CodePatch hiresShadowsPatch4 = { ptrShadowResLOD4, "", "\x10\x00", 2, false }; hiresShadowsPatch4.Apply(true);
-		Console::eval("$pref::HiresShadows = false;flushtexturecache();");
-		return 0;
-	}
 	//Restore the win mission editor
 	//MultiPointer(ptrWinMissionEditorCallIntercept, 0, 0, 0x006AB2EB, 0x006BB363);
 	//BuiltInFunction("MissionCreate", _wmc)
@@ -1301,8 +1353,114 @@ namespace ExeFixes {
 		}
 	}
 
+	//Fix client crashing when connecting to a server that has more weapon IDs than the connecting client
+	//WEAPONS
+	MultiPointer(ptrClientConnectGetWeaponMiscount, 0, 0, 0, 0x004608CD);
+	MultiPointer(ptrClientConnectGetWeaponMiscountResume, 0, 0, 0, 0x004608D3);
+	MultiPointer(ptrClientConnectGetWeaponMiscountSkip, 0, 0, 0, 0x004608D4);
+	CodePatch clientconnectgetweaponcount = { ptrClientConnectGetWeaponMiscount, "", "\xE9_CGW", 5, false };
+	NAKED void clientConnectGetWeaponCount() {
+		__asm {
+			test eax, eax
+			je __skip
+			mov[eax + 0x178], cl
+			jmp ptrClientConnectGetWeaponMiscountResume
+
+			__skip :
+			inc ebx
+			jmp ptrClientConnectGetWeaponMiscountSkip
+		}
+	}
+
+	//SENSORS
+	MultiPointer(ptrClientConnectGetSensorMiscount, 0, 0, 0, 0x004607B2);
+	MultiPointer(ptrClientConnectGetSensorMiscountResume, 0, 0, 0, 0x004607B8);
+	MultiPointer(ptrClientConnectGetSensorMiscountSkip, 0, 0, 0, 0x004607B9);
+	CodePatch clientconnectgetsensorcount = { ptrClientConnectGetSensorMiscount, "", "\xE9_CGS", 5, false };
+	NAKED void clientConnectGetSensorCount() {
+		__asm {
+			test eax, eax
+			je __skip
+			mov[eax + 0x0B8], cl
+			jmp ptrClientConnectGetSensorMiscountResume
+
+			__skip :
+			inc ebx
+				jmp ptrClientConnectGetSensorMiscountSkip
+		}
+	}
+
+	//Fix for a crash occuring when loading a vehicle that has modded weapons from a server we just disconnected from
+	MultiPointer(ptrVehicleLoadWeaponSlot, 0, 0, 0, 0x0049BA1B);
+	MultiPointer(ptrVehicleLoadWeaponSlotResume, 0, 0, 0, 0x0049BA24);
+	MultiPointer(ptrVehicleLoadWeaponSlotSkip, 0, 0, 0, 0x0049BA27);
+	CodePatch weaponslotloadfix = { ptrVehicleLoadWeaponSlot, "", "\xE9VLWS", 5, false };
+	NAKED void weaponSlotLoadFix() {
+		__asm {
+			test eax, eax
+			je __skip
+			mov edx, [eax + 0x60]
+			mov [ebx + 0x18C], edx
+			jmp ptrVehicleLoadWeaponSlotResume
+
+			__skip :
+				mov[ebx + 0x18C], edx
+				jmp ptrVehicleLoadWeaponSlotSkip
+		}
+	}
+
+	//
+	MultiPointer(ptrMissingVehicleID_Crash, 0, 0, 0, 0x00460669);
+	MultiPointer(ptrMissingVehicleID_CrashResume, 0, 0, 0, 0x0046066F);
+	MultiPointer(ptrMissingVehicleID_CrashRecover, 0, 0, 0, 0x0046068E);
+	CodePatch missingvehicleid = { ptrMissingVehicleID_Crash, "", "\xE9MVID", 5, false };
+	NAKED void missingVehicleID() {
+		__asm {
+			test esi, esi
+			je __skip
+			mov[esi + 0x17C], cl
+			jmp [ptrMissingVehicleID_CrashResume]
+
+			__skip :
+			jmp [ptrMissingVehicleID_CrashRecover]
+		}
+	}
+
+	MultiPointer(ptrMissingVehicleID_Crash2, 0, 0, 0, 0x00460678);
+	MultiPointer(ptrMissingVehicleID_CrashResume2, 0, 0, 0, 0x00460681);
+	MultiPointer(loc_46068A, 0, 0, 0, 0x0046068A);
+	CodePatch missingvehicleid2 = { ptrMissingVehicleID_Crash2, "", "\xE9MVI2", 5, false };
+	NAKED void missingVehicleID2() {
+		__asm {
+			test esi, esi
+			je __skip
+			mov ecx, [esi + 4]
+			mov edi, [eax]
+			cmp ecx, edi
+			jnz __continue
+			jmp[ptrMissingVehicleID_CrashResume2]
+
+			__skip :
+			cmp ecx, edi
+			jnz __continue
+			jmp[ptrMissingVehicleID_CrashResume2]
+
+			__continue:
+			jmp [loc_46068A]
+		}
+	}
+
 	struct Init {
 		Init() {
+			missingvehicleid.DoctorRelative((u32)missingVehicleID, 1).Apply(true);
+			missingvehicleid2.DoctorRelative((u32)missingVehicleID2, 1).Apply(true);
+
+			//Fixes for connecting to and disconnecting from modded servers
+			clientconnectgetweaponcount.DoctorRelative((u32)clientConnectGetWeaponCount, 1).Apply(true);
+			clientconnectgetsensorcount.DoctorRelative((u32)clientConnectGetSensorCount, 1).Apply(true);
+			weaponslotloadfix.DoctorRelative((u32)weaponSlotLoadFix, 1).Apply(true);
+
+
 			//MultiPointer(ptrNavRedirect, 0, 0, 0, 0x0058C322);
 			if (VersionSnoop::GetVersion() == VERSION::v001004) {
 				dosfix.DoctorRelative((u32)DosFix, 1).Apply(true);
@@ -1345,6 +1503,8 @@ namespace ExeFixes {
 			SoftwareResHeightCap.Apply(true);
 
 			NoCDPatch.Apply(true);
+			regokdisable.DoctorRelative((u32)regOkDisable, 1).Apply(true);
+			postactionobs.DoctorRelative((u32)postActionObs, 1).Apply(true);
 
 			//Null the console newline feed character to prevent the white screen of death
 			consoleNewLineChar.Apply(true);
@@ -1461,6 +1621,16 @@ namespace ExeFixes {
 			//Keymap Editor Fixes
 			keymapeditfix1.DoctorRelative((u32)keymapEditFix1, 1).Apply(true);
 			keymapeditfix2.DoctorRelative((u32)keymapEditFix2, 1).Apply(true);
+
+			//High-res Shadows
+			highresshadows.DoctorRelative((u32)highResShadows, 1).Apply(true);
+
+			//GL_NEAREST
+			gl_nearest.DoctorRelative((u32)GL_Nearest, 1).Apply(true);
+			gl_mipmapping.DoctorRelative((u32)GL_mipMapping, 1).Apply(true);
+
+			//Mapview Grid Lines
+			gridlines.DoctorRelative((u32)gridLines, 1).Apply(true);
 		}
 	} init;
 }; // namespace ExeFixes

@@ -24,6 +24,20 @@ MultiPointer(ptrMemLibModule, 0, 0, 0, 0x0044ABFC);
 
 namespace modloaderFunctions
 {
+	MultiPointer(CMDConsole_evalute, 0, 0, 0, 0x005E6DF0);
+	MultiPointer(ptrConsole, 0, 0, 0, 0x00722FA4);
+
+	bool isFile(const char* file)
+	{
+		std::ifstream inputFile(file, std::ios::in);
+
+		if (inputFile.is_open())
+		{
+			inputFile.close();
+			return true;
+		}
+		return false;
+	}
 
 //Big endian to little endian
 string BEtoLE(string& str)
@@ -770,9 +784,15 @@ namespace ModloaderMain {
 	}
 
 	//Opens the defaultPrefs.cs file the system configured text editor
-	BuiltInFunction("modloader::editDefaultPrefs", _mlEditDefaultPrefs) {
+	BuiltInFunction("Mem::editDefaultPrefs", _memEditDefaultPrefs) {
 
 		//Used to check if this function is implemented without executing the rest of the function
+
+		if (!isFile("defaultPrefs.cs"))
+		{
+			Console::echo("defaultprefs.cs not found.");
+			return 0;
+		}
 		if (argc >= 1)
 		{
 			return "true";
@@ -831,13 +851,6 @@ namespace ModloaderMain {
 		//hardcallf(r, g, b);
 		//return "true";
 	//}
-
-		BuiltInFunction("subroutine", _hc) {
-		typedef int (*FunctionType)();
-		FunctionType hardcallf = (FunctionType)0x0051062C;
-		hardcallf();
-		return "true";
-	}
 
 	//BuiltInFunction("SimStarfield::setBottomVisible", _ssfsbv) {
 	//	typedef int (*FunctionType)(bool v);
@@ -1057,8 +1070,8 @@ namespace ModloaderMain {
 		false
 	};
 
-	//For some reason Dynamix programmed the hostGUI delegate to execute datload.cs
-	//Loading this twice causes issues with overlapping IDs
+	//For some reason Dynamix programmed the hostGUI & campaign delegates to execute datload.cs
+	//Loading this twice causes issues with mods overlapping IDs
 	MultiPointer(ptrHostDatLoad, 0, 0, 0, 0x00707471);
 	CodePatch datLoad_patch = {
 		ptrHostDatLoad,
@@ -1067,6 +1080,19 @@ namespace ModloaderMain {
 		19,
 		false
 	};
+
+	MultiPointer(ptrCampaignDatLoad, 0, 0, 0, 0x0053F493);
+	CodePatch campaigndatload = { ptrCampaignDatLoad, "", "\xE9_CDL", 5, false };
+	NAKED void campaignDatLoad() {
+		__asm {
+			pop edx
+			pop ebp
+			pop edi
+			pop esi
+			pop ebx
+			retn
+		}
+	}
 
 	MultiPointer(ptrMapViewFidelity, 0, 0, 0x005155DC, 0x00517A78);
 	CodePatch OverviewMapFidelity = { ptrMapViewFidelity,	"\x00\x00\x00\x42\x00\x00\x80\x3E",	"\x00\x00\xC0\x42\x00\x00\xB0\x3E",	8,	false};
@@ -1213,22 +1239,36 @@ namespace ModloaderMain {
 		return "true";
 	}
 
-	BuiltInVariable("pref::NoCockpitFadein", bool, prefCockpitFadein, false);
-	BuiltInFunction("Nova::toggleCockpitFadeIn", _tcf) {
-		MultiPointer(ptrSimFadein01, 0, 0, 0x0045AA7E, 0x0045BF42);
-		MultiPointer(ptrSimFadein02, 0, 0, 0x0045AA97, 0x0045BF5B);
-		if (!prefCockpitFadein)
-		{
-			CodePatch SimFadein01 = { ptrSimFadein01,"","\x9A\x99\x99\x3F",4,false }; SimFadein01.Apply(true);
-			CodePatch SimFadein02 = { ptrSimFadein02,"","\x40",1,false }; SimFadein02.Apply(true);
+	MultiPointer(ptrSimFadein, 0, 0, 0, 0x0045BF26);
+	MultiPointer(ptrSimFadeinResume, 0, 0, 0, 0x0045BF4F);
+	BuiltInVariable("pref::spawnFadeIn", bool, prefspawnfadein, 1);
+	float flt_fadeInDefault = 2.0;
+	float flt_fadeInZero = 0;
+	float flt_fadeDurationDefault = 1.2;
+	float flt_fadeDurationInstant = 0;
+	CodePatch spawnfadein = { ptrSimFadein, "", "\xE9SFDI", 5, false };
+	NAKED void spawnFadeIn() {
+		__asm {
+			cmp prefspawnfadein, 0
+			je __noFadeIn
+			fld     dword ptr[edx + 0x80]
+			fadd    dword ptr [flt_fadeInDefault]
+			fstp    dword ptr[ebx + 0x60]
+			mov		ecx, flt_fadeDurationDefault
+			mov     dword ptr[ebx + 0x64], ecx
+			jmp     ptrSimFadeinResume
+
+			__noFadeIn:
+				fld     dword ptr[edx + 0x80]
+				fadd    dword ptr [flt_fadeInZero]
+				fstp    dword ptr[ebx + 0x60]
+				mov		ecx, flt_fadeDurationInstant
+				mov     dword ptr[ebx + 0x64], ecx
+				jmp     ptrSimFadeinResume
 		}
-		else
-		{
-			CodePatch SimFadein01 = { ptrSimFadein01,"","\x00\x00\x00\x00",4,false }; SimFadein01.Apply(true);
-			CodePatch SimFadein02 = { ptrSimFadein02,"","\x00",1,false }; SimFadein02.Apply(true);
-		}
-		return "true";
 	}
+
+
 	//Get the executable path and file name, close the current session, open new session
 	//BuiltInFunction("newSession", _newSession) {
 	//
@@ -1310,7 +1350,7 @@ namespace ModloaderMain {
 	CodePatch remoteEvalBufferSize_S_patch = {
 		ptrRemEvalBufferSen,
 		"",
-		"\x81\xFE\x00\x10",
+		"\x81\xFE\x00\x04",
 		4,
 		false
 	};
@@ -1319,7 +1359,7 @@ namespace ModloaderMain {
 	CodePatch remoteEvalBufferSize_R_patch = {
 		ptrRemEvalBufferRec,
 		"",
-		"\x3D\x00\x10",
+		"\x3D\x00\x04",
 		3,
 		false
 	};
@@ -1530,6 +1570,735 @@ namespace ModloaderMain {
 	CodePatch constructorsPatch37 =		{ ptrNewThermal,	"","MLNThermal",	10,false };
 	CodePatch constructorsPatch38 =		{ ptrNewBattery,	"","MLNBattery",	10,false };
 
+	MultiPointer(ptrConstructors, 0, 0, 0, 0x0041205A);
+	MultiPointer(ptrConstructorsResume, 0, 0, 0, 0x0041287E);
+	MultiPointer(CMDConsole__addCommand, 0, 0, 0, 0x005E6DB8);
+	static const char* aDefaultweapons = "Nova::defaultWeapons";
+	static const char* aDefaultmountab = "Nova::defaultMountables";
+	static const char* aNewherc = "Nova::newHerc";
+	static const char* aHercbase = "Nova::hercBase";
+	static const char* aHercpos = "Nova::hercPos";
+	static const char* aHercrot = "Nova::hercRot";
+	static const char* aHercanim = "Nova::hercAnim";
+	static const char* aHercfootprint = "Nova::hercFootprint";
+	static const char* aHerccpit = "Nova::hercCpit";
+	static const char* aHerccoll = "Nova::hercColl";
+	static const char* aHercai = "Nova::hercAI";
+	static const char* aVehiclepilotab = "Nova::vehiclePilotable";
+	static const char* aNewtank = "Nova::newTank";
+	static const char* aTankbase = "Nova::tankBase";
+	static const char* aTankpos = "Nova::tankPos";
+	static const char* aTankrot = "Nova::tankRot";
+	static const char* aTankcpit = "Nova::tankCpit";
+	static const char* aTankcoll = "Nova::tankColl";
+	static const char* aTankanim = "Nova::tankAnim";
+	static const char* aTanksound = "Nova::tankSound";
+	static const char* aTankslide = "Nova::tankSlide";
+	static const char* aTankai = "Nova::tankAI";
+	static const char* aVehicleartille = "Nova::vehicleArtillery";
+	static const char* aNewdrone = "Nova::newDrone";
+	static const char* aDronebase = "Nova::droneBase";
+	static const char* aDronepos = "Nova::dronePos";
+	static const char* aDronerot = "Nova::droneRot";
+	static const char* aDronecoll = "Nova::droneColl";
+	static const char* aDroneanim = "Nova::droneAnim";
+	static const char* aDronesound = "Nova::droneSound";
+	static const char* aDroneslide = "Nova::droneSlide";
+	static const char* aDroneexplosion_0 = "Nova::droneExplosion";
+	static const char* aNewflyer = "Nova::newFlyer";
+	static const char* aFlyerbase = "Nova::flyerBase";
+	static const char* aFlyerpos = "Nova::flyerPos";
+	static const char* aFlyerrot = "Nova::flyerRot";
+	static const char* aFlyercpit = "Nova::flyerCpit";
+	static const char* aFlyercoll = "Nova::flyerColl";
+	static const char* aFlyerexhaust = "Nova::flyerExhaust";
+	static const char* aFlyerexhaustof = "Nova::flyerExhaustOffset";
+	static const char* aFlyerai = "Nova::flyerAI";
+	static const char* aFlyernav = "Nova::flyerNav";
+	static const char* aFlyersound = "Nova::flyerSound";
+	static const char* aTranslucentcoc = "Nova::translucentCockpit";
+	static const char* aNewturret = "Nova::newTurret";
+	static const char* aTurretbase = "Nova::turretBase";
+	static const char* aTurretai = "Nova::turretAI";
+	static const char* aNewhardpoint = "Nova::newHardPoint";
+	static const char* aNewmountpoint = "Nova::newMountPoint";
+	static const char* aNewhardpointex = "Nova::newHardPointExt";
+	static const char* aHardpointspeci = "Nova::HardPointSpecial";
+	static const char* aHardpointdamag = "Nova::hardPointDamage";
+	static const char* aNewcomponent = "Nova::newComponent";
+	static const char* aNewconfigurati = "Nova::newConfiguration";
+	static const char* aNewweapon = "Nova::newWeapon";
+	static const char* aWeaponinfo1 = "Nova::weaponInfo1";
+	static const char* aWeaponinfo2 = "Nova::weaponInfo2";
+	static const char* aWeaponmuzzle = "Nova::weaponMuzzle";
+	static const char* aWeapongeneral = "Nova::weaponGeneral";
+	static const char* aWeaponshot = "Nova::weaponShot";
+	static const char* aWeaponammo = "Nova::weaponAmmo";
+	static const char* aWeaponenergy = "Nova::weaponEnergy";
+	static const char* aNewbullet = "Nova::newBullet";
+	static const char* aNewmissile = "Nova::newMissile";
+	static const char* aNewenergy = "Nova::newEnergy";
+	static const char* aNewbeam = "Nova::newBeam";
+	static const char* aNewmine = "Nova::newMine";
+	static const char* aNewbomb = "Nova::newBomb";
+	static const char* aNewmountable = "Nova::newMountable";
+	static const char* aMountinfo1 = "Nova::mountInfo1";
+	static const char* aMountinfo2 = "Nova::mountInfo2";
+	static const char* aNewengine = "Nova::newEngine";
+	static const char* aEngineinfo1 = "Nova::engineInfo1";
+	static const char* aEngineinfo2 = "Nova::engineInfo2";
+	static const char* aNewsensor = "Nova::newSensor";
+	static const char* aSensorinfo1 = "Nova::sensorInfo1";
+	static const char* aSensorinfo2 = "Nova::sensorInfo2";
+	static const char* aSensormode = "Nova::sensorMode";
+	static const char* aNewreactor = "Nova::newReactor";
+	static const char* aReactorinfo1 = "Nova::reactorInfo1";
+	static const char* aReactorinfo2 = "Nova::reactorInfo2";
+	static const char* aNewshield = "Nova::newShield";
+	static const char* aShieldinfo1 = "Nova::shieldInfo1";
+	static const char* aShieldinfo2 = "Nova::shieldInfo2";
+	static const char* aNewmodulator = "Nova::newModulator";
+	static const char* aNewamplifier = "Nova::newAmplifier";
+	static const char* aNewcapacitor = "Nova::newCapacitor";
+	static const char* aNewcomputer = "Nova::newComputer";
+	static const char* aNewbooster = "Nova::newBooster";
+	static const char* aNewrepair = "Nova::newRepair";
+	static const char* aNewcloak = "Nova::newCloak";
+	static const char* aCloakinfo1 = "Nova::cloakInfo1";
+	static const char* aCloakinfo2 = "Nova::cloakInfo2";
+	static const char* aNewarmor = "Nova::newArmor";
+	static const char* aArmorinfo1 = "Nova::armorInfo1";
+	static const char* aArmorinfo2 = "Nova::armorInfo2";
+	static const char* aArmorinfospeci = "Nova::armorInfoSpecial";
+	static const char* aNewecm = "Nova::newECM";
+	static const char* aNewthermal = "Nova::newThermal";
+	static const char* aNewbattery = "Nova::newBattery";
+	CodePatch novaconstructors = { ptrConstructors, "", "\xE9_CONS", 5, false };
+	NAKED void novaConstructors() {
+		__asm {
+			mov     ecx, aDefaultweapons; "defaultWeapons"
+			mov     edx, 2Ah; '*'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aDefaultmountab; "defaultMountables"
+			mov     edx, 2Bh; '+'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewherc; "newHerc"
+			mov     edx, 1; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aHercbase; "hercBase"
+			mov     edx, 2; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aHercpos; "hercPos"
+			mov     edx, 3; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aHercrot; "hercRot"
+			mov     edx, 4; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aHercanim; "hercAnim"
+			mov     edx, 5; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aHercfootprint; "hercFootprint"
+			mov     edx, 6; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aHerccpit; "hercCpit"
+			mov     edx, 7; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aHerccoll; "hercColl"
+			mov     edx, 8; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aHercai; "hercAI"
+			mov     edx, 9; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aVehiclepilotab; "vehiclePilotable"
+			mov     edx, 2Fh; '/'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewtank; "newTank"
+			mov     edx, 0Ah; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aTankbase; "TankBase"
+			mov     edx, 0Bh; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aTankpos; "TankPos"
+			mov     edx, 0Ch; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aTankrot; "TankRot"
+			mov     edx, 0Dh; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aTankcpit; "TankCpit"
+			mov     edx, 0Eh; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aTankcoll; "TankColl"
+			mov     edx, 0Fh; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aTankanim; "tankAnim"
+			mov     edx, 10h; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aTanksound; "tankSound"
+			mov     edx, 11h; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aTankslide; "tankSlide"
+			mov     edx, 12h; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aTankai; "tankAI"
+			mov     edx, 13h; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aVehicleartille; "vehicleArtillery"
+			mov     edx, 14h; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewdrone; "newDrone"
+			mov     edx, 15h; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aDronebase; "droneBase"
+			mov     edx, 16h; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aDronepos; "dronePos"
+			mov     edx, 17h; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aDronerot; "droneRot"
+			mov     edx, 18h; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aDronecoll; "droneColl"
+			mov     edx, 19h; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aDroneanim; "droneAnim"
+			mov     edx, 1Ah; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aDronesound; "droneSound"
+			mov     edx, 1Bh; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aDroneslide; "droneSlide"
+			mov     edx, 1Ch; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aDroneexplosion_0; "droneExplosion"
+			mov     edx, 1Dh; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewflyer; "newFlyer"
+			mov     edx, 1Eh; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aFlyerbase; "FlyerBase"
+			mov     edx, 1Fh; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aFlyerpos; "FlyerPos"
+			mov     edx, 20h; ' '; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aFlyerrot; "FlyerRot"
+			mov     edx, 21h; '!'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aFlyercpit; "FlyerCpit"
+			mov     edx, 22h; '"'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aFlyercoll; "FlyerColl"
+			mov     edx, 23h; '#'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aFlyerexhaust; "FlyerExhaust"
+			mov     edx, 24h; '$'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aFlyerexhaustof; "FlyerExhaustOffset"
+			mov     edx, 25h; '%'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aFlyerai; "FlyerAI"
+			mov     edx, 26h; '&'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aFlyernav; "FlyerNav"
+			mov     edx, 27h; '''                  ; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aFlyersound; "FlyerSound"
+			mov     edx, 28h; '('; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aTranslucentcoc; "translucentCockpit"
+			mov     edx, 29h; ')'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewturret; "newTurret"
+			mov     edx, 2Ch; ','; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aTurretbase; "turretBase"
+			mov     edx, 2Dh; '-'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aTurretai; "turretAI"
+			mov     edx, 2Eh; '.'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewhardpoint; "newHardPoint"
+			mov     edx, 30h; '0'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewmountpoint; "newMountPoint"
+			mov     edx, 31h; '1'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewhardpointex; "newHardPointExt"
+			mov     edx, 34h; '4'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aHardpointspeci; "hardPointSpecial"
+			mov     edx, 32h; '2'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aHardpointdamag; "hardPointDamage"
+			mov     edx, 33h; '3'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewcomponent; "newComponent"
+			mov     edx, 35h; '5'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewconfigurati; "newConfiguration"
+			mov     edx, 36h; '6'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewweapon; "newWeapon"
+			mov     edx, 37h; '7'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aWeaponinfo1; "weaponInfo1"
+			mov     edx, 38h; '8'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aWeaponinfo2; "weaponInfo2"
+			mov     edx, 39h; '9'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aWeaponmuzzle; "weaponMuzzle"
+			mov     edx, 3Ah; ':'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aWeapongeneral; "weaponGeneral"
+			mov     edx, 3Bh; ';'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aWeaponshot; "weaponShot"
+			mov     edx, 3Ch; '<'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aWeaponammo; "weaponAmmo"
+			mov     edx, 3Dh; '='; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aWeaponenergy; "weaponEnergy"
+			mov     edx, 3Eh; '>'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewbullet; "newBullet"
+			mov     edx, 40h; '@'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewmissile; "newMissile"
+			mov     edx, 3Fh; '?'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewenergy; "newEnergy"
+			mov     edx, 41h; 'A'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewbeam; "newBeam"
+			mov     edx, 42h; 'B'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewmine; "newMine"
+			mov     edx, 43h; 'C'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewbomb; "newBomb"
+			mov     edx, 44h; 'D'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewmountable; "newMountable"
+			mov     edx, 45h; 'E'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aMountinfo1; "mountInfo1"
+			mov     edx, 47h; 'G'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aMountinfo2; "mountInfo2"
+			mov     edx, 48h; 'H'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewengine; "newEngine"
+			mov     edx, 49h; 'I'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aEngineinfo1; "engineInfo1"
+			mov     edx, 4Ah; 'J'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aEngineinfo2; "engineInfo2"
+			mov     edx, 4Bh; 'K'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewsensor; "newSensor"
+			mov     edx, 4Ch; 'L'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aSensorinfo1; "sensorInfo1"
+			mov     edx, 4Dh; 'M'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aSensorinfo2; "sensorInfo2"
+			mov     edx, 4Eh; 'N'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aSensormode; "sensorMode"
+			mov     edx, 4Fh; 'O'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewreactor; "newReactor"
+			mov     edx, 50h; 'P'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aReactorinfo1; "reactorInfo1"
+			mov     edx, 51h; 'Q'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aReactorinfo2; "reactorInfo2"
+			mov     edx, 52h; 'R'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewshield; "newShield"
+			mov     edx, 53h; 'S'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aShieldinfo1; "shieldInfo1"
+			mov     edx, 54h; 'T'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aShieldinfo2; "shieldInfo2"
+			mov     edx, 55h; 'U'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewmodulator; "newModulator"
+			mov     edx, 56h; 'V'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewamplifier; "newAmplifier"
+			mov     edx, 57h; 'W'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewcapacitor; "newCapacitor"
+			mov     edx, 58h; 'X'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewcomputer; "newComputer"
+			mov     edx, 65h; 'e'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewbooster; "newBooster"
+			mov     edx, 59h; 'Y'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewrepair; "newRepair"
+			mov     edx, 5Ah; 'Z'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewcloak; "newCloak"
+			mov     edx, 5Bh; '['; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aCloakinfo1; "cloakInfo1"
+			mov     edx, 5Ch; '\'                  ; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aCloakinfo2; "cloakInfo2"
+			mov     edx, 5Dh; ']'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewarmor; "newArmor"
+			mov     edx, 61h; 'a'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aArmorinfo1; "armorInfo1"
+			mov     edx, 62h; 'b'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aArmorinfo2; "armorInfo2"
+			mov     edx, 63h; 'c'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aArmorinfospeci; "armorInfoSpecial"
+			mov     edx, 64h; 'd'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewecm; "newECM"
+			mov     edx, 5Eh; '^'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewthermal; "newThermal"
+			mov     edx, 5Fh; '_'; int
+			mov     eax, [ebx + 8]; int
+			call    CMDConsole__addCommand
+			push    ebx; int
+			push    0; int
+			mov     ecx, aNewbattery; "newBattery"
+			jmp		ptrConstructorsResume
+		}
+	}
+
+	MultiPointer(ptrSfxPlugin_sfxAddPair, 0, 0, 0, 0x005B1322);
+	MultiPointer(ptrSfxPlugin_sfxAddPair_Resume, 0, 0, 0, 0x005B132C);
+	static const char* asfxAddPair = "Nova::sfxAddPair";
+	CodePatch sfxaddpair = { ptrSfxPlugin_sfxAddPair, "", "\xE9SFXA", 5, false };
+	NAKED void sfxAddPair() {
+		__asm {
+			mov ecx, asfxAddPair
+			mov edx, 8
+			jmp [ptrSfxPlugin_sfxAddPair_Resume]
+		}
+	}
+
+	//Mute the 'Mountable type %s not found'
+	MultiPointer(ptrMountableTypeError, 0, 0, 0, 0x0041B8FD);
+	CodePatch mountablenotfound = { ptrMountableTypeError, "", "\xE9MTNF", 5, false };
+	NAKED void mountableNotFound() {
+		__asm {
+			pop edi
+			pop esi
+			pop ebx
+			retn
+		}
+	}
+
 	MultiPointer(ptrTagDictLoaded, 0, 0, 0x004B408F, 0x004B6473);
 	CodePatch tagDictionary_patch = { //Disable tagDictionary load check
 		ptrTagDictLoaded,
@@ -1703,6 +2472,83 @@ namespace ModloaderMain {
 		return "true";
 	}
 
+	MultiPointer(ptrNumVehicleIDs, 0, 0, 0, 0x00747E1C);
+	MultiPointer(ptrNumWeaponIDs, 0, 0, 0, 0x00748E7C);
+	MultiPointer(ptrNumComponentIDs, 0, 0, 0, 0x00746634);
+	CodePatch vehicleIDcount = { ptrNumVehicleIDs, "", "\x52\x00\x00\x00", 4, false };
+	CodePatch weaponIDcount = { ptrNumWeaponIDs, "", "\x35\x00\x00\x00", 4, false };
+	CodePatch componentIDcount = { ptrNumComponentIDs, "", "\x6F\x00\x00\x00", 4, false };
+
+	BuiltInFunction("Nova::resetIDCounts", _novaresetidcounts)
+	{
+		vehicleIDcount.Apply(true);
+		weaponIDcount.Apply(true);
+		componentIDcount.Apply(true);
+		return "true";
+	}
+
+	BuiltInFunction("Nova::getTotalWeapons", _novagettotalweapons)
+	{
+		uintptr_t ptr1 = ptrNumWeaponIDs;
+		int intNum = *reinterpret_cast<int*>(ptr1);
+		return tostring(intNum);
+	}
+
+	BuiltInFunction("Nova::getTotalComponents", _novagettotalcomponents)
+	{
+		uintptr_t ptr1 = ptrNumComponentIDs;
+		int intNum = *reinterpret_cast<int*>(ptr1);
+		return tostring(intNum);
+	}
+
+	BuiltInFunction("Nova::getTotalVehicles", _novagettotalvehicles)
+	{
+		uintptr_t ptr1 = ptrNumVehicleIDs;
+		int intNum = *reinterpret_cast<int*>(ptr1);
+		return tostring(intNum);
+	}
+
+	BuiltInFunction("Nova::setTotalWeapons", _novasettotalweapons)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( int );", self);
+			return 0;
+		}
+		string type = argv[0];
+		string buffer = hexToASCII2(int2hex(atoi(argv[0]), 1));
+		char* result = const_cast<char*>(buffer.c_str());
+		CodePatch goSplash640 = { ptrNumWeaponIDs, "", result, 2, false }; goSplash640.Apply(true);
+		return 0;
+	}
+
+	BuiltInFunction("Nova::setTotalComponents", _novasettotalcomponents)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( int );", self);
+			return 0;
+		}
+		string type = argv[0];
+		string buffer = hexToASCII2(int2hex(atoi(argv[0]), 1));
+		char* result = const_cast<char*>(buffer.c_str());
+		CodePatch goSplash640 = { ptrNumComponentIDs, "", result, 2, false }; goSplash640.Apply(true);
+		return 0;
+	}
+
+	BuiltInFunction("Nova::setTotalVehicles", _novasettotalvehicles)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( int );", self);
+			return 0;
+		}
+		string type = argv[0];
+		string buffer = hexToASCII2(int2hex(atoi(argv[0]), 1));
+		char* result = const_cast<char*>(buffer.c_str());
+		CodePatch goSplash640 = { ptrNumVehicleIDs, "", result, 2, false }; goSplash640.Apply(true);
+		return 0;
+	}
 	struct Init {
 		Init() {
 			//Internal
@@ -1719,6 +2565,9 @@ namespace ModloaderMain {
 			}
 			if (std::filesystem::exists("Nova.vol"))
 			{
+				mountablenotfound.DoctorRelative((u32)mountableNotFound, 1).Apply(true);
+				novaconstructors.DoctorRelative((u32)novaConstructors, 1).Apply(true);
+				sfxaddpair.DoctorRelative((u32)sfxAddPair, 1).Apply(true);
 				teamPicRenderCompat.Apply(true);
 				constructorsPatch1.Apply(true);
 				constructorsPatch1a.Apply(true);
@@ -1735,12 +2584,12 @@ namespace ModloaderMain {
 				constructorsPatch9.Apply(true);
 				constructorsPatch10.Apply(true);
 				constructorsPatch10a.Apply(true);
-				//constructorsPatch11.Apply(true);//Projectile
-				//constructorsPatch12.Apply(true);//Projectile
-				//constructorsPatch13.Apply(true);//Projectile
-				//constructorsPatch14.Apply(true);//Projectile
-				//constructorsPatch15.Apply(true);//Projectile
-				//constructorsPatch16.Apply(true);//Projectile
+				constructorsPatch11.Apply(true);//Projectile
+				constructorsPatch12.Apply(true);//Projectile
+				constructorsPatch13.Apply(true);//Projectile
+				constructorsPatch14.Apply(true);//Projectile
+				constructorsPatch15.Apply(true);//Projectile
+				constructorsPatch16.Apply(true);//Projectile
 				constructorsPatch17.Apply(true);
 				constructorsPatch19.Apply(true);
 				constructorsPatch20.Apply(true);
@@ -1822,9 +2671,12 @@ namespace ModloaderMain {
 			allowVehiclePatch1.Apply(true);
 			allowVehiclePatch2.Apply(true);
 
-			if (VersionSnoop::GetVersion() == VERSION::v001004)
+			datLoad_patch.Apply(true);
+
+			//In this case, if we are not using Nova.vol go ahead and patch out the datLoad.cs execution for the campaign
+			if (!std::filesystem::exists("Nova.vol"))
 			{
-				datLoad_patch.Apply(true);
+				campaigndatload.DoctorRelative((u32)campaignDatLoad, 1).Apply(true);
 			}
 
 			if (std::filesystem::exists("Nova.vol"))
@@ -1838,6 +2690,7 @@ namespace ModloaderMain {
 				CreateDirectory(".\\temp", NULL);
 				CreateDirectory(".\\savedGames", NULL);
 				CreateDirectory(".\\mods\\textureHasher", NULL);
+				CreateDirectory(".\\mods\\cache", NULL);
 
 				//Modloader: Append pilot data to campaign
 				campaigninit.DoctorRelative((u32)CampaignInit, 1).Apply(true);
@@ -1851,6 +2704,9 @@ namespace ModloaderMain {
 			OpenGLenumDesktopModes();
 
 			//openglwindowstyle.DoctorRelative((u32)openGLWindowStyle, 1).Apply(true); //Prevents the AI editor window from loading
+
+			//Spawn Fade-in
+			spawnfadein.DoctorRelative((u32)spawnFadeIn, 1).Apply(true);
 		}
 	} init;
 	}

@@ -207,6 +207,7 @@ namespace NovaCore
 			Console::eval("function TRAINB::onAction(){guiload(\"Training.gui\");}");
 			Console::eval("function TUTB::onAction(){guiload(\"Tutorial.gui\");}");
 			Console::eval("function introGUI::onClose(){$basepath = $basepath @ \";multiplayer; \";$consoleworld::defaultsearchpath=$basepath;appendSearchPath();$allowOldClients=true;Console::enable(true);if(!Nova::findInDefaultPrefs('pref::GWC::SIM_FS_DEVICE')){setFullscreenDevice(simcanvas,OpenGL);}deleteFunctions('Nova:*');deleteFunctions('client:*');deleteVariables('Nova*');function introGUI::onClose(){}}");
+			Console::eval("bind( keyboard0, make, control, shift, d, TO, \"Mem::editDefaultPrefs(); \");");
 		}
 	}
 

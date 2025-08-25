@@ -51,6 +51,27 @@ BuiltInFunction("isFile", _novaisfile)
 	return 0;
 }
 
+BuiltInFunction("createCacheDir", _ccd) {
+	if (argc != 1)
+	{
+		Console::echo("%s( DirectoryName );", self);
+		return "false";
+	}
+	string path = argv[0];
+	char path_[MAX_PATH];
+	strcpy(path_, ".\\mods\\cache\\");
+	strcat(path_, argv[0]);
+	CreateDirectory(path_, NULL);
+	return 0;
+}
+
+BuiltInFunction("deleteServerCache", _dsc) {
+	std::filesystem::remove_all(".\\mods\\cache");
+	CreateDirectory(".\\mods\\cache", NULL);
+	return 0;
+}
+
+
 namespace clientDataHandler {
 
 	BuiltInFunction("Nova::findInDefaultPrefs", _NovafindInDefaultPrefs)
