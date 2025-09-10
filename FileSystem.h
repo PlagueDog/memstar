@@ -102,14 +102,14 @@ public:
 	}
 
 	void Clear() {
-		mFiles.Clear();
+		//mFiles.Clear();
 
-		ZipIterator iter = mZipHandles.Begin();
-		while (iter != mZipHandles.End()) {
-			unzClose(iter.value());
-			++iter;
-		}
-		mZipHandles.Clear();
+		//ZipIterator iter = mZipHandles.Begin();
+		//while (iter != mZipHandles.End()) {
+		//	unzClose(iter.value());
+		//	++iter;
+		//}
+		//mZipHandles.Clear();
 	}
 
 	Iterator End() {

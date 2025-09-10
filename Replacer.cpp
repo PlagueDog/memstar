@@ -78,6 +78,49 @@ namespace Replacer {
 		mFiles.Grok("mods/Replacements");
 	}
 
+	void mTexturesClear() {
+		mTextures.Clear();
+	}
+
+	BuiltInFunction("addReplacementDirectory", AddReplaceDirectory)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( directory);", self);
+			return 0;
+		}
+		Console::eval("flushTextureCache();");
+		mFiles.Grok(argv[0]);
+		return "true";
+	}
+	MultiPointer(ptrFlushTextureCache, 0, 0, 0, 0x0064E0D8);
+	MultiPointer(ptrFlushTextureCacheResume, 0, 0, 0, 0x0064E0E0);
+	CodePatch flushtexturecache = { ptrFlushTextureCache, "", "\xE9_FTC", 5, false };
+	NAKED void flushTextureCache() {
+		__asm {
+			call	mTexturesClear
+			mov     eax, [ebx + 0x5C]
+			push    eax
+			mov     edx, [ebx + 0x50]
+			push    edx
+			jmp [ptrFlushTextureCacheResume]
+		}
+	}
+
+	MultiPointer(ptrRemoteMapviewBuild, 0, 0, 0, 0x0041E2A0);
+	CodePatch remotemapbuild = { ptrRemoteMapviewBuild, "", "\xE9RMAB", 5, false };
+	NAKED void remoteMapBuild() {
+		__asm {
+			call	mTexturesClear
+			pop     edi
+			pop     esi
+			pop     ebx
+			mov     esp, ebp
+			pop     ebp
+			retn    8
+		}
+	}
+
 	char* resourceManagerAsset;
 	MultiPointer(ptrResourceManagerFind, 0, 0, 0, 0x00572D5C);
 	MultiPointer(ptrResourceManagerFindResume, 0, 0, 0, 0x00572D62);
@@ -444,6 +487,8 @@ namespace Replacer {
 			}
 			Callback::attach(Callback::OnStarted, OnStarted);
 			//resourcemanagerloadasset.DoctorRelative((u32)ResourceManagerLoadAsset, 1).Apply(true);
+			flushtexturecache.DoctorRelative((u32)flushTextureCache, 1).Apply(true);
+			remotemapbuild.DoctorRelative((u32)remoteMapBuild, 1).Apply(true);
 		}
 	} init;
 

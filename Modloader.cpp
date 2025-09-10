@@ -1003,7 +1003,6 @@ namespace ModloaderMain {
 	CodePatch FlyerThrottleAlt = { ptrFlyerThrottleInit, "", "\x00", 1, false };
 	BuiltInFunction("Nova::flyerCampaignStateCheck", _novaflyercampaignstatecheck)
 	{
-		return 0;
 		uintptr_t ptr = ptrCampaignByte;
 		int boolean = *reinterpret_cast<int*>(ptr);
 		//Console::echo(tostring(boolean));
@@ -1041,17 +1040,16 @@ namespace ModloaderMain {
 	}
 
 	MultiPointer(fnCockpitShake, 0, 0, 0x0046A40C, 0x0046BE30);
+	CodePatch cockpitShake = { fnCockpitShake, "\xC3", "\x53", 1, false };
 	BuiltInFunction("Nova::toggleCockpitShake", _novatogglecockpitshake)
 	{
 		std::string var = Console::getVariable("pref::cockpitShake");
 		if (var.compare("0") == 0)
 		{
-			CodePatch cockpitShake = { fnCockpitShake, "", "\x53", 1, false };
 			cockpitShake.Apply(true);
 		}
 		else
 		{
-			CodePatch cockpitShake = { fnCockpitShake, "", "\xC3", 1, false };
 			cockpitShake.Apply(true);
 		}
 		return "true";

@@ -184,6 +184,7 @@ namespace NovaCore
 	{
 		if (std::filesystem::exists("Nova.vol"))
 		{
+			Console::eval("cls();");
 			Console::eval("IDSTR_MISSING_FILE_TITLE = 00131400,\"Missing File\";");
 			Console::eval("IDSTR_MISSING_FILE_ERROR = 00131401,\"Unable to find '%s'.\\nIt is required for use with mem.dll\";");
 			Console::eval("if($cargv1 != \"-s\"){checkForFile(\"Nova.vol\", \"mods\\\\replacements\\\\NovaAssets.zip\", \"mods\\\\ScriptGL\\\\NovaScriptGLassets.zip\");}");
@@ -195,6 +196,7 @@ namespace NovaCore
 		}
 		else
 		{
+			Console::eval("cls();");
 			Console::eval("exec(console);");
 			Console::eval("function noCD4(){control::setVisible(IDMMT_MAIN, 0);control::setVisible(IDMMT_SP, 0);control::setVisible(IDMMT_MP, 1);}");
 			Console::eval("function noCD3(){control::setVisible(IDMMT_MAIN, 0);control::setVisible(IDMMT_MT, 0);control::setVisible(IDMMT_SP, 1);}");
@@ -686,7 +688,7 @@ namespace NovaCore
 			call    glGetString
 			mov     ebp, eax
 			mov gpuName, eax
-			push    1F02h //GL_GL_VERSION
+			push    0x1F02 //GL_GL_VERSION
 			call    glGetString
 			mov gpuDriver, eax
 			mov		[esp + 0xF4 - 0xE8], eax
@@ -882,6 +884,16 @@ namespace NovaCore
 		return "true";
 	}
 
+#include <windows.h>
+#include <stdio.h>
+#include <psapi.h>
+
+	BuiltInFunction("client::getMemUsed", _clientgetmemused)
+	{
+		PROCESS_MEMORY_COUNTERS memCounter;
+		BOOL result = K32GetProcessMemoryInfo(GetCurrentProcess(), &memCounter, sizeof(memCounter));
+		return tostring(floor(memCounter.WorkingSetSize * 0.00000095367432));
+	}
 
 	struct Init {
 		Init() {

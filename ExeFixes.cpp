@@ -482,6 +482,10 @@ namespace ExeFixes {
 
 	MultiPointer(ptrVehicleWorldMovement, 0, 0, 0, 0x00598BBC);
 
+
+	MultiPointer(ptrShadowCalcSourceWindowRadii, 0, 0, 0, 0x006312C8);
+	CodePatch shadowSourceWindowRadii = { ptrShadowCalcSourceWindowRadii, "", "\x00\x00\xC0\x3E", 5, false };
+
 	//Shadowmap Resolution pointers
 	MultiPointer(ptrShadowResLOD0, 0, 0, 0x0067382C, 0x006836F8);
 	MultiPointer(ptrShadowResLOD0_Blur, 0, 0, 0x00673833, 0x006836FF);
@@ -505,10 +509,12 @@ namespace ExeFixes {
 				cmp prefhiresShadows, 1
 				je __useHighRes
 				mov dword ptr[ecx + 20h], 0x40
+				mov dword ptr[ecx + 20h], 0x40
 				mov dword ptr[ecx + 1Ch], 0x17
 				jmp loc_68376D
 
 				__useHighRes:
+				//mov dword ptr[ecx + 20h], 0x80
 				mov dword ptr[ecx + 20h], 0x80
 				mov dword ptr[ecx + 1Ch], 2
 				jmp loc_68376D
@@ -529,6 +535,22 @@ namespace ExeFixes {
 			__farDist:
 				jmp loc_683724
 		}
+	}
+
+	MultiPointer(ptrRenderShadows, 0, 0, 0, 0x0073F3F9);
+	CodePatch setRenderShadows = { ptrRenderShadows,	"\x01",	"\x00",	1,	false };
+	BuiltInFunction("Nova::determineShadows", _novadetermineshadows)
+	{
+		std::string var = Console::getVariable("pref::neverDrawShadows");
+		if (var.compare("1") == 0 || var.compare("true") == 0 || var.compare("True") == 0)
+		{
+			setRenderShadows.Apply(true);
+		}
+		else
+		{
+			setRenderShadows.Apply(false);
+		}
+		return "true";
 	}
 
 	//Restore the win mission editor
@@ -1450,10 +1472,116 @@ namespace ExeFixes {
 		}
 	}
 
+	MultiPointer(ptrResourceObjectConstruct, 0, 0, 0, 0x0057205C);
+	MultiPointer(ptrResourceObjectConstructResume, 0, 0, 0, 0x00572062);
+	CodePatch resourceobjectconstruct = { ptrResourceObjectConstruct, "", "\xE9ROCS", 5, false };
+	NAKED void resourceObjectConstruct() {
+		__asm {
+			mov edx, esi
+			mov edi, ecx
+			test eax, eax
+			je __skip
+			mov esi, [eax]
+				jmp[ptrResourceObjectConstructResume]
+
+			__skip :
+				pop edi
+				pop esi
+				pop ebx
+				retn
+		}
+	}
+
+	int collErr0 = 0;
+	MultiPointer(ptrCustomWeaponColl0Err1, 0, 0, 0, 0x006349C7);
+	MultiPointer(ptrCustomWeaponColl0ErrResume1, 0, 0, 0, 0x006349CD);
+	MultiPointer(ptrCustomWeaponColl0ErrRecover1, 0, 0, 0, 0x006349D0);
+	CodePatch customweaponcoll0err1 = { ptrCustomWeaponColl0Err1, "", "\xE9WCL1", 5, false };
+	NAKED void customWeaponColl0Err1() {
+		__asm {
+			test ecx, ecx
+			je __recover
+			idiv ecx
+			mov edi, eax
+			mov eax, esi
+			jmp[ptrCustomWeaponColl0ErrResume1]
+
+			__recover:
+				mov collErr0, 1
+				mov edi, eax
+				mov eax, esi
+				cdq
+				jmp [ptrCustomWeaponColl0ErrRecover1]
+		}
+	}
+
+	MultiPointer(ptrCustomWeaponColl0Err2, 0, 0, 0, 0x0063447F);
+	MultiPointer(ptrCustomWeaponColl0ErrResume2, 0, 0, 0, 0x00634486);
+	CodePatch customweaponcoll0err2 = { ptrCustomWeaponColl0Err2, "", "\xE9WCL2", 5, false };
+	NAKED void customWeaponColl0Err2() {
+		__asm {
+			cmp collErr0, 1
+			je __recover
+			mov ecx, 6
+			rep movsd
+			jmp[ptrCustomWeaponColl0ErrResume2]
+
+			__recover:
+				mov collErr0, 0
+				jmp[ptrCustomWeaponColl0ErrResume2]
+		}
+	}
+
+	MultiPointer(ptrResourceLock, 0, 0, 0, 0x005C3283);
+	MultiPointer(ptrResourceLockResume, 0, 0, 0, 0x005C328A);
+	MultiPointer(ptrResourceLockAbort, 0, 0, 0, 0x005C32FF);
+	CodePatch resourcelockcheck = { ptrResourceLock, "", "\xE9RLCK", 5, false };
+	NAKED void resourceLockCheck() {
+		__asm {
+			mov[dummy], 0
+			mov[dummy2], 0
+			mov[dummy3], 0
+			mov[dummy4], 0
+			mov[dummy5], 0
+			mov[isBadPtr], 0
+
+			mov dummy, eax
+			mov dummy2, ecx
+			mov dummy4, esi
+			mov dummy5, ebx
+
+			lea eax, [eax]
+			mov inputPtr, eax
+			call CheckForBadReadPtr
+
+			mov eax, dummy
+			mov ecx, dummy2
+			mov edx, dummy3
+			mov esi, dummy4
+			mov ebx, dummy5
+
+			cmp isBadPtr, 0
+			je __abort
+			mov esi, [eax]
+			add eax, 4
+			mov edx, [eax]
+			jmp [ptrResourceLockResume]
+
+			__abort:
+			jmp [ptrResourceLockAbort]
+		}
+	}
+
 	struct Init {
 		Init() {
+			//resourcelockcheck.DoctorRelative((u32)resourceLockCheck, 1).Apply(true);
+
+			customweaponcoll0err1.DoctorRelative((u32)customWeaponColl0Err1, 1).Apply(true);
+			customweaponcoll0err2.DoctorRelative((u32)customWeaponColl0Err2, 1).Apply(true);
+
 			missingvehicleid.DoctorRelative((u32)missingVehicleID, 1).Apply(true);
 			missingvehicleid2.DoctorRelative((u32)missingVehicleID2, 1).Apply(true);
+			resourceobjectconstruct.DoctorRelative((u32)resourceObjectConstruct, 1).Apply(true);
 
 			//Fixes for connecting to and disconnecting from modded servers
 			clientconnectgetweaponcount.DoctorRelative((u32)clientConnectGetWeaponCount, 1).Apply(true);
@@ -1624,6 +1752,7 @@ namespace ExeFixes {
 
 			//High-res Shadows
 			highresshadows.DoctorRelative((u32)highResShadows, 1).Apply(true);
+			//shadowSourceWindowRadii.Apply(true);
 
 			//GL_NEAREST
 			gl_nearest.DoctorRelative((u32)GL_Nearest, 1).Apply(true);
