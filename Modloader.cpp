@@ -2638,8 +2638,8 @@ namespace ModloaderMain {
 			TankNetUpdate2.Apply(true);
 			TankNetUpdate3.Apply(true);
 
-			//remoteEvalBufferSize_S_patch.Apply(true);
-			//remoteEvalBufferSize_R_patch.Apply(true);
+			remoteEvalBufferSize_S_patch.Apply(true);
+			remoteEvalBufferSize_R_patch.Apply(true);
 			//packetRate_patch.Apply(true);
 			packetRateCheck_patch.Apply(true);
 			//packetRateDefault_patch.Apply(true);
