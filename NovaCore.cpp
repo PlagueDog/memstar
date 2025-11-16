@@ -629,7 +629,7 @@ namespace NovaCore
 	MultiPointer(ptrUnk_Bayes, 0, 0, 0, 0x00445E8A);
 	MultiPointer(ptrUnk_BayesResume, 0, 0, 0, 0x00445E92);
 	MultiPointer(ptrInitBayesEdit, 0, 0, 0, 0x00445EC4);
-	CodePatch bayesInitPatch = { 0x00445FD3,"","\x90\x90\x90\x90\x90\x90",6,false };
+	CodePatch bayesInitPatch = { 0x00445FD3,"\x0F\x83\x80\x00\x00\x00","\x90\x90\x90\x90\x90\x90",6,false };
 	CodePatch manualbayesedit = { ptrUnk_Bayes,"","\xE9MBAYE",5,false };
 	int bayesEditLoadBool = 0;
 	int bayesEditLoadedOnce = 0;
@@ -649,11 +649,24 @@ namespace NovaCore
 		}
 	}
 
+	BuiltInFunction("Nova::unpatchBayesEditor", _novaunpatchbayeseditor)
+	{
+		bayesInitPatch.Apply(false);
+		return "true";
+	}
+
+	BuiltInFunction("Nova::patchBayesEditor", _novapatchbayeseditor)
+	{
+		bayesInitPatch.Apply(true);
+		return "true";
+	}
+
 	BuiltInFunction("Nova::loadBayesEditor", _novaloadbayeseditor)
 	{
 		bayesEditLoadBool = 1;
-		Console::eval("newObject(BayesInitObject, Turret, 1);");
+		Console::eval("Nova::patchBayesEditor();newObject(BayesInitObject, Turret, 1);");
 		Console::eval("schedule('deleteObject(BayesInitObject);',0.1);");
+		Console::eval("schedule('Nova::unpatchBayesEditor();',0.2);");
 		return "true";
 	}
 
@@ -749,6 +762,26 @@ namespace NovaCore
 			mov eax, ptrConsole
 
 			jmp ptrCanvasHandleDLGCloseResume
+		}
+	}
+
+	void callSimResTransitionScript()
+	{
+		Console::eval("Nova::gotosimres();");
+	}
+
+	MultiPointer(ptrGoToSimRes, 0, 0, 0, 0x004B6FB5);
+	MultiPointer(ptrGoToSimResResume, 0, 0, 0, 0x004B6FBB);
+	CodePatch gotosimres = { ptrGoToSimRes, "", "\xE9GTSR", 5, false };
+	NAKED void goToSimRes() {
+		__asm {
+			mov dummy, edx
+			call callSimResTransitionScript
+			mov edx, dummy
+
+			mov eax, [ebp - 4]
+			mov eax, [eax + 4]
+			jmp ptrGoToSimResResume
 		}
 	}
 
@@ -895,6 +928,20 @@ namespace NovaCore
 		return tostring(floor(memCounter.WorkingSetSize * 0.00000095367432));
 	}
 
+
+	BuiltInFunction("client::is3GB", _clientis3gb)
+	{
+		BOOL b3GBSwitch = FALSE;
+		SYSTEM_INFO siSysInfo;
+		GetSystemInfo(&siSysInfo);
+		b3GBSwitch = ((DWORD)siSysInfo.lpMaximumApplicationAddress & 0x80000000) != 0;
+		if (b3GBSwitch)
+		{
+			return "true";
+		}
+		return 0;
+	}
+
 	struct Init {
 		Init() {
 			clientinitredirect.DoctorRelative((u32)ClientInitRedirect_1004r, 1).Apply(true);
@@ -943,7 +990,10 @@ namespace NovaCore
 				consoleactive.DoctorRelative((u32)consoleActive, 1).Apply(true);
 
 				//Patch the initial hud timers to execute our Nova::campaignCompat function in recordings
-				inithudtimers.DoctorRelative((u32)initHudTimers, 1).Apply(true);
+				//inithudtimers.DoctorRelative((u32)initHudTimers, 1).Apply(true);
+
+				//Patch gotosimres
+				gotosimres.DoctorRelative((u32)goToSimRes, 1).Apply(true);
 
 			}
 			if (!std::filesystem::exists("Nova.vol"))

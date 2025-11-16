@@ -183,7 +183,7 @@ namespace ExeFixes {
 	MultiPointer(ptrOGLTextureFilter, 0, 0, 0, 0x0064D8E9);
 	MultiPointer(ptrOGLTextureFilterResume, 0, 0, 0, 0x0064D8F9);
 
-	BuiltInVariable("pref::OpenGL::GL_NEAREST", bool, prefopenglnearest, 0);
+	BuiltInVariable("pref::OpenGL::GL_NEAREST", bool, prefopenglnearest, true);
 	CodePatch gl_nearest = { ptrOGLTextureFilter, "", "\xE9OGLN", 5, false };
 	NAKED void GL_Nearest() {
 		__asm {
@@ -412,8 +412,10 @@ namespace ExeFixes {
 	MultiPointer(ptrTestButtonSelectedBorder, 0, 0, 0x005CCDE5, 0x005D0689);
 	MultiPointer(ptrTestButtonFillOpacity, 0, 0, 0x005CCE9B, 0x005D073F);
 	CodePatch TestButtonFillColor = { ptrTestButtonFillColor,	"","\x00",	1,false };
-	CodePatch TestButtonBorderColor = { ptrTestButtonBorderColor,	"","\xF7",	1,false };
-	CodePatch TestButtonSelectedBorderColor = { ptrTestButtonSelectedBorder,	"","\xF5",	1,false };
+	//CodePatch TestButtonBorderColor = { ptrTestButtonBorderColor,	"","\xF7",	1,false };
+	CodePatch TestButtonBorderColor = { ptrTestButtonBorderColor,	"","\xFA",	1,false };
+	//CodePatch TestButtonSelectedBorderColor = { ptrTestButtonSelectedBorder,	"","\xF5",	1,false };
+	CodePatch TestButtonSelectedBorderColor = { ptrTestButtonSelectedBorder,	"","\xFA",	1,false };
 	CodePatch TestButtonFillOpacity = { ptrTestButtonFillOpacity,	"","\xBF",	1,false };
 
 	//Interface global scale OPENGL

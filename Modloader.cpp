@@ -1348,7 +1348,7 @@ namespace ModloaderMain {
 	CodePatch remoteEvalBufferSize_S_patch = {
 		ptrRemEvalBufferSen,
 		"",
-		"\x81\xFE\x00\x04",
+		"\x81\xFE\x00\x10",
 		4,
 		false
 	};
@@ -1357,7 +1357,7 @@ namespace ModloaderMain {
 	CodePatch remoteEvalBufferSize_R_patch = {
 		ptrRemEvalBufferRec,
 		"",
-		"\x3D\x00\x04",
+		"\x3D\x00\x10",
 		3,
 		false
 	};
@@ -1466,6 +1466,16 @@ namespace ModloaderMain {
 		 ptrBadRateDivisor,
 		 "",
 		 "\x90\x90",
+		 2,
+		 false
+	};
+
+
+	MultiPointer(ptrNStreamPacketBufferSize, 0, 0, 0, 0x00690AE5);
+	CodePatch packetStreamBufferSize_patch = {
+		 ptrNStreamPacketBufferSize,
+		 "",
+		 "\xFF\xFF",
 		 2,
 		 false
 	};
@@ -2348,6 +2358,16 @@ namespace ModloaderMain {
 	MultiPointer(ptrVarRefBefAssignVerb, 0, 0, 0x00712ECB, 0x0072333B);
 	CodePatch VarRefBefAssignVerb_patch = { ptrVarRefBefAssignVerb, "", "%s referenced before it has been assigned", 41, false };
 
+	//Maximum number of function args
+	MultiPointer(ptrConsoleArgCap, 0, 0, 0, 0x005A38E7);
+	CodePatch consoleArgCap = {
+		ptrConsoleArgCap,
+		"",
+		"\x40",
+		1,
+		false
+	};
+
 	//BuiltInFunction("patchWindowedOGL", _pwogl)
 	//{
 	//	const char* str = argv[0];
@@ -2652,6 +2672,8 @@ namespace ModloaderMain {
 			packetSizeDefault_patch.Apply(true);
 			packetUncapped.Apply(true);
 
+			packetStreamBufferSize_patch.Apply(true);
+
 			//packetSize_patch.Apply(true);
 			ignoreMissingServerVolume_patch.Apply(true);
 			invalidPackets1_patch.Apply(true);
@@ -2705,6 +2727,9 @@ namespace ModloaderMain {
 
 			//Spawn Fade-in
 			spawnfadein.DoctorRelative((u32)spawnFadeIn, 1).Apply(true);
+
+			//Increase the console arg cap to 64
+			consoleArgCap.Apply(true);
 		}
 	} init;
 	}

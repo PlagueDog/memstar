@@ -435,7 +435,8 @@ namespace clientDataHandler {
 		{
 			string data1 = tmp_trim.substr(counter, 700); //Start at index 0 and increment by 254 each loop
 			char eval[900];
-			sprintf(eval, "schedule('modloader::parseFileData(%s,\"%s\",\"%s\",\"%s\");',%s);", argv[1], argv[0], data1.c_str(), argv[2], tostring(throttle += 0.015));
+			//sprintf(eval, "schedule('modloader::parseFileData(%s,\"%s\",\"%s\",\"%s\");',%s);", argv[1], argv[0], data1.c_str(), argv[2], tostring(throttle += 0.015));
+			sprintf(eval, "modloader::parseFileData(%s, '%s','%s','%s');", argv[1], argv[0], data1.c_str(), argv[2]);
 			Console::eval(eval);
 			counter += 700;
 
