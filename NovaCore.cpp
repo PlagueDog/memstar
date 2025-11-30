@@ -128,9 +128,9 @@ namespace NovaCore
 			if (endian == 1)
 			{
 				std::string final_input = strcat(bit, hex_string);
-				const char* result = BEtoLE(final_input).c_str();
-				char* output = const_cast<char*>(result);
-				return(output);
+const char* result = BEtoLE(final_input).c_str();
+char* output = const_cast<char*>(result);
+return(output);
 			}
 		}
 		return hex_string;

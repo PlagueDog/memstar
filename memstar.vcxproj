@@ -109,6 +109,7 @@
     <ClCompile Include="ExeFixes.cpp" />
     <ClCompile Include="ExtSimObjectProperties.cpp" />
     <ClCompile Include="Fear.cpp" />
+    <ClCompile Include="FileDownloads.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="FontManager.cpp" />

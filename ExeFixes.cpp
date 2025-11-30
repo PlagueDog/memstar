@@ -892,25 +892,25 @@ namespace ExeFixes {
 	int isBadPtr = 0;
 	void CheckForBadReadPtr()
 	{
-		if (IsBadMemPtr(FALSE, inputPtr, 4)) //We have read access at this memory address
-		{
-			isBadPtr = 0;
+		__try {
+			// Attempt to read from the address
+			volatile char temp = *(char*)inputPtr;
+			(void)temp; // prevent compiler warning
+			isBadPtr = true;
 		}
-		else
-		{
-			isBadPtr = 1;
+		__except (EXCEPTION_EXECUTE_HANDLER) {
+			isBadPtr = false;
 		}
 	}
 
 	void CheckForBadWritePtr()
 	{
-		if (IsBadMemPtr(TRUE, inputPtr, 4)) //We have read access at this memory address
-		{
-			isBadPtr = 0;
+		__try {
+			*(char*)inputPtr = 0; // attempt to write
+			isBadPtr = true; // writable
 		}
-		else
-		{
-			isBadPtr = 1;
+		__except (EXCEPTION_EXECUTE_HANDLER) {
+			isBadPtr = false; // not writable
 		}
 	}
 
@@ -1669,7 +1669,7 @@ namespace ExeFixes {
 			invalidpartfixfix.DoctorRelative((u32)InvalidPartFixFix, 1).Apply(true);
 
 			//Fix material lists crashing when applied to a SimVolumetric
-			//volumetriccrashcatcher.DoctorRelative((u32)VolumetricCrashCatcher, 1).Apply(true); //MASSIVE PERFORMANCE LOSS WITH CURRENT METHOD
+			volumetriccrashcatcher.DoctorRelative((u32)VolumetricCrashCatcher, 1).Apply(true); //MASSIVE PERFORMANCE LOSS WITH CURRENT METHOD
 			//recordcrashcatcher.DoctorRelative((u32)RecordCrashCatcher, 1).Apply(true);
 
 			if (std::filesystem::exists("Nova.vol"))

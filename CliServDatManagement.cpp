@@ -22,7 +22,7 @@
 using namespace std;
 using namespace Fear;
 
-BuiltInVariable("server::maxFileSize", int, servermaxfilesize, 5000);
+BuiltInVariable("server::maxFileSize", int, servermaxfilesize, 25000);
 BuiltInVariable("server::sendWeaponData", bool, serversendweapondata, false);
 BuiltInVariable("server::sendMountData", bool, servermountdata, false);
 BuiltInVariable("server::sendVehicleData", bool, servervehicledata, false);
@@ -392,57 +392,6 @@ namespace clientDataHandler {
 			return "false";
 		}
 		return "true";
-	}
-
-	BuiltInFunction("modloader::uploadFiletoClient", _mluftc) {
-		if (argc != 3 || !strlen(argv[0]) || !strlen(argv[1]) || !strlen(argv[2]))
-		{
-			Console::echo("%s( file, playerID, token);", self);
-			return 0;
-		}
-
-		if (!isFile(argv[0]))
-		{
-			Console::echo("%s: File not found.", self);
-			return 0;
-		}
-
-		string path = argv[0];
-		string ext = path.substr(path.size() - 4, path.size());
-
-		if (path.find(":") != -1 || path.find("..") != -1)
-		{
-			Console::echo("Cannot read files outside of the Starsiege directories.");
-			return "false";
-		}
-		unsigned char x;
-		std::ifstream fin(argv[0], std::ios::binary);
-		std::stringstream buffer;
-		fin >> std::noskipws;
-
-		while (!fin.eof()) {
-			fin >> x;
-			buffer << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(x);
-		}
-
-		const std::string tmp = buffer.str();
-		const std::string tmp_trim = tmp.substr(0, tmp.length() - 1);
-		int counter = 0;
-		float throttle = 0.000;
-		string data = tmp.substr(counter, 254);
-
-		while (counter <= tmp_trim.size())
-		{
-			string data1 = tmp_trim.substr(counter, 700); //Start at index 0 and increment by 254 each loop
-			char eval[900];
-			//sprintf(eval, "schedule('modloader::parseFileData(%s,\"%s\",\"%s\",\"%s\");',%s);", argv[1], argv[0], data1.c_str(), argv[2], tostring(throttle += 0.015));
-			sprintf(eval, "modloader::parseFileData(%s, '%s','%s','%s');", argv[1], argv[0], data1.c_str(), argv[2]);
-			Console::eval(eval);
-			counter += 700;
-
-
-		}
-		return 0;
 	}
 
 	BuiltInFunction("removeCacheFile", _rcf) {
