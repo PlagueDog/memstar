@@ -436,10 +436,7 @@ namespace ModloaderMain {
 		LONG lStyle = GetWindowLong(gameHWND, GWL_STYLE);
 		LONG ex_lStyle = GetWindowLong(gameHWND, GWL_EXSTYLE);
 		lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
-		//SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU);
-		//SetWindowLong(getGameHWND(), GWL_STYLE, lStyle | WS_CAPTION | WS_THICKFRAME);
 		SetWindowLong(gameHWND, GWL_STYLE, lStyle | WS_BORDER | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU );
-		//SetWindowLong(gameHWND, GWL_EXSTYLE, WS_EX_LAYERED);
 		return "true";
 	}
 
@@ -750,6 +747,18 @@ namespace ModloaderMain {
 	//	free(relativeVertOffset_Hx);
 	//	return "true";
 	//}
+	MultiPointer(glScaleF, 0, 0, 0, 0x0064C953);
+	MultiPointer(glScaleFResume, 0, 0, 0, 0x0064C95D);
+	CodePatch glscalef_patch = { glScaleF,"","\xE9GLSF",5,false };
+	BuiltInVariable("opengl::scaleY", float, openglscaley, 0xBF800000);
+	BuiltInVariable("opengl::scaleX", float, openglscalex, 0x3F800000);
+	NAKED void glscaleF_Patch() {
+		__asm {
+			push openglscaley
+			push openglscalex
+			jmp glScaleFResume
+		}
+	}
 
 	MultiPointer(ptrOGLscale, 0, 0, 0x0063DAF8, 0x0064CA50);
 	BuiltInFunction("OpenGL::scaleGUI", _oglsgui) {
@@ -2567,6 +2576,66 @@ namespace ModloaderMain {
 		CodePatch goSplash640 = { ptrNumVehicleIDs, "", result, 2, false }; goSplash640.Apply(true);
 		return 0;
 	}
+
+	//Damage Status Display function: 46668B  (Colors)
+	MultiPointer(ptrCollMeshCalcCheck, 0, 0, 0, 0x004665E2);
+	CodePatch calculateCollisionMeshColorsAlways = { ptrCollMeshCalcCheck, "", "\x90\x90\x90\x90", 4, false };
+
+	BuiltInFunction("Nova::setCollMeshColor", _novasetcollmeshcolor)
+	{
+		if (argc != 4)
+		{
+			Console::echo("%s( [undamaged|damaged|critical], r, g, b);", self);
+			return 0;
+		}
+		if (atoi(argv[1]) > 255 || atoi(argv[2]) > 255 || atoi(argv[3]) > 255)
+		{
+			Console::echo("%s: Color values cannot exceed 255.", self);
+			return 0;
+		}
+		if (atoi(argv[1]) < 0 || atoi(argv[2]) < 0 || atoi(argv[3]) < 0)
+		{
+			Console::echo("%s: Color values cannot be negative.", self);
+			return 0;
+		}
+		string rBuffer = hexToASCII2(int2hex(atoi(argv[1])));
+		char* rValue = const_cast<char*>(rBuffer.c_str());
+		string gBuffer = hexToASCII2(int2hex(atoi(argv[2])));
+		char* gValue = const_cast<char*>(gBuffer.c_str());
+		string bBuffer = hexToASCII2(int2hex(atoi(argv[3])));
+		char* bValue = const_cast<char*>(bBuffer.c_str());
+
+		string type = argv[0];
+		if (type.compare("undamaged") == 0)
+		{
+			CodePatch setCollUndamagedColorR = { 0x0046668E, "", rValue, 1, false }; setCollUndamagedColorR.Apply(true);
+			CodePatch setCollUndamagedColorG = { 0x00466693, "", gValue, 1, false }; setCollUndamagedColorG.Apply(true);
+			CodePatch setCollUndamagedColorB = { 0x00466698, "", bValue, 1, false }; setCollUndamagedColorB.Apply(true);
+			Console::setVariable("pref::collMeshColor::undamaged::red", argv[1]);
+			Console::setVariable("pref::collMeshColor::undamaged::green", argv[2]);
+			Console::setVariable("pref::collMeshColor::undamaged::blue", argv[3]);
+		}
+		else if (type.compare("damaged") == 0)
+		{
+			CodePatch setCollUndamagedColorR = { 0x004666BE, "", rValue, 1, false }; setCollUndamagedColorR.Apply(true);
+			CodePatch setCollUndamagedColorG = { 0x004666C3, "", gValue, 1, false }; setCollUndamagedColorG.Apply(true);
+			CodePatch setCollUndamagedColorB = { 0x004666C8, "", bValue, 1, false }; setCollUndamagedColorB.Apply(true);
+			Console::setVariable("pref::collMeshColor::damaged::red", argv[1]);
+			Console::setVariable("pref::collMeshColor::damaged::green", argv[2]);
+			Console::setVariable("pref::collMeshColor::damaged::blue", argv[3]);
+		}
+		else if (type.compare("critical") == 0)
+		{
+			CodePatch setCollUndamagedColorR = { 0x004666F0, "", rValue, 1, false }; setCollUndamagedColorR.Apply(true);
+			CodePatch setCollUndamagedColorG = { 0x004666F5, "", gValue, 1, false }; setCollUndamagedColorG.Apply(true);
+			CodePatch setCollUndamagedColorB = { 0x004666FA, "", bValue, 1, false }; setCollUndamagedColorB.Apply(true);
+			Console::setVariable("pref::collMeshColor::critical::red", argv[1]);
+			Console::setVariable("pref::collMeshColor::critical::green", argv[2]);
+			Console::setVariable("pref::collMeshColor::critical::blue", argv[3]);
+		}
+		return "true";
+	}
+
 	struct Init {
 		Init() {
 			//Internal
@@ -2643,6 +2712,7 @@ namespace ModloaderMain {
 
 			//Rendering
 			//Damage Status Display function: 46668B  (Colors)
+			calculateCollisionMeshColorsAlways.Apply(true);
 			simgui_guibitmapctrl_defaultimage.DoctorRelative((u32)Simgui_GuiBitmapCtrl_DefaultImage, 1).Apply(true);
 
 			terrainMaxVisDistance_patch.Apply(true);
@@ -2730,6 +2800,10 @@ namespace ModloaderMain {
 
 			//Increase the console arg cap to 64
 			consoleArgCap.Apply(true);
+
+			//glScaleF patch that uses $opengl::scaleX and $opengl::scaleY to adjust the scale of the gui
+			//UNUSED
+			//glscalef_patch.DoctorRelative((u32)glscaleF_Patch, 1).Apply(true);
 		}
 	} init;
 	}

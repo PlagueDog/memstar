@@ -185,8 +185,14 @@ namespace Fear {
 	};
 
 	struct Herc : public Object {
+		//PAD(0x02DB); u32 vehicleID;
+		PAD(0x02de); u32 vehicleID;
 	};
 
+	struct SimGuiObject : public Object {
+		//PAD(0x02DB); u32 vehicleID;
+		PAD(0x0040); u32 root;
+	};
 	struct PlayerPSC : public Object {
 		PAD(0x005c - (0x004c + 0x000)); Object* orbitCamera;                //0x005c
 		Object* flyCamera;                  //0x0060

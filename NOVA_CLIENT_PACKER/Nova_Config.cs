@@ -1,0 +1,13 @@
+$modloader::connectTo = "IP:192.168.0.52:29001";
+$modloader::crashFail = "true";
+$modloader::hardPointMode = "Turret";
+$modloader::load = "true";
+$modloader::loadFromMain = "true";
+$modloader::mod1_description = "Replaces the in-game chat window with one that allows the input of Less-than and Greater-than characters.";
+$modloader::mod1_enabled = "1";
+$modloader::mod1_filename = "FormattedChatInput.mlv";
+$modloader::mod1_modName = "Formatted Chat Input";
+$modloader::mod1_version = "1";
+$modloader::pref::enforceModloader = "true";
+$modloader::pref::handshakeTimeout = "2";
+$modloader::restartWithServerDatabase = "false";

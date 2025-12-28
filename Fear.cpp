@@ -85,4 +85,26 @@ namespace Fear {
 		}
 	}
 
+	//BuiltInFunction("getVehicleID", _getvehicleid)
+	//{
+	//	Fear::Herc* vehicle = Sim::Client()->findObject<Herc>(atoi(argv[0]));
+	//	char* id = reinterpret_cast<char*>(&vehicle->vehicleID)+1;
+	//	Console::echo("Internal ID: %s | Memory address: %p", id, static_cast<void*>(&vehicle->vehicleID));
+	//
+	//	//FOV
+	//	u32 fov = reinterpret_cast<u32>(&vehicle->vehicleID) + 0x108;
+	//	u32* fov_ptr = reinterpret_cast<u32*>(fov);
+	//	u32 fov_value = *fov_ptr;
+	//	Console::echo("FOV: %x | Memory address: %p", fov_value, fov_ptr);
+	//	*fov_ptr = atof(argv[0]);
+	//	return "true";
+	//}
+	//
+	//BuiltInFunction("getGuiObject", _getguiobject)
+	//{
+	//	Fear::SimGuiObject* object = Sim::Client()->findObject<SimGuiObject>(atoi(argv[0]));
+	//	char* id = reinterpret_cast<char*>(&object->root);
+	//	Console::echo("Memory address: %p", id, static_cast<void*>(&object->root));
+	//	return "true";
+	//}
 }; // namespace Fear

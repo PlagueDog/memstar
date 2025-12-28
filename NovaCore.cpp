@@ -512,36 +512,54 @@ return(output);
 	/// Class Type Modifications
 	///
 	/// Simgui::Slider
-	MultiPointer(ptrSimguiSliderColor, 0, 0, 0x005DC003, 0x005DF8A7);
-	CodePatch simguislidercolor = { ptrSimguiSliderColor,"","\xFF",1,false };
+	MultiPointer(ptrSimguiSliderColor, 0, 0, 0, 0x005DF8A6);
+	MultiPointer(ptrSimguiSliderColorResume, 0, 0, 0, 0x005DF8B1);
+	CodePatch simguislidercolor = { ptrSimguiSliderColor,"","\xE9STCL",5,false };
+	BuiltInVariable("engine::sliderTabColor", int, engine_slider_tabcolor, 0xFF);
+	NAKED void simguiSliderColor() {
+		__asm {
+			mov eax, engine_slider_tabcolor
+			mov dl, [ebx + 0x1AC]
+			jmp ptrSimguiSliderColorResume
+		}
+	}
 
 	MultiPointer(ptrSimguiSlider_MinMax, 0, 0, 0x005DBB50, 0x005DF3F4);
-	MultiPointer(ptrSimguiSlider_Resume, 0, 0, 0x005DBB62, 0x005DF406);
+	MultiPointer(ptrSimguiSlider_Resume, 0, 0, 0x005DBB62, 0x005DF422);
 	CodePatch simguisliderminmax = { ptrSimguiSlider_MinMax,"","\xE9SLMM",5,false };
 	float slider_min = 0;
 	float slider_max = 1;
+	float slider_current = 0.1;
 	NAKED void SimGuiSliderMinMax() {
 		__asm {
 			mov edx, slider_min
 			mov [ebx + 0x1BC], edx
+			xor eax, eax
 			mov edx, slider_max
 			mov dword ptr[ebx + 0x1C0], edx
+			mov[ebx + 0x1C4], eax
+			mov eax, ebx
+			mov edx, slider_current
+			mov dword ptr[ebx + 0x1C4], edx
+			mov dword ptr[ebx + 0x1C8], 0x3D4CCCCD
+			mov dword ptr[ebx + 0x1CC], 0x3DCCCCCD
 			jmp ptrSimguiSlider_Resume
 		}
 	}
 
-	void setSimGuiSliderMinMax(float min, float max)
+	void setSimGuiSliderMinMax(float min, float max, float current)
 	{
 		slider_min = min;
 		slider_max = max;
+		slider_current = current;
 		simguisliderminmax.DoctorRelative((u32)SimGuiSliderMinMax, 1).Apply(true);
 	}
 
 	BuiltInFunction("SimGui::Slider::SetMinMax", _simguislidersetminmax)
 	{
-		if(argc != 2)
+		if(argc != 3)
 		{
-			Console::echo("%s( min, max );", self);
+			Console::echo("%s( min, max, currentValue );", self);
 			return 0;
 		}
 		if (!is_number(argv[0]) || !is_number(argv[1]))
@@ -554,7 +572,7 @@ return(output);
 			Console::echo("%s: Min cannot be greater than Max", self);
 			return 0;
 		}
-		setSimGuiSliderMinMax(stof(argv[0]), stof(argv[1]));
+		setSimGuiSliderMinMax(stof(argv[0]), stof(argv[1]), stof(argv[2]));
 	}
 
 	/// Simgui::   Default font tags
@@ -957,7 +975,7 @@ return(output);
 			if (std::filesystem::exists("Nova.vol"))
 			{
 				//Simgui patches
-				simguislidercolor.Apply(true);
+				simguislidercolor.DoctorRelative((u32)simguiSliderColor, 1).Apply(true);
 				//defaultStringTag.Apply(true);
 
 				//Expand the width of the chat input box

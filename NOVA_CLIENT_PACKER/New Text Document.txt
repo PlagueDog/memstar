@@ -1,0 +1,49 @@
+- Executable modifications for handling database creation of vehicles and mounts on client init. This maintains support for 1.003r and 1.004r executables sharing the same install directory.
+- Executable loads modloader.dll in place of mem.dll
+- Added dynamic GUI function calls. All loaded mods have their own `*onOpen();` and `*onClose();`. For example, if your mod needs to run a script when the mainMenuGUI closes all you need to do is name the script function `mainmenuGUI::onClose::mod_name();` and that will execute when the mainmenu closes.
+- Added dynamic `player::onAdd();`  All loaded mods have their own `player::onAdd();`. For example, if your mod needs to run a script server side when a player joins all you need to do is name the script function `player::onAdd::mod_name();` and that will execute a player connects to the server.
+- Added dynamic `player::onRemove();`  All loaded mods have their own `player::onRemove();`. For example, if your mod needs to run a script server side when a player joins all you need to do is name the script function `player::onAdd::mod_name();` and that will execute a player connects to the server.
+- Added a logger for the Modloader. This generates a html file (modLoaderLog.html) which lists events specific to the Modloader.
+- Modloader now properly logs vehicles that have conflicting IDs and notifies the user. The exact conflicting vehicle IDs/files will be listed in the modLoaderLog.
+	- Server
+		- Added modLoader enforcement variable `$modloader::pref::enforceModloader`. If set to true clients will be required to have the modLoader installed to play on the server. It also turns on the transfer of server data to modloader clients.
+		- Added several remote eval scripts for the server. They only work for modLoader clients.
+			- `modloader::setServerGameSpeed();`        - Changes the game speed on the server syncs all modLoader clients.
+			- `modloader::setCockpitCameraPosition();`  - Sets the position of the cockpit camera. The player vehicle is the origin. Use `modloader::setCockpitCameraPosition(playerID,reset);` to move the camera back to its origin.
+            - `modloader::setHudElementVisibility();`   - Set the visibility of any of the hud objects.
+            - `modloader::setHudLabel();`               - Set a players hud label.
+            - `modloader::setVehicleAllowance();`       - Allow/Disallow vehicles for a specific player.
+            - `modloader::setComponentAllowance();`     - Allow/Disallow components for a specific player.
+            - `modloader::setWeaponAllowance();`        - Allow/Disallow weapons for a specific player.
+            - `modloader::flushClientSounds();`         - Stops all sounds playing on the client.
+            - `modloader::sendClientTo();`              - Send a client to another server.
+            - `modloader::addTagResource();`            - Adds a tag resource
+    - Client
+        - Added `flushsounds();` to flush the currently playing sounds on the client.
+        - Added functional `fov();` command. Requires a respawn if you use it while in the map.
+        
+    - Client<->Server Mod Support
+        - Servers equipped with the modloader can enforce that clients have the modloader installed to stay connected to the server. Generally this is used when the server has mods which are incompatible with the vanilla client.
+        - At the moment mods can use only existing IDs if they want clients to be able to connect. Projectiles & Turrets can have new IDs since there is no internal check for those. Weapon/Component/Vehicle check subroutines were found today so I'll poke at those sometime to see if I can disable them.
+        - The following types of data is sent to modloader clients.
+            - Projectiles
+            - Weapons
+            - Sensors
+            - Reactors
+            - Shields
+            - Internal Mounts (Computers/Specials)
+            - Armors
+            - Vehicles
+            - Turrets
+        - Custom terrain support is still in limbo. Modloader clients can still stay connected to servers using them. Their client just won't ghost the map.
+
+modloader.dll
+    - Fixed `String::Explode();`.
+    - Moved fonts|replacements|ScriptGL directories into the mods directory
+    - Added `$OpenGL::Active` which is a boolean that changes whenever OpenGL becomes active(true) or inactive(false).
+    - Replaced existing `fov();` command. Function name remains the same `fov();`. Valid inputs are 68 (native), 75, 80, 85, 90, 95, 100, 105, 110, 115.
+    - Changed `screenshot();` image format to PNG.
+    - Ignore invalid packets.
+    - Don't disconnect when missing custom/modified terrains.
+    - Added `reloadGame();` to close the game and open up a new session.
+    - Increased max possible visible view distance to 256000km.

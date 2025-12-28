@@ -407,17 +407,62 @@ namespace ExeFixes {
 	MultiPointer(ptrNavBlipColorStartIndx, 0, 0, 0, 0x0041BBD8);
 
 	//Simgui::TestButton
-	MultiPointer(ptrTestButtonFillColor, 0, 0, 0x005CCDC1, 0x005D0665);
-	MultiPointer(ptrTestButtonBorderColor, 0, 0, 0x005CCDDB, 0x005D067F);
-	MultiPointer(ptrTestButtonSelectedBorder, 0, 0, 0x005CCDE5, 0x005D0689);
-	MultiPointer(ptrTestButtonFillOpacity, 0, 0, 0x005CCE9B, 0x005D073F);
-	CodePatch TestButtonFillColor = { ptrTestButtonFillColor,	"","\x00",	1,false };
-	//CodePatch TestButtonBorderColor = { ptrTestButtonBorderColor,	"","\xF7",	1,false };
-	CodePatch TestButtonBorderColor = { ptrTestButtonBorderColor,	"","\xFA",	1,false };
-	//CodePatch TestButtonSelectedBorderColor = { ptrTestButtonSelectedBorder,	"","\xF5",	1,false };
-	CodePatch TestButtonSelectedBorderColor = { ptrTestButtonSelectedBorder,	"","\xFA",	1,false };
-	CodePatch TestButtonFillOpacity = { ptrTestButtonFillOpacity,	"","\xBF",	1,false };
+	//MultiPointer(ptrTestButtonFillOpacity, 0, 0, 0x005CCE9B, 0x005D073F);
+	//CodePatch TestButtonFillColor = { ptrTestButtonFillColor,	"","\x00",	1,false };
+	//CodePatch TestButtonBorderColor = { ptrTestButtonBorderColor,	"","\xFA",	1,false };
+	//CodePatch TestButtonSelectedBorderColor = { ptrTestButtonSelectedBorder,	"","\xFA",	1,false };
+	//CodePatch TestButtonFillOpacity = { ptrTestButtonFillOpacity,	"","\xBF",	1,false };
 
+	MultiPointer(ptrTestButtonFillColor, 0, 0, 0, 0x005D0664);
+	MultiPointer(ptrTestButtonFillColorResume, 0, 0, 0, 0x005D066B);
+	BuiltInVariable("engine::testButtonFillColor", int, enginetestbuttonfillcolor, 0);
+	CodePatch testbuttonfillcolor = { ptrTestButtonFillColor, "", "\xE9_EBF", 5, false };
+	NAKED void testButtonFillColor() {
+		__asm {
+			mov edi, enginetestbuttonfillcolor
+			xor eax, eax
+			jmp ptrTestButtonFillColorResume
+		}
+	}
+
+	MultiPointer(ptrTestButtonBorderColor, 0, 0, 0, 0x005D067A);
+	MultiPointer(ptrTestButtonBorderColorJump, 0, 0, 0, 0x005D0683);
+	BuiltInVariable("engine::testButtonBorderColor", int, enginetestbuttonbordercolor, 250);
+	CodePatch testbuttonbordercolor = { ptrTestButtonBorderColor, "", "\xE9_EBB", 5, false };
+	NAKED void testButtonBorderColor() {
+		__asm {
+			cmp     ecx, edx
+			jz      __jz
+			add     eax, enginetestbuttonbordercolor
+
+			__jz:
+			jmp ptrTestButtonBorderColorJump
+		}
+	}
+
+	MultiPointer(ptrTestButtonSelectedBorder, 0, 0, 0, 0x005D0686);
+	MultiPointer(ptrTestButtonSelectedBorderResume, 0, 0, 0, 0x005D068D);
+	BuiltInVariable("engine::testButtonSelectColor", int, enginetestbuttonselectcolor, 250);
+	CodePatch testbuttonselectcolor = { ptrTestButtonSelectedBorder, "", "\xE9_EBS", 5, false };
+	NAKED void testButtonSelectColor() {
+		__asm {
+			mov eax, enginetestbuttonselectcolor
+			mov [ebp - 0x10], eax
+			jmp ptrTestButtonSelectedBorderResume
+		}
+	}
+
+	MultiPointer(ptrTestButtonFillOpacity, 0, 0, 0, 0x005D073B);
+	MultiPointer(ptrTestButtonFillOpacityResume, 0, 0, 0, 0x005D0743);
+	BuiltInVariable("engine::testButtonFillOpacity", float, enginetestbuttonfillopacity, -1);
+	CodePatch testbuttonfillopacity = { ptrTestButtonFillOpacity, "", "\xE9_EBO", 5, false };
+	NAKED void testButtonFillOpacity() {
+		__asm {
+			push enginetestbuttonfillopacity
+			mov eax, [ebp - 4]
+			jmp ptrTestButtonFillOpacityResume
+		}
+	}
 	//Interface global scale OPENGL
 	MultiPointer(ptrHudGlobalScale, 0, 0, 0, 0x00652060);
 	//Internal simgui object scale (- Bigger / + Smaller) OPENGL
@@ -1225,9 +1270,68 @@ namespace ExeFixes {
 	MultiPointer(ptrRadarUpdateRate, 0, 0, 0x006F05F8, 0x00700880);
 	CodePatch RadarUpdateRate = { ptrRadarUpdateRate, "", "\x00", 1, false };
 
-	//Disable control letter <r><R><l><L> on chat messages
-	MultiPointer(ptr_ControlLetterIndentationBypass, 0, 0, 0x005C6AB2, 0x005CA355);
-	CodePatch filterRLFormatters = { ptr_ControlLetterIndentationBypass, "", "\xEB\xF4", 2, false };
+	#include <cctype>
+	bool isAboveThreshold(const std::string& str, int threshold, char prefix) {
+		if (str.empty()) {
+			return false;
+		}
+
+		// Convert the input string to uppercase
+		std::string s = str;
+		std::transform(s.begin(), s.end(), s.begin(), ::toupper);
+
+		// Check the prefix character
+		if (s[0] != std::toupper(prefix)) {
+			return false; // prefix does not match
+		}
+
+		// Extract the number part after the prefix
+		std::string numberPart = s.substr(1);
+
+		// Verify that the number part contains only digits
+		for (char c : numberPart) {
+			if (!std::isdigit(c)) {
+				return false; // invalid number format
+			}
+		}
+
+		int value = std::stoi(numberPart);
+		return value > threshold;
+	}
+
+	bool isBadChatFormatter = 0;
+	char* chatFormatter;
+	void checkForBadFormatter()
+	{
+		if ((isAboveThreshold(chatFormatter, 45, 'L')) || (isAboveThreshold(chatFormatter, 15, 'R')))
+		{
+			isBadChatFormatter = 1;
+		}
+	}
+
+	MultiPointer(ptrTextMessage, 0, 0, 0, 0x005CA1E1);
+	MultiPointer(ptrTextMessageResume, 0, 0, 0, 0x005CA1E7);
+	MultiPointer(ptrTextMessageBad, 0, 0, 0, 0x005CA34B);
+	CodePatch chatformatcheck = { ptrTextMessage, "", "\xE9_CFC", 5, false };
+	NAKED void chatFormatCheck() {
+		__asm {
+			lea ecx, [ebp - 0x02E4]
+			push ecx
+			mov chatFormatter, ecx
+			pop ecx
+			call checkForBadFormatter
+
+			cmp isBadChatFormatter, 1
+
+			je __badFormatter
+			mov dl, [ebx + 0x240]
+			jmp ptrTextMessageResume
+
+			__badFormatter:
+			mov isBadChatFormatter, 0
+			jmp ptrTextMessageBad
+		}
+	}
 
 	MultiPointer(ptrHercCameraAnimationRate, 0, 0, 0, 0x0049E988);
 	MultiPointer(ptrHercShapeAnimationRate, 0, 0, 0, 0x0049E990);
@@ -1638,8 +1742,10 @@ namespace ExeFixes {
 
 			//Null the console newline feed character to prevent the white screen of death
 			consoleNewLineChar.Apply(true);
-			//Filter <L> <R> chat formatters
-			filterRLFormatters.Apply(true);
+
+
+			//Add limits to <L> <R> chat formatters to prevent crashing
+			chatformatcheck.DoctorRelative((u32)chatFormatCheck, 1).Apply(true);
 
 			//Fix player vehicle properties
 			PlayerVehiclePropertyCheckPatch.Apply(true);
@@ -1653,10 +1759,10 @@ namespace ExeFixes {
 				comboboxfixedsize.DoctorRelative((u32)ComboboxFixedSize, 1).Apply(true);
 
 				//Adjust Simgui::TestButton colors
-				TestButtonFillColor.Apply(true);
-				TestButtonBorderColor.Apply(true);
-				TestButtonSelectedBorderColor.Apply(true);
-				TestButtonFillOpacity.Apply(true);
+				testbuttonfillcolor.DoctorRelative((u32)testButtonFillColor, 1).Apply(true);
+				testbuttonbordercolor.DoctorRelative((u32)testButtonBorderColor, 1).Apply(true);
+				testbuttonselectcolor.DoctorRelative((u32)testButtonSelectColor, 1).Apply(true);
+				testbuttonfillopacity.DoctorRelative((u32)testButtonFillOpacity, 1).Apply(true);
 			}
 			//Event Patches
 			//dinput8fix.Apply(true);
