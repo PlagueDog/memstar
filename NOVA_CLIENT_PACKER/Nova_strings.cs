@@ -227,3 +227,9 @@ IDSTR_NOVA_UI_LABEL_COLLMESH = 135200, "Collision Mesh Colors";
 IDSTR_NOVA_UI_LABEL_COLLMESH_UNDAMAGED = 135201, "UNDAMAGED";
 IDSTR_NOVA_UI_LABEL_COLLMESH_DAMAGED = 135202, "DAMAGED";
 IDSTR_NOVA_UI_LABEL_COLLMESH_CRITICAL = 135203, "CRITICAL";
+
+IDSTR_NOVA_UI_RELATIVE = 135204, "Relative Damage Displays";
+IDSTR_NOVA_HELP_RELATIVE = 135205, "Attaches the damage displays to the reticle making them move with it.";
+IDSTR_NOVA_UI_RELATIVE_OFFSET = 135206, "Relative Hud Element Display Offset";
+IDSTR_NOVA_HELP_RELATIVE_SHIELD_RADAR = 135207, "Attaches the shield & radar displays to the reticle making them move with it.";
+IDSTR_NOVA_UI_RELATIVE_SHIELD_RADAR = 135208, "Relative Sheld & Radar Displays";

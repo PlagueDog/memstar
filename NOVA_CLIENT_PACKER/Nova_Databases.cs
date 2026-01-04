@@ -1499,6 +1499,8 @@ function Nova::reloadScriptData()
 {
 	Nova::purgeWeaponData();
 	deleteVariables("Net::*");
+	exec( "Sim.Strings.cs" );
+	exec( "sound.cs" );
 	exec( "datProjectile.cs" );
 	exec( "datWeapon.cs" );
 	exec( "datTurret.cs" );

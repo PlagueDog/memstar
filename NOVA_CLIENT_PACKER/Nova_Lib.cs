@@ -1,5 +1,5 @@
-$Nova::memCommit = "Mem Commit: e7f18ba5";
-$Nova::Version = "Nova: Dev-Nov30-2025";
+$Nova::memCommit = "Mem Commit: 3e7198db";
+$Nova::Version = "Nova: Beta-0.1";
 $Nversion = $version @ " " @ $Nova::Version @ " " @ $Nova::memCommit;
 
 $consoleworld::defaultsearchpath=$basepath;
@@ -105,6 +105,77 @@ function modloader::checkDups(%file)
     return false;
 }
 
+//Allow the modloader to properly execute legacy mods
+function Nova::execLegacyVolume(%volume)
+{
+	String::Explode(%volume, ".", ext);
+	if(String::toLower($ext[1]) != "vol")
+	{
+		echo("Nova::execLegacyVolume( fileName.vol );");
+		return;
+	}
+	%temp = $basePath;
+	%volume = ".\\mods\\" @ %volume;
+	
+	//Wipe the search paths
+	$basePath = "";
+	$consoleWorld::defaultSearchPath = "";
+	appendSearchPath();
+	
+	if(Nova::searchVolumeFileTable(%volume, "Sim.Strings.cs"))
+	{
+		exec("Sim.Strings.cs");
+	}
+	if(Nova::searchVolumeFileTable(%volume, "Gui.Strings.cs"))
+	{
+		exec("Gui.Strings.cs");
+	}
+	if(Nova::searchVolumeFileTable(%volume, "sfx.Strings.cs"))
+	{
+		exec("sfx.Strings.cs");
+	}
+	if(Nova::searchVolumeFileTable(%volume, "sound.cs"))
+	{
+		exec("sound.cs");
+	}
+	if(Nova::searchVolumeFileTable(%volume, "datProjectile.cs"))
+	{
+		exec("datProjectile.cs");
+	}
+	if(Nova::searchVolumeFileTable(%volume, "datWeapon.cs"))
+	{
+		exec("datWeapon.cs");
+	}
+	if(Nova::searchVolumeFileTable(%volume, "datShield.cs"))
+	{
+		exec("datShield.cs");
+	}
+	if(Nova::searchVolumeFileTable(%volume, "datReactor.cs"))
+	{
+		exec("datReactor.cs");
+	}
+	if(Nova::searchVolumeFileTable(%volume, "datIntMounts.cs"))
+	{
+		exec("datIntMounts.cs");
+	}
+	if(Nova::searchVolumeFileTable(%volume, "datArmor.cs"))
+	{
+		exec("datArmor.cs");
+	}
+	if(Nova::searchVolumeFileTable(%volume, "datVehicle.cs"))
+	{
+		exec("datVehicle.cs");
+	}
+	if(Nova::searchVolumeFileTable(%volume, "defaultVehicles.cs"))
+	{
+		exec("defaultVehicles.cs");
+	}
+	//Re-allocate the search paths
+	$basePath = %temp;
+	$consoleWorld::defaultSearchPath = $basePath;
+	appendSearchPath();
+}
+
 //Add the selected mod to the config
 function modloader::appendMod(%file)
 {
@@ -144,6 +215,7 @@ function modloader::appendMod(%file)
 				repath::append("mods\\" @ String::Replace(%file, ".vol", ""));
 				addReplacementDirectory("mods\\" @ String::Replace(%file, ".vol", ""));
 				Nova::loadTextureHashes(String::Replace(%file, ".vol", ""));
+				Nova::execLegacyVolume(%file);
             }
         }
         
@@ -242,7 +314,10 @@ function modloader::removeMod(%mod)
     modloadergui::updateGui();
     Nova::ButtonClicked();
     modloader::Filelist($currentGUI,noupdate);
- 
+	
+	Nova::reloadBaseClient();
+	Nova::reloadScriptData();
+	modloader::buildFactoryList();
 }
     
 function modloader::toggleMod(%mod)
@@ -286,6 +361,7 @@ function modloader::toggleMod(%mod)
 			repath::append("mods\\" @ strAlign(strlen($modloader::mod[%m,fileName])-4,l,$modloader::mod[%m,fileName]));
 			addReplacementDirectory("mods\\" @ String::Replace($modloader::mod[%m,fileName], ".vol", ""));
 			Nova::loadTextureHashes(String::Replace($modloader::mod[%m,fileName], ".vol", ""));
+			Nova::execLegacyVolume($modloader::mod[%m,fileName]);
 		}
 					
         if(String::Right($modloader::mod[%mod,fileName], 4) == ".mlv")
@@ -356,6 +432,7 @@ function Nova::initConstructors()
 						repath::append("mods\\" @ strAlign(strlen($modloader::mod[%m,fileName])-4,l,$modloader::mod[%m,fileName]));
 						addReplacementDirectory("mods\\" @ String::Replace($modloader::mod[%m,fileName], ".vol", ""));
 						Nova::loadTextureHashes(String::Replace($modloader::mod[%m,fileName], ".vol", ""));
+						Nova::execLegacyVolume($modloader::mod[%m,fileName]);
 					}
 					
                     if(strAlignR(4, $modloader::mod[%m,fileName]) == ".mlv")
@@ -644,21 +721,34 @@ function loadingGUI::onOpen::modLoaderFunc()
 	Nova::externalSetCollMeshColors();
 }
 
+$novaUI::slideSpeed = 0.0005;
 function modloadergui::onOpen::SlideOut()
 {
-    $NovaMainFrame = "NamedGuiSet\\Nova_UI_Background";
-    //control::setText("Nova_UI_Background", $Nova::Version);
-    if(isObject("NamedGuiSet\\modloaderUI"))
+    %NovaMainFrame = "NamedGuiSet\\ModloaderUI";
+	%NovaUI = getGroup(%NovaMainFrame);
+    if(isObject(%NovaUI))
     {
-        if(!$zzSlideCloseInterrupt)
+		String::Explode(Nova::getGuiObjectPosition(%NovaUI),",",guiPosition);
+        if($guiPosition[0] < 0)
         {
-            addtoset("NamedGuiSet\\slideControlFrame" @ $zzSliderFrame++, "NamedGuiSet\\NovaBackFrame", $NovaMainFrame);
-            //flushTextureCache(simcanvas);
+            setGuiObjectPosition(%NovaUI,$guiPosition[0]++, 0);
+			schedule("modloadergui::onOpen::SlideOut();", $novaUI::slideSpeed);
         }
     }
-    if(isObject("NamedGuiSet\\slideControlFrame" @ $zzSliderFrame + 1))
+}
+
+function modloadergui::onOpen::SlideOut_Misc()
+{
+    %NovaMainFrame = "NamedGuiSet\\NovaUImodular";
+	%NovaUImisc = getGroup(%NovaMainFrame);
+    if(isObject(%NovaUImisc))
     {
-        schedule("modloadergui::onOpen::SlideOut();",0.0005);
+		String::Explode(Nova::getGuiObjectPosition(%NovaUImisc),",",guiPositionMisc);
+        if($guiPositionMisc[0] < 0)
+        {
+            setGuiObjectPosition(%NovaUImisc,$guiPositionMisc[0]++, 0);
+			schedule("modloadergui::onOpen::SlideOut_Misc();", $novaUI::slideSpeed);
+        }
     }
 }
 
@@ -666,21 +756,45 @@ function modloadergui::onOpen::SlideIn()
 {
     if(isObject("NamedGuiSet\\modloaderUI"))
     {
-        $zzSlideCloseInterrupt = true;
-        $zzSliderFrame-=1;
-        addtoset("NamedGuiSet\\slideControlFrame" @ $zzSliderFrame, "NamedGuiSet\\NovaBackFrame", $NovaMainFrame);
-        //flushTextureCache(simcanvas);
-        if(isObject("NamedGuiSet\\slideControlFrame" @ $zzSliderFrame - 1))
+		%NovaMainFrame = "NamedGuiSet\\ModloaderUI";
+		%NovaUI = getGroup(%NovaMainFrame);
+		String::Explode(Nova::getGuiObjectPosition(%NovaUI),",",guiPosition);
+        if($guiPosition[0] > -256)
         {
-            schedule("modloadergui::onOpen::SlideIn();",0.0005);
+			setGuiObjectPosition(%NovaUI,$guiPosition[0]--, 0);
+            schedule("modloadergui::onOpen::SlideIn();", $novaUI::slideSpeed);
+        }
+        else
+        {
+            //guipopdialog(simcanvas,0);
+            //guipopdialog(simcanvas,0);
+            //$zzSlideCloseInterrupt = false;
+            //if(isObject(editorGUI))
+            //{
+            //    clientCursorOn();
+            //}
+        }
+    }
+}
+
+function modloadergui::onOpen::SlideIn_Misc()
+{
+    if(isObject("NamedGuiSet\\NovaUImodular"))
+    {
+		$zzSlideCloseInterrupt = true;
+		%NovaMainFrame = "NamedGuiSet\\NovaUImodular";
+		%NovaUImisc = getGroup(%NovaMainFrame);
+		String::Explode(Nova::getGuiObjectPosition(%NovaUImisc),",",guiPositionMisc);
+        if($guiPositionMisc[0] > -454)
+        {
+			setGuiObjectPosition(%NovaUImisc,$guiPositionMisc[0]--, 0);
+            schedule("modloadergui::onOpen::SlideIn_Misc();", $novaUI::slideSpeed);
         }
         else
         {
             guipopdialog(simcanvas,0);
             guipopdialog(simcanvas,0);
-
             $zzSlideCloseInterrupt = false;
-            $zzSliderFrame = 0;
             if(isObject(editorGUI))
             {
                 clientCursorOn();
@@ -797,12 +911,19 @@ function SetHudElementScale(%int)
     }
     if(isObject(playGUI))
     {
+		if(%h == "status")
+		{
+			guiload("play.gui");schedule("focusCamera(player);modloadergui::onopen();",0);
+		}
         //Switched from simgui::control to simgui::TScontrol
         //Nova::lastgui(); does not play nice with nameless simgui::controls as the root gui context
         //guinewcontentctrl(simcanvas, simgui::TScontrol);
         //guiload("play.gui");
-        schedule("focuscamera(8);",0);
-        schedule("focuscamera(player);",0);
+		else
+		{
+			schedule("focuscamera(8);",0);
+			schedule("focuscamera(player);Nova::getHudObjects();",0);
+		}
         export("pref::*", "defaultPrefs.cs");    
     }
 }
@@ -1016,11 +1137,7 @@ function modloadergui::onOpen()
 	{
 		return;
 	}
-	if($_campaignPaused)
-	{
-		return;
-	}
-	
+
 	if(isObject("NamedGuiSet\\modloaderUI"))
     {
 		modloadergui::onClose();
@@ -1086,7 +1203,14 @@ function modloadergui::onOpen()
 		//postAction("NamedGuiSet\\ScriptGL_Nova2", "Attach", 655);
 		
         //Slide out animation
-        //modloadergui::onOpen::SlideOut();
+		%NovaMainFrame = "NamedGuiSet\\ModloaderUI";
+		%NovaUI = getGroup(%NovaMainFrame);
+		setGuiObjectPosition(%NovaUI,-356, 0);
+		modloadergui::onOpen::SlideOut();
+		%NovaMainFrame = "NamedGuiSet\\NovaUImodular";
+		%NovaUImisc = getGroup(%NovaMainFrame);
+		setGuiObjectPosition(%NovaUImisc,-654, 0);
+		modloadergui::onOpen::SlideOut_Misc();
         
         if(isObject(playGUI))
         {
@@ -1158,8 +1282,9 @@ function modloadergui::onClose()
         sfxAddPair( IDSFX_ROLLOVER, IDPRF_2D, "mous_ovr.wav" );
         export("$modloader::*", "Nova_Config.cs");
         //Slide animation
-        //modloadergui::onOpen::SlideIn();
-		guipopdialog(simcanvas,0);
+        modloadergui::onOpen::SlideIn();
+        modloadergui::onOpen::SlideIn_Misc();
+		//guipopdialog(simcanvas,0);
 		//guipopdialog(simcanvas,0);
         $zzkb=0;
         control::setVisible(KBs,0);
@@ -1760,6 +1885,12 @@ function NovaUI::initSettingsButtons()
         NovaUI::addSliderSetting(SLIDER_cockpitFOV, *IDSTR_NOVA_FOV, IDFNT_LUCIDA_7_3, 65, 120, _($client::fov,65), '$client::fov');
         $_zzNovaUIsettingVertOffset+=10;
 
+        NovaUI::addSetting(CHECK_RelativeDisplays,     *IDSTR_NOVA_UI_RELATIVE     		   ,IDFNT_LUCIDA_7_3, check, '$pref::relativeDamageStatus',   %prependFunc @ 'schedule("focusCamera(8);focusCamera(player);",0.05);', IDSTR_NOVA_HELP_RELATIVE);
+        NovaUI::addSetting(CHECK_RelativeShieldRadar,  *IDSTR_NOVA_UI_RELATIVE_SHIELD_RADAR,IDFNT_LUCIDA_7_3, check, '$pref::relativeShieldRadar',    %prependFunc @ 'schedule("focusCamera(8);focusCamera(player);",0.05);', IDSTR_NOVA_HELP_RELATIVE_SHIELD_RADAR);
+		$_zzNovaUIsettingVertOffset-=14;
+		NovaUI::addSliderSetting(SLIDER_RelativeDisplaysOffset, *IDSTR_NOVA_UI_RELATIVE_OFFSET, IDFNT_LUCIDA_7_3, 0, 256, _($pref::relativeDamageStatusOffset,0), '$pref::relativeDamageStatusOffset', 	  %prependFunc, "");
+		$_zzNovaUIsettingVertOffset+=10;
+		
         NovaUI::addSetting(CHECK_FarLook,    		   *IDSTR_NOVA_UI_FAR_LOOK     		   ,IDFNT_LUCIDA_7_3, check, '$pref::farlook',      		  %prependFunc @ 'schedule("Nova::toggleFarLook();",0.1);', IDSTR_NOVA_HELP_FAR_LOOK);
         NovaUI::addSetting(CHECK_ShowDroneVehicles,    *IDSTR_NOVA_UI_SHOW_FACTORY_VEH     ,IDFNT_LUCIDA_7_3, check, '$pref::showDroneVehicles',      %prependFunc @ 'modloader::buildFactoryList();', IDSTR_NOVA_HELP_FACTORY_VEHICLES);
         NovaUI::addSetting(CHECK_CockpitFadeIn,        *IDSTR_NOVA_UI_SPAWN_FADE_IN  	   ,IDFNT_LUCIDA_7_3, check, '$pref::spawnFadeIn',        	  %prependFunc);

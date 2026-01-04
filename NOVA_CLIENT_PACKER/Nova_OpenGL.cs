@@ -357,6 +357,28 @@ function introGUI::onOpen::handleOpenGL()
 	}
 }
 
+function omniWebGUI::onOpen::NovaFunction()
+{
+    if($pref::GWC::SIM_FS_MODE == "Upscaled" && !$zzPendingReload && $Opengl::Active)
+    {
+		Nova::purgeControlAndAttach();
+	}
+}
+
+function inputConfigGUI::onOpen::NovaFunction()
+{
+	//$Gui::InputConfigFromSim = true;
+	if(isCampaign())
+	{
+		if($pref::GWC::SIM_FS_MODE == "Upscaled" && !$zzPendingReload && $Opengl::Active)
+		{
+			Nova::scaleGui();
+			newobject(CANVAS_CULL_RIGHT, Simgui::TScontrol,640,0,8000,480);addtoset($CurrentGUI, CANVAS_CULL_RIGHT);
+			newobject(CANVAS_CULL_BOTTOM, Simgui::TScontrol,0,480,8000,8000);addtoset($CurrentGUI, CANVAS_CULL_BOTTOM);
+		}
+	}
+}
+
 function mainmenuGUI::onOpen::handleOpenGL()
 {
 	$zzIsCampaign = false;
@@ -613,6 +635,17 @@ function Nova::UpscaledGUI()
 
 function loadingGUI::onOpen::handleOpenGL()
 {
+	HudManager::Multiplier("chat",      _($pref::hudScale::chat,1));
+    HudManager::Multiplier("text",      _($pref::hudScale::text,1));
+    HudManager::Multiplier("internals", _($pref::hudScale::internals,1));
+    HudManager::Multiplier("orders",    _($pref::hudScale::orders,1));
+    HudManager::Multiplier("radar",     _($pref::hudScale::radar,1));
+    HudManager::Multiplier("retical",   _($pref::hudScale::reticle,1));
+    HudManager::Multiplier("shields",   _($pref::hudScale::shields,1));
+    HudManager::Multiplier("status",    _($pref::hudScale::status,1));
+    HudManager::Multiplier("weapons",   _($pref::hudScale::weapons,1));
+    HudManager::Multiplier("timers",    _($pref::hudScale::timers,1));
+    HudManager::Multiplier("config",    _($pref::hudScale::config,1));
 	Nova::flyerCampaignStateCheck();
 	if(isCampaign())
 	{
@@ -664,7 +697,9 @@ function Nova::initScriptGLContext()
 }
 
 function playGUI::onOpen::handleOpenGL()
-{
+{	
+	$Gui::InputConfigFromSim = true;
+	schedule("Nova::getHudObjects();",0.1);
 	//bindCommand(keyboard, make, f11, to, "Nova::openSimPrefs();");
 	if(!$pref::spawnFadeIn)
 	{
@@ -755,6 +790,7 @@ function playGUI::onOpen::handleOpenGL()
 
 function playGUI::onClose::handleOpenGL()
 {
+	$Gui::InputConfigFromSim = true;
 	Nova::enableTerrainUpdates();
 	$_inFreeCam=0;
 	
@@ -868,8 +904,8 @@ function waitroomGUI::onOpen::handleOpenGL()
 
 function scriptGL::hud::onPreDraw()
 {
-	scriptgl::hud::drawReticle();
 	scriptGL::hud::drawLatencyFramerate();
+	scriptgl::hud::drawReticle();
 }
 
 if(client::is3GB())
@@ -1348,6 +1384,65 @@ function scriptgl::hud::drawReticle()
 			$vehicle::reticleMissilesLocked=0;
 			return;
 		}
+		if($pref::relativeDamageStatus)
+		{
+			setHudLabel(0,0,0,0,0);
+			setHudLabel(1,0,0,0,0);
+		}
+	}
+	
+	if($pref::relativeDamageStatus)
+	{
+		$console::printlevel=0;
+		$hudObject[damage] = Nova::findGuiTagControl(651, IDHUD_DAMAGE);
+		//$hudObject[shields] = Nova::findGuiTagControl(651, IDHUD_SHIELD);
+		if(isObject($hudObject[damage]) && getGroup($hudObject[damage]) == 651)
+		{
+			//Damage Status
+			String::Explode(getGuiObjectExtent($hudObject[damage]), ",", damageStatus);
+			%selfWidth = $damageStatus[0];
+			%selfHeight = $damageStatus[1];
+			setGuiObjectPosition($hudObject[damage], $vehicle::reticleXPosition-(%selfWidth*2)-$pref::relativeDamageStatusOffset, $vehicle::reticleYPosition-(%selfHeight/2));
+			//if(control::getVisible(IDHUD_AIM_RET))
+			//{
+			//	setHudLabel(0, *IDSTR_ENERGY @ " " @ round($vehicle::energyLevel*100), $vehicle::reticleXPosition/getWindowSize(width),$vehicle::reticleYPosition/getWindowSize(height)+0.05+($pref::relativeDamageStatusOffset2/getWindowSize(height)), true);
+			//	setHudLabel(1, *IDSTR_SHIELDS @ " " @ round($vehicle::shieldStr), $vehicle::reticleXPosition/getWindowSize(width),$vehicle::reticleYPosition/getWindowSize(height)+0.03+($pref::relativeDamageStatusOffset2/getWindowSize(height)), true);
+			//}
+			//else
+			//{
+			//	setHudLabel(0,0,0,0,0);
+			//	setHudLabel(1,0,0,0,0);
+			//}
+		}
+		
+		$hudObject[target] = Nova::findGuiTagControl(651, IDHUD_TARGET);
+		if(isObject($hudObject[target]) && getGroup($hudObject[target]) == 651)
+		{
+			//Target Status
+			String::Explode(getGuiObjectExtent($hudObject[target]), ",", targetStatus);
+			%targetWidth = $targetStatus[0];
+			%targetHeight = $targetStatus[1];
+			setGuiObjectPosition($hudObject[target], $vehicle::reticleXPosition+(%targetWidth*1)+$pref::relativeDamageStatusOffset, $vehicle::reticleYPosition-(%targetHeight/2));
+		}
+		$console::printlevel=1;
+	}
+	
+	if($pref::relativeShieldRadar)
+	{
+		$console::printlevel=0;
+		$hudObject[shield] = Nova::findGuiTagControl(651, IDHUD_SHIELD);
+		if(isObject($hudObject[shield]) && getGroup($hudObject[shield]) == 651)
+		{
+			String::Explode(getGuiObjectExtent($hudObject[shield]), ",", shieldExtent);
+			setGuiObjectPosition($hudObject[shield], $vehicle::reticleXPosition-($shieldExtent[0]*2)-$pref::relativeDamageStatusOffset, $vehicle::reticleYPosition+(75*($pref::hudScale::status/2)));
+		}
+		$hudObject[radar] = Nova::findGuiTagControl(651, IDHUD_GEN_RADAR);
+		if(isObject($hudObject[radar]) && getGroup($hudObject[radar]) == 651)
+		{
+			String::Explode(getGuiObjectExtent($hudObject[radar]), ",", radarExtent);
+			setGuiObjectPosition($hudObject[radar], $vehicle::reticleXPosition+($radarExtent[0]/4)+$pref::relativeDamageStatusOffset, $vehicle::reticleYPosition+(75*($pref::hudScale::status/2)));
+		}
+		$console::printlevel=1;
 	}
 }
 
@@ -1360,9 +1455,9 @@ function scriptGL::Nova::onPreDraw()
 	}
 }
 
-IDSTR_LWR_CYBRID                 = 00130885, "<JC>Cybrid";
-IDSTR_LWR_HUMAN                  = 00130886, "<JC>Human";
-IDSTR_LWR_COMMON                 = 00130887, "<JC>Common";
-IDSTR_LWR_ALIEN                  = 00130888, "<JC>Alien";
+IDSTR_LWR_CYBRID                 = 00130885, "Cybrid ";
+IDSTR_LWR_HUMAN                  = 00130886, "Human ";
+IDSTR_LWR_COMMON                 = 00130887, "Common ";
+IDSTR_LWR_ALIEN                  = 00130888, "Alien ";
 IDSTR_LWR_YES                    = 00130889, "Yes";
 IDSTR_LWR_NO                     = 00130890, "No";

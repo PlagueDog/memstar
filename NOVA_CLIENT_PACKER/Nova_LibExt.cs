@@ -484,6 +484,11 @@ function Nova::purgeControlAndAttach()
 		return;
 	}
 	
+	if($Gui::InputConfigFromSim && isCampaign())
+	{
+		return;
+	}
+	
     // guiSetSelection(simcanvas, $currentGUI @ "\\scriptGL");
     // guiSendToBack(simcanvas);
     // if(isObject(EditControl))
@@ -506,12 +511,12 @@ function Nova::purgeControlAndAttach()
 	%objectIDstring = String::Left(%objectIDstring, strLen(%objectIDstring)-1);
 	%evalString = "addToSet('" @ $currentGUI @ "\\ScriptGL'," @ %objectIDstring @ ");";
 	
-	if((!$Gui::InputConfigFromSim && !isCampaign()) || isMultiplayer() || $currentGUI == debriefGUI)
-	{
+	//if((!$Gui::InputConfigFromSim && !isCampaign()) || isMultiplayer() || $currentGUI == debriefGUI || $currentGUI == spMainGUI || $currentGUI == omniWebGUI)
+	//{
 		newobject(scriptGL, Simgui::TSControl, 0,0,640,480);
 		addToSet($currentGUI, scriptGL);
 		eval(%evalString);
-	}
+	//}
 	
     postAction($currentGUI @ "\\scriptGL", "Attach", 655);
     //schedule("postAction(\"NamedGuiSet\\\\scriptGL\", \"Attach\", 655);",0.000);	
@@ -637,6 +642,7 @@ function exitFromServerResets()
 	{
 		Nova::reloadBaseClient();
 		Nova::reloadScriptData();
+		modloader::buildFactoryList();
 		$_zzRequiresReloads = false;
 	}
 	$Net::serverCacheDirectory = "";
@@ -771,6 +777,10 @@ function joinGUI::MOTDcatcher()
 //This cannot be used on a headless server as it requires a GUI to function
 function MOI::getObjectData(%id,%index,%server)
 {
+	if(!isObject(simcanvas))
+	{
+		return;
+	}
     if(!strlen(%id)||!%index)
     {
         echo("MOI::getObjectData( ObjectID, IndexNumber, [server] );");
@@ -1522,10 +1532,11 @@ function Nova::getGuiObjectPosition(%id)
 		echo("Nova::getGuiObjectPosition: Object ", %id, " not found.");
 		return 0;
 	}
-	Nova::disableInspectWindow();
-	inspectObject(%id);
-	Nova::enableInspectWindow();
-	return $inspector::gObjectX @ "," @ $inspector::gObjectY;
+	//Nova::disableInspectWindow();
+	//inspectObject(%id);
+	//Nova::enableInspectWindow();
+	//return $inspector::gObjectX @ "," @ $inspector::gObjectY;
+	return getGuiObjectPosition(%id);
 }
 
 function Nova::getGuiObjectExtent(%id)
@@ -1535,10 +1546,11 @@ function Nova::getGuiObjectExtent(%id)
 		echo("Nova::getGuiObjectPosition: Object ", %id, " not found.");
 		return 0;
 	}
-	Nova::disableInspectWindow();
-	inspectObject(%id);
-	Nova::enableInspectWindow();
-	return $inspector::gObjectXext @ "," @ $inspector::gObjectYext;
+	//Nova::disableInspectWindow();
+	//inspectObject(%id);
+	//Nova::enableInspectWindow();
+	//return $inspector::gObjectXext @ "," @ $inspector::gObjectYext;
+	return getGuiObjectExtent(%id);
 }
 
 function Nova::findGuiTagControl(%groupID, %tagID)
@@ -1577,7 +1589,7 @@ function Nova::getGuiObjectControlID(%id)
 {
 	if(!isObject(%id))
 	{
-		echo("Nova::getGuiObjectPosition: Object ", %id, " not found.");
+		echo("Nova::getGuiObjectControlID: Object ", %id, " not found.");
 		return 0;
 	}
 	Nova::disableInspectWindow();
@@ -1704,6 +1716,37 @@ function Nova::freeCam()
 	$_inFreeCam^=1;
 }
 
+function Nova::getHudObjects()
+{
+	if(isObject(playgui) && isObject(651))
+	{
+		$hudObject[reticle] = Nova::findGuiTagControl(651, IDHUD_AIM_RET);
+		$hudObject[radar] = Nova::findGuiTagControl(651, IDHUD_GEN_RADAR);
+		$hudObject[weapons] = Nova::findGuiTagControl(651, IDHUD_WEAPON);
+		$hudObject[damage] = Nova::findGuiTagControl(651, IDHUD_DAMAGE);
+		$hudObject[target] = Nova::findGuiTagControl(651, IDHUD_TARGET);
+		$hudObject[internals] = Nova::findGuiTagControl(651, IDHUD_INTERNALS);
+		$hudObject[timer1] = Nova::findGuiTagControl(651, IDHUD_TIMER1);
+		$hudObject[timer2] = Nova::findGuiTagControl(651, IDHUD_TIMER2);
+		$hudObject[timer3] = Nova::findGuiTagControl(651, IDHUD_TIMER3);
+		$hudObject[shield] = Nova::findGuiTagControl(651, IDHUD_SHIELD);
+	}
+}
+
+function Nova::FLH()
+{
+	$hudObject[reticle] = -1;
+	$hudObject[radar] = -1;
+	$hudObject[weapons] = -1;
+	$hudObject[damage] = -1;
+	$hudObject[target] = -1;
+	$hudObject[internals] = -1;
+	$hudObject[timer1] = -1;
+	$hudObject[timer2] = -1;
+	$hudObject[timer3] = -1;
+	$hudObject[shield] = -1;
+}
+
 //function Nova::openSimPrefs()
 //{
 //	if(isObject(playGui))
@@ -1746,7 +1789,7 @@ function Nova::externalSetCollMeshColors()
 	%c_g = _($pref::collMeshColor::critical::green,0);
 	%c_b = _($pref::collMeshColor::critical::blue,0);
 	
-	Nova::setCollMeshColors("undamaged", %u_r, %u_g, %u_b);
-	Nova::setCollMeshColors("damaged", %d_r, %d_g, %d_b);
-	Nova::setCollMeshColors("critical", %c_r, %c_g, %c_b);
+	Nova::setCollMeshColor("undamaged", %u_r, %u_g, %u_b);
+	Nova::setCollMeshColor("damaged", %d_r, %d_g, %d_b);
+	Nova::setCollMeshColor("critical", %c_r, %c_g, %c_b);
 }
