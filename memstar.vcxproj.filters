@@ -327,1012 +327,280 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="NOVA_CLIENT_PACKER\actionTable.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\campaignFaceSelectFrame.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\CDAudioPlayer.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
+    <None Include="NOVA_CLIENT_PACKER\actionTable.cs" />
+    <None Include="NOVA_CLIENT_PACKER\campaignFaceSelectFrame.object" />
     <None Include="NOVA_CLIENT_PACKER\chat.dlg">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </None>
-    <None Include="NOVA_CLIENT_PACKER\console.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\console.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\console_old.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\console_refactored.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\databaseDownload.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\dataProgressBar.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ddraw.dll">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ddraw.ini">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\defaultPrefs.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\dgVoodoo.conf">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\dinput.dll">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\dxwnd.dxw">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\editor.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\editor.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
+    <None Include="NOVA_CLIENT_PACKER\console.cs" />
+    <None Include="NOVA_CLIENT_PACKER\console.pft" />
+    <None Include="NOVA_CLIENT_PACKER\console_old.cs" />
+    <None Include="NOVA_CLIENT_PACKER\console_refactored.cs" />
+    <None Include="NOVA_CLIENT_PACKER\dataProgressBar.object" />
+    <None Include="NOVA_CLIENT_PACKER\editor.cs" />
+    <None Include="NOVA_CLIENT_PACKER\editor.gui" />
     <None Include="NOVA_CLIENT_PACKER\Exit.dlg">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </None>
-    <None Include="NOVA_CLIENT_PACKER\extract.exe">
-      <Filter>NovaClientPacker</Filter>
-    </None>
+    <None Include="NOVA_CLIENT_PACKER\extract.exe" />
     <None Include="NOVA_CLIENT_PACKER\forceexit.dlg">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </None>
     <None Include="NOVA_CLIENT_PACKER\ForceExitFail.dlg">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Glide2x.dll">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_hi2x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_hi3x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_hi4x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_blue_2x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_blue_3x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_blue_4x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_dim_2x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_dim_3x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_dim_4x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_gray_2x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_gray_3x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_gray_4x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_i_2x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_i_3x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_i_4x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_purple_2x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_purple_3x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_purple_4x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_red_2x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_red_3x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_red_4x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_yellow_2x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_yellow_3x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\hud_high_yellow_4x.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\HudObjectives.dlg">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\if_mr_18b.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\if_mr_36b.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\intro.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\label_footer.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\loading,gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\loading.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\loadingAutoCenter.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\loadingGUICenter.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\mainmenu.background">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\mainmenu.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\MDL.dll">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\mem.dll">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\memstar.dll">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\mfd.background">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_batch_button.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_bmp_selected.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_bmp_selected_SIM.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_bmp_unselected.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_bmp_unselected_SIM.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_btn_gui.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_btn_mod.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_btn_modAltbutton.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_fullscreenmodeOGL_upscaled.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_fullscreenmodeOGL_windowed.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_green_dot.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_gui_overlay.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_LoadOKButton_Override.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_LoadOKButton_WaitroomGUI_Override.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_btn_background.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_btn_selected.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_btn_unselected.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_buttonBackground.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_disabled.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_dsc.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_enabled.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_selected.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_text_disabled.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_text_enabled.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_text_mod.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_text_ver.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_text_version.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_txt_disabled.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_txt_enabled.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_mod_txt_version.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_red_dot.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_text_author.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_text_fileName.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_text_missingterrain.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_text_modActive.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_text_modName.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_text_sendToCli.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_text_version.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_vehicle_buttonLine.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_vehicle_buttonListArrow.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_vehicle_buttonText.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_vehicle_buttonTextD.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_vehicle_buttonTextHL.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_vehiclePanelTabs.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\ml_windowedmode_glide.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\mlconsl.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\mlfont.pft">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modloader.dll">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modloader.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modloader.vol">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modloader_btn_add.pba">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modloader_btn_browse.pba">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modloader_btn_pri_decrease.pba">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modloader_btn_pri_increase.pba">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modloader_btn_remove.pba">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modLoader_devBuild_4.11.22.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modLoader_devBuild_4.21.22.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modLoader_devBuild_4.22.22.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modLoader_devBuild_5.29.22.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modLoader_devBuild_6.11.22.2.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modloader_OI.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modLoader_testRelease_1.13.22.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modLoader_testRelease_1.14.22.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modLoader_testRelease_1.17.22.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modLoader_testRelease_2.2.22.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modLoader_testRelease_3.29.22.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modLoader_testRelease_3.31.22.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modLoader_testRelease_4.1.22.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modLoader_testRelease_4.3.22_.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modLoader_testRelease_4.4.22_fix.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modloaderInitERR.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modloaderOverlay.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modloaderOverlay_Filelist.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\modloaderUI.dlg">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova.vol">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_Campaign.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_COMPAT_LAYER.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_Config.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_Core.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_Databases.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_Databases_OLD.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_datLoad.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_datVehicle.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_Init.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_IRC.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_Lib.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_LibExt.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_Logger.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_move.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_NetLib.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_NetLib_OLD.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_nocd.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_OpenGL.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_OverridesLib.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_PlayerSkins.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_Preload.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_Server.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_start.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Nova_strings.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\NovaLoading.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="NOVA_CLIENT_PACKER\hud_hi2x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_hi3x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_hi4x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_blue_2x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_blue_3x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_blue_4x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_dim_2x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_dim_3x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_dim_4x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_gray_2x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_gray_3x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_gray_4x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_i_2x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_i_3x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_i_4x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_purple_2x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_purple_3x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_purple_4x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_red_2x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_red_3x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_red_4x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_yellow_2x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_yellow_3x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\hud_high_yellow_4x.pft" />
+    <None Include="NOVA_CLIENT_PACKER\label_footer.object" />
+    <None Include="NOVA_CLIENT_PACKER\loadingGUICenter.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_batch_button.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_bmp_selected.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_bmp_selected_SIM.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_bmp_unselected.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_bmp_unselected_SIM.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_green_dot.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_gui_overlay.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_btn_background.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_btn_selected.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_btn_unselected.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_buttonBackground.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_disabled.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_dsc.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_enabled.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_selected.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_text_disabled.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_text_enabled.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_text_mod.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_text_ver.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_text_version.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_txt_disabled.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_txt_enabled.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_mod_txt_version.object" />
+    <None Include="NOVA_CLIENT_PACKER\ml_red_dot.object" />
+    <None Include="NOVA_CLIENT_PACKER\modloader_btn_add.pba" />
+    <None Include="NOVA_CLIENT_PACKER\modloader_btn_browse.pba" />
+    <None Include="NOVA_CLIENT_PACKER\modloader_btn_remove.pba" />
+    <None Include="NOVA_CLIENT_PACKER\modloader_OI.object" />
+    <None Include="NOVA_CLIENT_PACKER\modloaderInitERR.gui" />
+    <None Include="NOVA_CLIENT_PACKER\Nova.vol" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_Config.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_Core.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_Databases.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_Databases_OLD.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_datLoad.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_datVehicle.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_IRC.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_Lib.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_LibExt.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_move.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_NetLib.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_NetLib_OLD.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_nocd.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_OpenGL.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_OverridesLib.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_PlayerSkins.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_Server.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_start.cs" />
+    <None Include="NOVA_CLIENT_PACKER\Nova_strings.cs" />
+    <None Include="NOVA_CLIENT_PACKER\NovaLoading.gui" />
     <None Include="NOVA_CLIENT_PACKER\NovaUI.dlg">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </None>
-    <None Include="NOVA_CLIENT_PACKER\NovaUI_Notify_Text.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\NovaUI_smallText.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
+    <None Include="NOVA_CLIENT_PACKER\NovaUI_Notify_Text.object" />
+    <None Include="NOVA_CLIENT_PACKER\NovaUI_smallText.object" />
     <None Include="NOVA_CLIENT_PACKER\pack_Nova.bat">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Source Files</Filter>
     </None>
     <None Include="NOVA_CLIENT_PACKER\pause.dlg">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </None>
-    <None Include="NOVA_CLIENT_PACKER\PriorityMesgHud.dlg">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\radar_high2x.pba">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\radar_high3x.pba">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\radar_high4x.pba">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\RenderContext">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\RenderContext.r">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\repath.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\reset_server_cache.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\reticle_null.pba">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Scoreboard.dlg">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\scriptgl_1003compat.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
+    <None Include="NOVA_CLIENT_PACKER\radar_high2x.pba" />
+    <None Include="NOVA_CLIENT_PACKER\radar_high3x.pba" />
+    <None Include="NOVA_CLIENT_PACKER\radar_high4x.pba" />
+    <None Include="NOVA_CLIENT_PACKER\RenderContext" />
+    <None Include="NOVA_CLIENT_PACKER\RenderContext.r" />
+    <None Include="NOVA_CLIENT_PACKER\repath.cs" />
+    <None Include="NOVA_CLIENT_PACKER\reset_server_cache.object" />
+    <None Include="NOVA_CLIENT_PACKER\reticle_null.pba" />
     <None Include="NOVA_CLIENT_PACKER\SimPrefs.dlg">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\sound.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\SP_BAR.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\sp_bar_bottom.pba">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\sp_bar_top.pba">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\splash.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\spmain.background">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\squadactions.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Starsiege.exe">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Starsiege_4.exe">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\Starsiege_Modloader.exe">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeML.exe">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Apr-2023.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Apr-2023_0.1.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Apr-2023_0.2.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Aug-2023_0.1preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Aug-2023preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Dec-2022_0.1preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Dec-2022_0.2preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Dec-2022_0.3preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Dec-2022_0.4preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Dec-2023preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Feb-2024preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Feb-2024preRelease_0.1.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Jan-2023preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Jan-2024preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Jun-2023preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Mar-2023_0.1preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Mar-2023preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_May-2023_0.1preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_May-2023_0.2preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_May-2023_0.3preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_May-2023_0.4preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_May-2023_0.5preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_May-2023preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Nov-2022_0.2preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Nov-2022fix01.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Nov-2022fix02.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Nov-2022preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Nov-2023preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Nov-2023preRelease_0.1.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Nov-2023preRelease_0.2.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeModloader_Oct-2022preRelease.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Apr27-2024_DEV.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Apr-2024_DEV.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_August16-2024_DEV.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_August25-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_August26-2024_DEV.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Dec9-2024.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Dec14-2024.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Dec25-2024.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Developing.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Feb16-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Jan6-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Jan11-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Jan31-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_July2-2024_DEV.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_July10-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_July18-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_July30-2024_DEV.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Jun11-2024_DEV.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Jun20-2024_DEV.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Jun25-2024_DEV.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Jun26-2024_DEV.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_June30-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Mar29-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_May1-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_May31-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Nov3-2024.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Nov15-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Nov17-2024.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Nov30-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Oct5-2024.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Oct18-2024.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Sept3-2024.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Sept8-2024.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Sept10-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Sept23-2024.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Sept28-2025.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Sept28-2025_turretFix.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\StarsiegeNova_Sept29-2024.zip">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\stringManager.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\theTeam.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\TrigonometryStdLib.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\UpscaleProfileError.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="NOVA_CLIENT_PACKER\sound.cs" />
+    <None Include="NOVA_CLIENT_PACKER\SP_BAR.object" />
+    <None Include="NOVA_CLIENT_PACKER\sp_bar_bottom.pba" />
+    <None Include="NOVA_CLIENT_PACKER\sp_bar_top.pba" />
+    <None Include="NOVA_CLIENT_PACKER\squadactions.cs" />
+    <None Include="NOVA_CLIENT_PACKER\theTeam.gui" />
+    <None Include="NOVA_CLIENT_PACKER\TrigonometryStdLib.cs" />
     <None Include="NOVA_CLIENT_PACKER\UpscalerProfileConfig.dlg">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </None>
-    <None Include="NOVA_CLIENT_PACKER\vehDepot.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\VehDepotAUTO.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\vehLab.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\VehLabAUTO.gui">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\VehlabGUI_ComponentInfo_Clipping_Fix.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\versionText.object">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\vt.exe">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\vtList.exe">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-    <None Include="NOVA_CLIENT_PACKER\winMissionEditor.cs">
-      <Filter>NovaClientPacker</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="NOVA_CLIENT_PACKER\licenses.txt">
-      <Filter>NovaClientPacker</Filter>
-    </Text>
-    <Text Include="NOVA_CLIENT_PACKER\New Text Document.txt">
-      <Filter>NovaClientPacker</Filter>
-    </Text>
+    <None Include="NOVA_CLIENT_PACKER\VehDepotAUTO.gui" />
+    <None Include="NOVA_CLIENT_PACKER\VehLabAUTO.gui" />
+    <None Include="NOVA_CLIENT_PACKER\VehlabGUI_ComponentInfo_Clipping_Fix.object" />
+    <None Include="NOVA_CLIENT_PACKER\versionText.object" />
+    <None Include="NOVA_CLIENT_PACKER\vt.exe" />
+    <None Include="NOVA_CLIENT_PACKER\vtList.exe" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="NOVA_CLIENT_PACKER\COMPAT_adv_train.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\COMPAT_herc_train.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\COMPAT_squad_train.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\COMPAT_target_train.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\COMPAT_weapons_train.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\cs_popup.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\cs_popupwide.bmp">
-      <Filter>NovaClientPacker</Filter>
-    </Image>
-    <Image Include="NOVA_CLIENT_PACKER\disabled_background.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\hs_popup.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\hs_popupwide.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\hud_circle_f2x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\hud_circle_f3x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\hud_circle_f4x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\hud_circle_o2x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\hud_circle_o3x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\hud_circle_o4x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\logoWide.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\mars.tunl.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\mars.tunl2.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\ml_mod_selected.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\ml_mod_unselected.bmp">
-      <Filter>NovaClientPacker</Filter>
-    </Image>
-    <Image Include="NOVA_CLIENT_PACKER\modloader.bmp">
-      <Filter>NovaClientPacker</Filter>
-    </Image>
-    <Image Include="NOVA_CLIENT_PACKER\modloader_gui_bottomBanner.bmp">
-      <Filter>NovaClientPacker</Filter>
-    </Image>
-    <Image Include="NOVA_CLIENT_PACKER\modloader_gui_topBanner.bmp">
-      <Filter>NovaClientPacker</Filter>
-    </Image>
-    <Image Include="NOVA_CLIENT_PACKER\modloaderBackground.bmp">
-      <Filter>NovaClientPacker</Filter>
-    </Image>
-    <Image Include="NOVA_CLIENT_PACKER\ModloaderBackgroundBottom.bmp">
-      <Filter>NovaClientPacker</Filter>
-    </Image>
-    <Image Include="NOVA_CLIENT_PACKER\ModloaderBackgroundTop.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\modloaderUIBackground.bmp">
-      <Filter>NovaClientPacker</Filter>
-    </Image>
-    <Image Include="NOVA_CLIENT_PACKER\modloaderUIBackground_hud.bmp">
-      <Filter>NovaClientPacker</Filter>
-    </Image>
-    <Image Include="NOVA_CLIENT_PACKER\modloaderUIBackground_mfd.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\Nova_logo.bmp">
-      <Filter>NovaClientPacker</Filter>
-    </Image>
-    <Image Include="NOVA_CLIENT_PACKER\NovaUIFrame.bmp">
-      <Filter>NovaClientPacker</Filter>
-    </Image>
-    <Image Include="NOVA_CLIENT_PACKER\NovaUIFrameBottom.bmp">
-      <Filter>NovaClientPacker</Filter>
-    </Image>
-    <Image Include="NOVA_CLIENT_PACKER\NovaUIFrameTop.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\shields_solid2x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\shields_solid3x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\shields_solid4x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\shields2x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\shields3x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\shields4x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\sp_bar.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\sp_popup.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\sp_popupwide1.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\sp_popupwide2.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\strCircle2x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\strcircle3x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\strcircle4x.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\teampic1.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\teampic2.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\teampic3.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\teampic4.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\teampic5.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\teampic6.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\teampic7.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
     <Image Include="NOVA_CLIENT_PACKER\theteam.bmp">
-      <Filter>NovaClientPacker</Filter>
+      <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Media Include="NOVA_CLIENT_PACKER\ml_mouse_over.wav">
-      <Filter>NovaClientPacker</Filter>
-    </Media>
-    <Media Include="NOVA_CLIENT_PACKER\nova_button.wav">
-      <Filter>NovaClientPacker</Filter>
-    </Media>
+    <Text Include="NOVA_CLIENT_PACKER\licenses.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Object Include="NOVA_CLIENT_PACKER\versionText.obj">
-      <Filter>NovaClientPacker</Filter>
-    </Object>
+    <Media Include="NOVA_CLIENT_PACKER\nova_button.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
   </ItemGroup>
 </Project>

@@ -16,6 +16,9 @@
 #include <dirent.h>
 #include "VersionSnoop.h"
 #include <bitset>
+#include <algorithm>
+#include <stdbool.h>
+#include <cctype>
 
 using namespace std;
 using namespace Fear;
@@ -24,6 +27,10 @@ MultiPointer(ptrMemLibModule, 0, 0, 0, 0x0044ABFC);
 
 namespace modloaderFunctions
 {
+	const char* boolToString(bool value) {
+		return value ? "true" : "false";
+	}
+
 	MultiPointer(CMDConsole_evalute, 0, 0, 0, 0x005E6DF0);
 	MultiPointer(ptrConsole, 0, 0, 0, 0x00722FA4);
 
@@ -2634,6 +2641,111 @@ namespace ModloaderMain {
 			Console::setVariable("pref::collMeshColor::critical::blue", argv[3]);
 		}
 		return "true";
+	}
+
+	// Helper function to convert string to lowercase
+	std::string toLower(const std::string& s) {
+		std::string result = s;
+		std::transform(result.begin(), result.end(), result.begin(),
+			[](unsigned char c) { return std::tolower(c); });
+		return result;
+	}
+
+	// Search backwards for a string in a file stream
+	// Returns position of the start of the string or -1 if not found
+	std::streampos findBackward(std::ifstream& fs, const std::string& target) {
+		if (!fs) return -1;
+
+		fs.seekg(0, std::ios::end);
+		std::streamoff fileSize = fs.tellg();
+
+		size_t targetSize = target.size();
+		if (fileSize < static_cast<std::streamoff>(targetSize)) return -1;
+
+		std::string buffer(targetSize, '\0');
+
+		// Search backwards from end
+		for (std::streamoff pos = fileSize - targetSize; pos >= 0; --pos) {
+			fs.seekg(pos);
+			fs.read(&buffer[0], targetSize);
+			if (buffer == target) {
+				return static_cast<std::streampos>(pos);
+			}
+			if (pos == 0) break; // prevent underflow
+		}
+		return -1;
+	}
+
+	bool searchFileNameInSimVolume(const std::string& filename, const std::string& searchStr) {
+		std::ifstream fs(filename, std::ios::binary);
+		if (!fs) return false;
+
+		// Find last "vols" header from the bottom
+		auto volsPos = findBackward(fs, "vols");
+		if (volsPos == -1) return false;
+
+		// Seek after "vols" header
+		fs.seekg(static_cast<std::streamoff>(volsPos) + 4); // length of "vols"
+
+		// Find null byte after "vols"
+		// Read forward until null byte
+		char ch;
+		std::streampos filenameTableStartPos = -1;
+		while (fs.get(ch)) {
+			if (ch == '\0') {
+				filenameTableStartPos = fs.tellg();
+				break;
+			}
+		}
+		if (filenameTableStartPos == -1) return false;
+
+		// Search forward for "voli" footer
+		// Read chunks forward until "voli" is found
+		// For simplicity, read the rest of the file
+		fs.seekg(0, std::ios::end);
+		std::streampos fileEnd = fs.tellg();
+
+		// Read the remaining data into buffer
+		size_t remainingSize = fileEnd - filenameTableStartPos;
+		fs.seekg(filenameTableStartPos);
+		std::vector<char> buffer(remainingSize);
+		fs.read(&buffer[0], remainingSize);
+
+		// Find "voli" in buffer
+		auto voliIt = std::search(buffer.begin(), buffer.end(), "voli", "voli" + 4);
+		if (voliIt == buffer.end()) return false;
+
+		// The filename table is from start of buffer to voliIt
+		size_t filenameTableSize = std::distance(buffer.begin(), voliIt);
+		std::vector<char> filenameTable(buffer.begin(), buffer.begin() + filenameTableSize);
+
+		// Search for filename (case-insensitive)
+		std::string searchLower = toLower(searchStr);
+		size_t startIdx = 0;
+		while (startIdx < filenameTable.size()) {
+			auto nullPos = std::find(filenameTable.begin() + startIdx, filenameTable.end(), '\0');
+			if (nullPos == filenameTable.end()) break;
+			std::string filenameStr(filenameTable.begin() + startIdx, nullPos);
+			if (toLower(filenameStr) == searchLower) {
+				return true;
+			}
+			startIdx = std::distance(filenameTable.begin(), nullPos) + 1;
+		}
+
+		return false;
+	}
+
+	BuiltInFunction("Nova::searchVolumeFileTable", _novasearchvolumefiletable)
+	{
+		if (argc != 2)
+		{
+			Console::echo("%s( volumeName, fileName );", self);
+			return 0;
+		}
+		string volumeName = argv[0];
+		string fileName = argv[1];
+
+		return boolToString(searchFileNameInSimVolume(volumeName, fileName));
 	}
 
 	struct Init {

@@ -182,6 +182,11 @@ namespace Fear {
 	struct SimGuiCtrl : public Object {
 		PAD(0x019c - (0x004c + 0x000)); Vector2i    pos;                    //0x019c
 		Vector2i    dimensions;             //0x01a4
+		s32 unk1;
+		s32 unk2;
+		s32 unk3;
+		s32 unk4;
+		s32 hlfont;
 	};
 
 	struct Herc : public Object {

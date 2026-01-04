@@ -223,6 +223,9 @@ MultiPointer(HudGamePrefs_ComboboxTextVertOffset, 0, 0, 0x0052AE9E, 0x0052D35E);
 //Mapview font
 MultiPointer(Mapview_FontFile, 0, 0, 0x006F1D68, 0x00701FF0);
 
+//HudLabelFont
+MultiPointer(HudLabel_FontTag, 0, 0, 0, 0x0050DBD4);
+
 BuiltInFunction("HudManager::Multiplier", _HMM)
 {
 	if (argc != 2)
@@ -306,6 +309,7 @@ BuiltInFunction("HudManager::Multiplier", _HMM)
 			else if (arg1.compare("status") == 0)
 			{
 				CodePatch VD_Patch0 = { VehicleDisplay_FontTag,						"","\xE4\x4B\x02",3,false }; VD_Patch0.Apply(true);
+				CodePatch HL_Patch = { HudLabel_FontTag,							"","\xE4\x4B\x02",3,false }; HL_Patch.Apply(true);
 				CodePatch VD_Patch1 = { VehicleDisplay_BoxHeight,					"","\x1E",1,false }; VD_Patch1.Apply(true);
 				CodePatch VD_Patch1a = { VehicleDisplay_TargetRenderBoxHeight,		"","\x1E",1,false }; VD_Patch1a.Apply(true);
 				CodePatch VD_Patch2 = { VehicleDisplay_BoxWidth,					"","\x0A\x00\x00\x00",4,false }; VD_Patch2.Apply(true);
@@ -490,6 +494,7 @@ BuiltInFunction("HudManager::Multiplier", _HMM)
 			else if (arg1.compare("status") == 0)
 			{
 				CodePatch VD_Patch0 = { VehicleDisplay_FontTag,						"","\xFF\x51\x02",3,false }; VD_Patch0.Apply(true);
+				CodePatch HL_Patch = { HudLabel_FontTag,							"","\xFF\x51\x02",3,false }; HL_Patch.Apply(true);
 				CodePatch VD_Patch1 = { VehicleDisplay_BoxHeight,					"","\x5A",1,false }; VD_Patch1.Apply(true);
 				CodePatch VD_Patch1a = { VehicleDisplay_TargetRenderBoxHeight,		"","\x5A",1,false }; VD_Patch1a.Apply(true);
 				CodePatch VD_Patch2 = { VehicleDisplay_BoxWidth,					"","\xEB\xFF\xFF\xFF",4,false }; VD_Patch2.Apply(true);
@@ -683,6 +688,7 @@ BuiltInFunction("HudManager::Multiplier", _HMM)
 			else if (arg1.compare("status") == 0)
 			{
 				CodePatch VD_Patch0 = { VehicleDisplay_FontTag,						"","\x7B\x4E\x02",3,false }; VD_Patch0.Apply(true);
+				CodePatch HL_Patch = { HudLabel_FontTag,							"","\x7B\x4E\x02",3,false }; HL_Patch.Apply(true);
 				CodePatch VD_Patch1 = { VehicleDisplay_BoxHeight,					"","\x90",1,false }; VD_Patch1.Apply(true);
 				CodePatch VD_Patch1a = { VehicleDisplay_TargetRenderBoxHeight,		"","\x8F",1,false }; VD_Patch1a.Apply(true);
 				CodePatch VD_Patch2 = { VehicleDisplay_BoxWidth,					"","\xCB\xFF\xFF\xFF",4,false }; VD_Patch2.Apply(true);
@@ -873,6 +879,7 @@ BuiltInFunction("HudManager::Multiplier", _HMM)
 			else if (arg1.compare("status") == 0)
 			{
 				CodePatch VD_Patch0 = { VehicleDisplay_FontTag,						"","\xCB\x4E\x02",3,false }; VD_Patch0.Apply(true);
+				CodePatch HL_Patch = { HudLabel_FontTag,							"","\xCB\x4E\x02",3,false }; HL_Patch.Apply(true);
 				CodePatch VD_Patch1 = { VehicleDisplay_BoxHeight,					"","\xC5",1,false }; VD_Patch1.Apply(true);
 				CodePatch VD_Patch1a = { VehicleDisplay_TargetRenderBoxHeight,		"","\xC5",1,false }; VD_Patch1a.Apply(true);
 				CodePatch VD_Patch2 = { VehicleDisplay_BoxWidth,					"","\xAB\xFF\xFF\xFF",4,false }; VD_Patch2.Apply(true);

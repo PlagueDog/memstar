@@ -100,11 +100,85 @@ namespace Fear {
 	//	return "true";
 	//}
 	//
-	//BuiltInFunction("getGuiObject", _getguiobject)
-	//{
-	//	Fear::SimGuiObject* object = Sim::Client()->findObject<SimGuiObject>(atoi(argv[0]));
-	//	char* id = reinterpret_cast<char*>(&object->root);
-	//	Console::echo("Memory address: %p", id, static_cast<void*>(&object->root));
-	//	return "true";
-	//}
+	BuiltInFunction("getGuiObject", _getguiobject)
+	{
+		Fear::SimGuiCtrl* object = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		char* id = reinterpret_cast<char*>(&object->pos);
+		char buffer[50];
+		snprintf(buffer, sizeof(buffer), "x: %d, y: %d", object->pos.x, object->pos.y);
+
+		Console::echo("%s", buffer);
+		return "true";
+	}
+
+	BuiltInFunction("getGuiObjectPosition", getguiposition)
+	{
+		Fear::SimGuiCtrl* object = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		char* id = reinterpret_cast<char*>(&object->pos);
+		char buffer[50];
+		snprintf(buffer, sizeof(buffer), "%d,%d", object->pos.x, object->pos.y);
+
+		return buffer;
+	}
+
+	BuiltInFunction("getGuiObjectExtent", getguiextent)
+	{
+		Fear::SimGuiCtrl* object = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		char* id = reinterpret_cast<char*>(&object->dimensions);
+		char buffer[50];
+		snprintf(buffer, sizeof(buffer), "%d,%d", object->dimensions.x, object->dimensions.y);
+
+		return buffer;
+	}
+
+	BuiltInFunction("setGuiObjectPosition", simguisetposition) {
+		Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		if (guiObject) {
+			guiObject->pos.x = (s32)atoi(argv[1]);
+			guiObject->pos.y = (s32)atoi(argv[2]);
+		}
+		return "true";
+	}
+
+	BuiltInFunction("setGuiObjectExtent", simguiextent) {
+		Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		if (guiObject) {
+			guiObject->dimensions.x = (s32)atoi(argv[1]);
+			guiObject->dimensions.y = (s32)atoi(argv[2]);
+		}
+		return "true";
+	}
+
+	BuiltInFunction("setGuiObjectHighlightFont", simguihlfont) {
+		Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		if (guiObject) {
+			guiObject->hlfont = (s32)atoi(argv[1]);
+		}
+		return "true";
+	}
+
+	BuiltInFunction("findObject", findobject)
+	{
+		Fear::SimGuiCtrl* vehicle = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+			u32 fov = reinterpret_cast<u32>(&vehicle->pos.x);
+			u32* fov_ptr = reinterpret_cast<u32*>(fov);
+			u32 fov_value = *fov_ptr;
+			Console::echo("FOV: %x | Memory address: %p", fov_value, fov_ptr);
+			*fov_ptr = atof(argv[0]);
+			return "true";
+	}
+
+	BuiltInFunction("getInfo", _getInfo)
+		{
+			Fear::SimGuiCtrl* vehicle = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+			char* id = reinterpret_cast<char*>(&vehicle->pos);
+			Console::echo("Internal ID: %s | Memory address: %p", id, static_cast<void*>(&vehicle->pos));
+		
+			//FOV
+			u32 fov = reinterpret_cast<u32>(&vehicle->hlfont);
+			u32* fov_ptr = reinterpret_cast<u32*>(fov);
+			u32 fov_value = *fov_ptr;
+			Console::echo("Value: %x | Memory address: %p", fov_value, fov_ptr);
+			return "true";
+		}
 }; // namespace Fear
