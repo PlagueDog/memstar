@@ -1,4 +1,4 @@
-$Nova::memCommit = "Mem Commit: 3e7198db";
+$Nova::memCommit = "Mem Commit: e255319e";
 $Nova::Version = "Nova: Beta-0.1";
 $Nversion = $version @ " " @ $Nova::Version @ " " @ $Nova::memCommit;
 

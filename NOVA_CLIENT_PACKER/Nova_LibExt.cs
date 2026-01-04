@@ -484,7 +484,7 @@ function Nova::purgeControlAndAttach()
 		return;
 	}
 	
-	if($Gui::InputConfigFromSim && isCampaign())
+	if(isObject(inputConfigGui) && isCampaign())
 	{
 		return;
 	}
