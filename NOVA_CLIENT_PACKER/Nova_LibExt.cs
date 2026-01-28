@@ -1317,23 +1317,74 @@ function theTeamGUIcyclePicture(%direction)
     }
     schedule("guiLoad('theTeam.gui');",0);
 }
-
-function newGUIObject(%name, %class, %x, %y, %width, %height, %conVar, %conCmd)
+//newGuiObject(test, Simgui::Control, 50, 50, 50, 50, "","", 1);
+function newGUIObject(%name, %class, %x, %y, %width, %height, %conVar, %conCmd, %opaque, %fillColorIndex, %highlightlColorIndex, %disableColorIndex, %border, %borderColorIndex, %borderSelectColorIndex, %borderDisableColorIndex)
 {
     if(!strlen(%name) && !strlen(%class))
     {
-        echo("newGUIObject(ObjectName, ClassName, [x], [y], [width], [height], [conVar], [conCmd]);");
+        echo("newGUIObject(ObjectName, ClassName, [x], [y], [width], [height], [conVar], [conCmd], [isOpaque], [fillColorIndex], [highlightlColorIndex], [disableColorIndex], [hasBorder], [borderColorIndex], [borderDisableColorIndex]);");
         break;
     }
     else
     {
         newobject(%name, %class, %x, %y, _(%width,50), _(%height,50), _(%conVar,%null), _(%conCmd,%null));
+		if(!isObject(%name))
+		{
+			return;
+		}
+		
+		%object = Nova::getLastClientObject();
+		
+		if(strlen(%opaque))
+		{
+			setGuiObjectOpaque(%object,%opaque);
+		}
+				
+		if(strlen(%fillColorIndex))
+		{
+			setGuiObjectFillColor(%object,%fillColorIndex);
+		}
+				
+		if(strlen(%highlightlColorIndex))
+		{
+			setGuiObjectHighlightColor(%object,%highlightlColorIndex);
+		}
+				
+		if(strlen(%disableColorIndex))
+		{
+			setGuiObjectDisableColor(%object,%disableColorIndex);
+		}
+				
+		if(strlen(%border))
+		{
+			setGuiObjectBorder(%object,%border);
+		}
+				
+		if(strlen(%borderColorIndex))
+		{
+			setGuiObjectBorderColor(%object,%borderColorIndex);
+		}
+				
+		if(strlen(%borderSelectColorIndex))
+		{
+			setGuiObjectBorderSelectColor(%object,%borderSelectColorIndex);
+		}
+				
+		if(strlen(%borderDisableColorIndex))
+		{
+			setGuiObjectBorderDisableColor(%object,%borderDisableColorIndex);
+		}
         addToSet($currentGUI, %name);
     }
 }
 
 function Nova::pushConsole()
 {
+	if($currentGUI == inputConfigGUI && isCampaign())
+	{
+		Console::RenderOffset(0);
+		return;
+	}
 	$windowHeight = getWindowSize(height);
 	Console::RenderOffset(-$windowHeight);
 	%i=0;
@@ -1592,10 +1643,7 @@ function Nova::getGuiObjectControlID(%id)
 		echo("Nova::getGuiObjectControlID: Object ", %id, " not found.");
 		return 0;
 	}
-	Nova::disableInspectWindow();
-	inspectObject(%id);
-	Nova::enableInspectWindow();
-	return $inspector::gObjectControlID;
+	return getGuiObjectControlID(%id);
 }
 
 function Nova::getObjectRotation(%id, %axis)

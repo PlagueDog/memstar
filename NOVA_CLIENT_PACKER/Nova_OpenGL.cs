@@ -422,6 +422,8 @@ function optionsGUI::onOpen::handleOpenGL()
     {
 		//control::setVisible(IDSTR_WINDOWED_MODE,0);
 		control::setActive(IDSTR_WINDOWED_MODE,0);
+		renameObject(Nova::findGuiTagControl(OptionsGUI, IDSTR_FULLSCREEN_MODE), OptionsGUI_fullscreenModeBox);
+		schedule('Control::setText(OptionsGUI_fullscreenModeBox, "OpenGL: " @ $pref::Gpu::Name);',0);
 	}
 }
 
@@ -1393,7 +1395,7 @@ function scriptgl::hud::drawReticle()
 	
 	if($pref::relativeDamageStatus)
 	{
-		$console::printlevel=0;
+		//$console::printlevel=0;
 		$hudObject[damage] = Nova::findGuiTagControl(651, IDHUD_DAMAGE);
 		//$hudObject[shields] = Nova::findGuiTagControl(651, IDHUD_SHIELD);
 		if(isObject($hudObject[damage]) && getGroup($hudObject[damage]) == 651)
@@ -1424,12 +1426,12 @@ function scriptgl::hud::drawReticle()
 			%targetHeight = $targetStatus[1];
 			setGuiObjectPosition($hudObject[target], $vehicle::reticleXPosition+(%targetWidth*1)+$pref::relativeDamageStatusOffset, $vehicle::reticleYPosition-(%targetHeight/2));
 		}
-		$console::printlevel=1;
+		//$console::printlevel=1;
 	}
 	
 	if($pref::relativeShieldRadar)
 	{
-		$console::printlevel=0;
+		//$console::printlevel=0;
 		$hudObject[shield] = Nova::findGuiTagControl(651, IDHUD_SHIELD);
 		if(isObject($hudObject[shield]) && getGroup($hudObject[shield]) == 651)
 		{
@@ -1442,7 +1444,7 @@ function scriptgl::hud::drawReticle()
 			String::Explode(getGuiObjectExtent($hudObject[radar]), ",", radarExtent);
 			setGuiObjectPosition($hudObject[radar], $vehicle::reticleXPosition+($radarExtent[0]/4)+$pref::relativeDamageStatusOffset, $vehicle::reticleYPosition+(75*($pref::hudScale::status/2)));
 		}
-		$console::printlevel=1;
+		//$console::printlevel=1;
 	}
 }
 

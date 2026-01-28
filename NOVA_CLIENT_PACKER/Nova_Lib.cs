@@ -1,5 +1,5 @@
-$Nova::memCommit = "Mem Commit: e255319e";
-$Nova::Version = "Nova: Beta-0.1";
+$Nova::memCommit = "Mem Commit: 790144fb";
+$Nova::Version = "Nova: Beta-v0.1";
 $Nversion = $version @ " " @ $Nova::Version @ " " @ $Nova::memCommit;
 
 $consoleworld::defaultsearchpath=$basepath;
@@ -1776,6 +1776,24 @@ function NovaUI::addSetting(%name, %text, %font, %buttonType, %var, %function, %
         addToSet("NamedGuiSet\\NovaUIsettingsInnerScrollerContent", %name @ "_container");
         updateScrollList("NovaUIsettingsInnerScrollerContent");
     }
+	
+	//Get the last settings button and set the new setting button's position below it
+	//%lastSetting = NovaUI::getLastSetting();
+	//if(%lastSetting != 0)
+	//{
+	//	String::Explode(getGuiObjectPosition(%lastSetting), ",", guiPos);
+	//	String::Explode(getGuiObjectExtent(%lastSetting), ",", guiExtent);
+	//	%settingID = getgroup(getNextObject("NamedGuiSet\\" @ %name @ "_container",0));
+	//	if(%var == nofooter)
+	//	{
+	//		setGuiObjectPosition(%settingID, 3, $guiPos[1] + $guiExtent[1] + 0);
+	//	}
+	//	else
+	//	{
+	//		setGuiObjectPosition(%settingID, 3, $guiPos[1] + $guiExtent[1] + 5);
+	//	}
+	//	updateScrollList("NovaUIsettingsInnerScrollerContent");
+	//}
 }
 
 //IDFNT_LUCIDA_7_3
@@ -1847,6 +1865,32 @@ function NovaUI::addSliderSetting(%name, %text, %font, %min, %max, %currentValue
         addToSet("NamedGuiSet\\NovaUIsettingsInnerScrollerContent", %name @ "_container");
         updateScrollList("NovaUIsettingsInnerScrollerContent");
     }
+	
+	//Get the last settings button and set the new setting button's position below it
+	//%lastSetting = NovaUI::getLastSetting();
+	//if(%lastSetting != 0)
+	//{
+	//	String::Explode(getGuiObjectPosition(%lastSetting), ",", guiPos);
+	//	String::Explode(getGuiObjectExtent(%lastSetting), ",", guiExtent);
+	//	%settingID = getgroup(getNextObject("NamedGuiSet\\" @ %name @ "_container",0));
+	//	setGuiObjectPosition(%settingID, 3, $guiPos[1] + $guiExtent[1] + 5);
+	//	updateScrollList("NovaUIsettingsInnerScrollerContent");
+	//}
+}
+
+function NovaUI::getLastSetting()
+{
+	%window = "NamedGuiSet\\NovaUIsettingsInnerScrollerContent";
+	if(isObject(%window))
+	{
+		%settingsWindow = getGroup(getNextObject(%window,0));
+		while(getGroup(getNextObject(%window,%iter)) == %settingsWindow)
+		{
+			%iter = getNextObject(%window,%iter);
+		}
+		return %iter;
+	}
+	return 0;
 }
 
 //function Nova::setTerrainDet(%int)
@@ -1984,12 +2028,12 @@ function NovaUI::initSettingsButtons()
 		NovaUI::addSetting(CHECK_CustomTerrainVis,     *IDSTR_NOVA_UI_CUSTOM_TERRAIN_VIS     ,IDFNT_LUCIDA_7_3, check, '$pref::customTerrainVisbility', %prependFunc @ 'schedule("Nova::setTerrainVisibilities();",0.1);', IDSTR_NOVA_HELP_CUSTOM_TERRAIN_VIS);
 		$_zzNovaUIsettingVertOffset-=15;
 		
-		NovaUI::addSliderSetting(SLIDER_TerrainVisDist,*IDSTR_NOVA_UI_CUSTOM_TERRAIN_VIS_DIST,IDFNT_LUCIDA_7_3, 0, 15000, _($pref::terrainVisDist,2500), '$pref::terrainVisDist', 		%prependFunc @ 'Nova::setTerrainVisibilities();');
+		NovaUI::addSliderSetting(SLIDER_TerrainVisDist,*IDSTR_NOVA_UI_CUSTOM_TERRAIN_VIS_DIST,IDFNT_LUCIDA_7_3, 1000, 15000, _($pref::terrainVisDist,2500), '$pref::terrainVisDist', 		%prependFunc @ 'Nova::setTerrainVisibilities();');
 		$_zzNovaUIsettingVertOffset+=12;
 		
 		if($pref::GWC::SIM_FS_MODE == "Upscaled" && !$zzPendingReload && $Opengl::Active)
 		{
-			NovaUI::addSetting(BUTTON_WindowScale,     *IDSTR_NOVA_UI_WINDOW_SIZE,   IDFNT_FONTIS_10_3, button, '', 						  %prependFunc @ "Nova::updateWindowScale();", IDSTR_NOVA_HELP_WINDOW_SIZE);
+			NovaUI::addSetting(BUTTON_WindowScale,     *IDSTR_NOVA_UI_WINDOW_SIZE,   IDFNT_FONTIS_10_3, button, '',  %prependFunc @ "Nova::updateWindowScale();", IDSTR_NOVA_HELP_WINDOW_SIZE);
 			$_zzNovaUIsettingVertOffset+=10;
         }
 		

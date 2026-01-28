@@ -2833,12 +2833,12 @@ namespace ModloaderMain {
 			canvasWindowMaxInteralRenderSizeHeight_patch.Apply(true);
 
 			//Networking
-			HercNetUpdate1.Apply(true);
-			HercNetUpdate2.Apply(true);
-			HercNetUpdate3.Apply(true);
-			TankNetUpdate1.Apply(true);
-			TankNetUpdate2.Apply(true);
-			TankNetUpdate3.Apply(true);
+			//HercNetUpdate1.Apply(true);
+			//HercNetUpdate2.Apply(true);
+			//HercNetUpdate3.Apply(true);
+			//TankNetUpdate1.Apply(true);
+			//TankNetUpdate2.Apply(true);
+			//TankNetUpdate3.Apply(true);
 
 			remoteEvalBufferSize_S_patch.Apply(true);
 			remoteEvalBufferSize_R_patch.Apply(true);

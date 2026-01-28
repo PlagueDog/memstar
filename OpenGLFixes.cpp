@@ -507,9 +507,9 @@ namespace OpenGLFixes
 			//tempPatch.Apply(true);
 			//gdi_opengl.DoctorRelative((u32)GDI_OpenGL, 1).Apply(true);
 
-			//Expanded cache sizes and indices
-			surfacetexturecachegetarena.DoctorRelative((u32)SurfaceTextureCacheGetArena, 1).Apply(true);
-			bitmapcaching.DoctorRelative((u32)BitmapCaching, 1).Apply(true);
+			//Expanded cache sizes and indices (CURRENTLY INCOMPATIBLE WITH AMD GPUS)
+			//surfacetexturecachegetarena.DoctorRelative((u32)SurfaceTextureCacheGetArena, 1).Apply(true);
+			//bitmapcaching.DoctorRelative((u32)BitmapCaching, 1).Apply(true);
 
 			//Surface_TextureCache_sm_cacheMagic.Apply(true);
 			//interiorsurfacerendering.Apply(true);

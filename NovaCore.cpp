@@ -847,6 +847,94 @@ return(output);
 		}
 	}
 
+	MultiPointer(ptrGuiConsoleOpen, 0, 0, 0x0059D9EA, 0x005A1206);
+	MultiPointer(ptrGuiConsoleOpenJNZ, 0, 0, 0x0059DA20, 0x005A123C);
+	MultiPointer(ptrGuiConsoleOpenRetn, 0, 0, 0x0059D9F0, 0x005A120C);
+	CodePatch guiconsoleopen = { ptrGuiConsoleOpen, "", "\xE9GCOP", 5, false };
+	static const char* s_NovaConsoleOpen = "Nova::pushConsole();";
+	NAKED void GuiConsoleOpen() {
+		__asm {
+			cmp consoleisactive, 1
+			je __consoleAlreadyAlreadyActive
+			push eax
+			mov eax, [s_NovaConsoleOpen]
+			push eax
+			call Console::eval
+			add esp, 0x8
+			mov dl, [ebx + 0x2B]
+			cmp dl, 1
+			jnz __jnz
+			jmp[ptrGuiConsoleOpenRetn]
+
+			__consoleAlreadyAlreadyActive :
+			mov dl, [ebx + 0x2B]
+			cmp dl, 1
+			jnz __jnz
+			jmp[ptrGuiConsoleOpenRetn]
+
+			__jnz:
+			jmp[ptrGuiConsoleOpenJNZ]
+		}
+	}
+
+	MultiPointer(ptrGuiConsoleVert, 0, 0, 0x59179D, 0x00594FB9);
+	MultiPointer(ptrGuiConsoleVertRetn, 0, 0, 0x5917A2, 0x00594FBE);
+	CodePatch simguiconsolevert = { ptrGuiConsoleVert, "", "\xE9SCVT", 5, false };
+
+	int consoleVert = -10;
+	NAKED void SimGuiConsoleVert_Default() {
+		__asm {
+			sub eax, edx
+			add eax, consoleVert //-10
+			jmp[ptrGuiConsoleVertRetn]
+		}
+	}
+
+	void consoleVertOffset(int offset)
+	{
+		consoleVert = offset;
+	}
+
+	BuiltInFunction("Console::RenderOffset", _cro)
+	{
+		Vector2i screen;
+		Fear::getScreenDimensions(&screen);
+		//Just need the height
+		int height = screen.y;
+		if (argc == 0)
+		{
+			consoleVertOffset(-10);
+		}
+		else if (atoi(argv[0]) == 0)
+		{
+			consoleVertOffset((-height) + 480 - 10);
+		}
+		else
+		{
+			consoleVertOffset(atoi(argv[0]));
+		}
+		simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_Default, 1).Apply(true);
+		return 0;
+	}
+
+	BuiltInFunction("Nova::Console::onOpen", _novaconsoleonopen)
+	{
+		Vector2i screen;
+		Fear::getScreenDimensions(&screen);
+		//Just need the height
+		int height = screen.y;
+		if (argc > 1)
+		{
+			consoleVertOffset(atoi(argv[0]));
+		}
+		else
+		{
+			consoleVertOffset((-height) + 480 - atoi(argv[0]));
+		}
+		simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_Default, 1).Apply(true);
+		return 0;
+	}
+
 	MultiPointer(ptrInitHudSim, 0, 0, 0, 0x00460FB7);
 	MultiPointer(ptrInitHudSimResume, 0, 0, 0, 0x00460FC0);
 	static const char* setHudTimer = "Nova::campaignCompat();setHudTimer(-1,1,\"\",1);";
@@ -935,6 +1023,329 @@ return(output);
 		return "true";
 	}
 
+
+	//BuiltInFunction("getVehicleID", _getvehicleid)
+	//{
+	//	Fear::Herc* vehicle = Sim::Client()->findObject<Herc>(atoi(argv[0]));
+	//	char* id = reinterpret_cast<char*>(&vehicle->vehicleID)+1;
+	//	Console::echo("Internal ID: %s | Memory address: %p", id, static_cast<void*>(&vehicle->vehicleID));
+	//
+	//	//FOV
+	//	u32 fov = reinterpret_cast<u32>(&vehicle->vehicleID) + 0x108;
+	//	u32* fov_ptr = reinterpret_cast<u32*>(fov);
+	//	u32 fov_value = *fov_ptr;
+	//	Console::echo("FOV: %x | Memory address: %p", fov_value, fov_ptr);
+	//	*fov_ptr = atof(argv[0]);
+	//	return "true";
+	//}
+	//
+	BuiltInFunction("getGuiObject", _getguiobject)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( id );", self);
+			return 0;
+		}
+		Fear::SimGuiCtrl* object = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		char* id = reinterpret_cast<char*>(&object->pos);
+		char buffer[50];
+		snprintf(buffer, sizeof(buffer), "x: %d, y: %d", object->pos.x, object->pos.y);
+
+		Console::echo("%s", buffer);
+		return "true";
+	}
+
+	BuiltInFunction("getGuiObjectPosition", getguiposition)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( id );", self);
+			return 0;
+		}
+		Fear::SimGuiCtrl* object = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		char* id = reinterpret_cast<char*>(&object->pos);
+		char buffer[50];
+		snprintf(buffer, sizeof(buffer), "%d,%d", object->pos.x, object->pos.y);
+
+		return buffer;
+	}
+
+	BuiltInFunction("getGuiObjectExtent", getguiextent)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( id );", self);
+			return 0;
+		}
+		Fear::SimGuiCtrl* object = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		char* id = reinterpret_cast<char*>(&object->dimensions);
+		char buffer[50];
+		snprintf(buffer, sizeof(buffer), "%d,%d", object->dimensions.x, object->dimensions.y);
+
+		return buffer;
+	}
+
+	BuiltInFunction("getGuiObjectText", getguitext)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( id );", self);
+			return 0;
+		}
+		Fear::SimGuiCtrl* object = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		char buffer[255];
+		snprintf(buffer, sizeof(buffer), "%s", object->guiObjectText);
+		return buffer;
+	}
+
+	BuiltInFunction("setGuiObjectPosition", simguisetposition) {
+		if (argc != 3)
+		{
+			Console::echo("%s( id, x, y);", self);
+			return 0;
+		}
+		Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		if (guiObject) {
+			guiObject->pos.x = (s32)atoi(argv[1]);
+			guiObject->pos.y = (s32)atoi(argv[2]);
+		}
+		return "true";
+	}
+
+	//BuiltInFunction("setGuiObjectText", simguisettext) {
+	//	if (argc != 2)
+	//	{
+	//		Console::echo("%s( id, text);", self);
+	//		return 0;
+	//	}
+	//	Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+	//	if (guiObject) {
+	//		guiObject->guiObjectText = argv[1];
+	//	}
+	//	return "true";
+	//}
+
+	BuiltInFunction("setGuiObjectExtent", simguiextent) {
+		if (argc != 3)
+		{
+			Console::echo("%s( id, width, height);", self);
+			return 0;
+		}
+		Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		if (guiObject) {
+			guiObject->dimensions.x = (s32)atoi(argv[1]);
+			guiObject->dimensions.y = (s32)atoi(argv[2]);
+		}
+		return "true";
+	}
+
+	BuiltInFunction("setGuiObjectHighlightFont", simguihlfont) {
+		if (argc != 2)
+		{
+			Console::echo("%s( id, tag);", self);
+			return 0;
+		}
+		Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		if (guiObject) {
+			guiObject->hlfont = (s32)atoi(argv[1]);
+		}
+		return "true";
+	}
+
+	BuiltInFunction("findObject", findobject)
+	{
+		Fear::SimGuiCtrl* vehicle = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		u32 fov = reinterpret_cast<u32>(&vehicle->pos.x);
+		u32* fov_ptr = reinterpret_cast<u32*>(fov);
+		u32 fov_value = *fov_ptr;
+		Console::echo("FOV: %x | Memory address: %p", fov_value, fov_ptr);
+		*fov_ptr = atof(argv[0]);
+		return "true";
+	}
+
+	BuiltInFunction("setGuiObjectFillColor", setguiobjectfillcolor)
+	{
+		if (argc != 2 || atoi(argv[1]) > 255 || atoi(argv[1]) < 0)
+		{
+			Console::echo("%s( id, [0-255]);", self);
+			return 0;
+		}
+		Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		s32 data = reinterpret_cast<s32>(&guiObject->pos) - 0x126;
+		string buffer = hexToASCII2(int2hex(atoi(argv[1]), 1));
+		char* result = const_cast<char*>(buffer.c_str());
+
+		CodePatch dataPatch = { data, "", result, 1, false }; dataPatch.Apply(true);
+		return "true";
+	}
+
+	BuiltInFunction("setGuiObjectHighlightColor", setguiobjecthighlightcolor)
+	{
+		if (argc != 2 || atoi(argv[1]) > 255 || atoi(argv[1]) < 0)
+		{
+			Console::echo("%s( id, [0-255]);", self);
+			return 0;
+		}
+		Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		s32 data = reinterpret_cast<s32>(&guiObject->pos) - 0x125;
+		string buffer = hexToASCII2(int2hex(atoi(argv[1]), 1));
+		char* result = const_cast<char*>(buffer.c_str());
+
+		CodePatch dataPatch = { data, "", result, 1, false }; dataPatch.Apply(true);
+		return "true";
+	}
+
+	BuiltInFunction("setGuiObjectDisableColor", setguiobjectdisablecolor)
+	{
+		if (argc != 2 || atoi(argv[1]) > 255 || atoi(argv[1]) < 0)
+		{
+			Console::echo("%s( id, [0-255] );", self);
+			return 0;
+		}
+		Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		s32 data = reinterpret_cast<s32>(&guiObject->pos) - 0x124;
+		string buffer = hexToASCII2(int2hex(atoi(argv[1]), 1));
+		char* result = const_cast<char*>(buffer.c_str());
+
+		CodePatch dataPatch = { data, "", result, 1, false }; dataPatch.Apply(true);
+		return "true";
+	}
+
+
+	BuiltInFunction("setGuiObjectOpaque", setguiobjectopaque)
+	{
+		if (argc != 2)
+		{
+			Console::echo("%s( id, [true|false] );", self);
+			return 0;
+		}
+
+		Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		s32 data = reinterpret_cast<s32>(&guiObject->pos) - 0x128;
+
+		int input = 0;
+		std::string arg1 = argv[1];
+		if (arg1.compare("1") == 0 || arg1.compare("true") == 0 || arg1.compare("True") == 0 || arg1.compare("TRUE") == 0)
+		{
+			input = 1;
+		}
+		else
+		{
+			input = 0;
+		}
+
+		string buffer = hexToASCII2(int2hex(input));
+		char* result = const_cast<char*>(buffer.c_str());
+
+		CodePatch dataPatch = { data, "", result, 1, false }; dataPatch.Apply(true);
+		return "true";
+	}
+
+	BuiltInFunction("setGuiObjectBorder", setguiobjectborder)
+	{
+		if (argc != 2)
+		{
+			Console::echo("%s( id, [true|false] );", self);
+			return 0;
+		}
+
+		Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		s32 data = reinterpret_cast<s32>(&guiObject->pos) - 0x127;
+
+		int input = 0;
+		std::string arg1 = argv[1];
+		if (arg1.compare("1") == 0 || arg1.compare("true") == 0 || arg1.compare("True") == 0 || arg1.compare("TRUE") == 0)
+		{
+			input = 1;
+		}
+		else
+		{
+			input = 0;
+		}
+
+		string buffer = hexToASCII2(int2hex(input));
+		char* result = const_cast<char*>(buffer.c_str());
+
+		CodePatch dataPatch = { data, "", result, 1, false }; dataPatch.Apply(true);
+		return "true";
+	}
+
+	BuiltInFunction("setGuiObjectBorderColor", setguiobjectbordercolor)
+	{
+		if (argc != 2 || atoi(argv[1]) > 255 || atoi(argv[1]) < 0)
+		{
+			Console::echo("%s( id, [0-255]);", self);
+			return 0;
+		}
+		Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		s32 data = reinterpret_cast<s32>(&guiObject->pos) - 0x123;
+		string buffer = hexToASCII2(int2hex(atoi(argv[1]), 1));
+		char* result = const_cast<char*>(buffer.c_str());
+
+		CodePatch dataPatch = { data, "", result, 1, false }; dataPatch.Apply(true);
+		return "true";
+	}
+
+	BuiltInFunction("setGuiObjectBorderSelectColor", setguiobjectborderselectcolor)
+	{
+		if (argc != 2 || atoi(argv[1]) > 255 || atoi(argv[1]) < 0)
+		{
+			Console::echo("%s( id, [0-255]);", self);
+			return 0;
+		}
+		Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		s32 data = reinterpret_cast<s32>(&guiObject->pos) - 0x122;
+		string buffer = hexToASCII2(int2hex(atoi(argv[1]), 1));
+		char* result = const_cast<char*>(buffer.c_str());
+
+		CodePatch dataPatch = { data, "", result, 1, false }; dataPatch.Apply(true);
+		return "true";
+	}
+
+	BuiltInFunction("setGuiObjectBorderDisableColor", setguiobjectborderdisablecolor)
+	{
+		if (argc != 2 || atoi(argv[1]) > 255 || atoi(argv[1]) < 0)
+		{
+			Console::echo("%s( id, [0-255]);", self);
+			return 0;
+		}
+		Fear::SimGuiCtrl* guiObject = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		s32 data = reinterpret_cast<s32>(&guiObject->pos) - 0x121;
+		string buffer = hexToASCII2(int2hex(atoi(argv[1]), 1));
+		char* result = const_cast<char*>(buffer.c_str());
+
+		CodePatch dataPatch = { data, "", result, 1, false }; dataPatch.Apply(true);
+		return "true";
+	}
+
+	BuiltInFunction("getGuiObjectControlID", getguiobjectcontrolid)
+	{
+		if (argc != 1)
+		{
+			Console::echo("%s( id );", self);
+			return 0;
+		}
+		Fear::SimGuiCtrl* object = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		u32 controlID = reinterpret_cast<u32>(&object->pos) - 0x118;
+		u32* controlID_ptr = reinterpret_cast<u32*>(controlID);
+		u32 controlID_value = *controlID_ptr;
+		char buffer[16];
+		snprintf(buffer, sizeof(buffer), "%d", controlID_value);
+
+		return buffer;
+	}
+
+	BuiltInFunction("findObject2", findobject2)
+	{
+		Fear::SimGuiCtrl* vehicle = Sim::Client()->findObject<SimGuiCtrl>(atoi(argv[0]));
+		u32 fov = reinterpret_cast<u32>(&vehicle->pos) - 0x118;
+		u32* fov_ptr = reinterpret_cast<u32*>(fov);
+		u32 fov_value = *fov_ptr;
+		Console::echo("FOV: %d | Memory address: %p", fov_value, fov_ptr);
+		*fov_ptr = atof(argv[0]);
+		return "true";
+	}
+
 #include <windows.h>
 #include <stdio.h>
 #include <psapi.h>
@@ -1006,6 +1417,8 @@ return(output);
 
 				//Console statuses
 				consoleactive.DoctorRelative((u32)consoleActive, 1).Apply(true);
+				//Console open
+				guiconsoleopen.DoctorRelative((u32)GuiConsoleOpen, 1).Apply(true);
 
 				//Patch the initial hud timers to execute our Nova::campaignCompat function in recordings
 				//inithudtimers.DoctorRelative((u32)initHudTimers, 1).Apply(true);

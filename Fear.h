@@ -187,6 +187,13 @@ namespace Fear {
 		s32 unk3;
 		s32 unk4;
 		s32 hlfont;
+		s32 unk5;
+		s32 unk6;
+		s32 unk7;
+		s32 unk8;
+		s32 unk9;
+		s32 unk10;
+		const char* guiObjectText[255];
 	};
 
 	struct Herc : public Object {

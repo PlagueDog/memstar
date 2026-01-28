@@ -740,46 +740,6 @@ namespace ExeFixes {
 		return "true";
 	}
 
-	MultiPointer(ptrGuiConsoleVert, 0, 0, 0x59179D, 0x00594FB9);
-	MultiPointer(ptrGuiConsoleVertRetn, 0, 0, 0x5917A2, 0x00594FBE);
-	CodePatch simguiconsolevert = { ptrGuiConsoleVert, "", "\xE9SCVT", 5, false };
-
-	int consoleVert = -10;
-	NAKED void SimGuiConsoleVert_Default() {
-		__asm {
-			sub eax, edx
-			add eax, consoleVert //-10
-			jmp[ptrGuiConsoleVertRetn]
-		}
-	}
-
-	void consoleVertOffset(int offset)
-	{
-		consoleVert = offset;
-	}
-
-	BuiltInFunction("Console::RenderOffset", _cro)
-	{
-		Vector2i screen;
-		Fear::getScreenDimensions(&screen);
-		//Just need the height
-		int height = screen.y;
-		if (argc == 0)
-		{
-			consoleVertOffset(-10);
-		}
-		else if(atoi(argv[0]) == 0)
-		{
-			consoleVertOffset((-height) + 480 - 10);
-		}
-		else
-		{
-			consoleVertOffset(atoi(argv[0]));
-		}
-		simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_Default, 1).Apply(true);
-		return 0;
-	}
-
 	//MultiPointer(ptrVideoModesBoxSize, 0, 0, 0, 0x004E17CA);
 	MultiPointer(ptrComboBoxVertSizeMult, 0, 0, 0x004DE41E, 0x004E08AE);
 	MultiPointer(ptrComboBoxVertSizeMultResume, 0, 0, 0x004DE41E, 0x004E08B6);
@@ -1061,45 +1021,6 @@ namespace ExeFixes {
 			__crashEscape:
 			jmp[ptrVehicleMountConfigButtonResume02]
 		}
-	}
-
-	MultiPointer(ptrGuiConsoleOpen, 0, 0, 0x0059D9EA, 0x005A1206);
-	MultiPointer(ptrGuiConsoleOpenJNZ, 0, 0, 0x0059DA20, 0x005A123C);
-	MultiPointer(ptrGuiConsoleOpenRetn, 0, 0, 0x0059D9F0, 0x005A120C);
-	CodePatch guiconsoleopen = { ptrGuiConsoleOpen, "", "\xE9GCOP", 5, false };
-	static const char* s_NovaConsoleOpen = "Nova::pushConsole();";
-	NAKED void GuiConsoleOpen() {
-		__asm {
-			push eax
-			mov eax, [s_NovaConsoleOpen]
-			push eax
-			call Console::eval
-			add esp, 0x8
-			mov dl, [ebx + 0x2B]
-			cmp dl, 1
-			jnz __jnz
-			jmp[ptrGuiConsoleOpenRetn]
-			__jnz:
-			jmp [ptrGuiConsoleOpenJNZ]
-		}
-	}
-
-	BuiltInFunction("Nova::Console::onOpen", _novaconsoleonopen)
-	{
-		Vector2i screen;
-		Fear::getScreenDimensions(&screen);
-		//Just need the height
-		int height = screen.y;
-		if (argc > 1)
-		{
-			consoleVertOffset(atoi(argv[0]));
-		}
-		else
-		{
-			consoleVertOffset((-height) + 480 - atoi(argv[0]));
-		}
-		simguiconsolevert.DoctorRelative((u32)SimGuiConsoleVert_Default, 1).Apply(true);
-		return 0;
 	}
 
 	//Keymap editor fix (For changing bindCommand() keybinds)
@@ -1780,8 +1701,6 @@ namespace ExeFixes {
 
 			if (std::filesystem::exists("Nova.vol"))
 			{
-				//Console open
-				guiconsoleopen.DoctorRelative((u32)GuiConsoleOpen, 1).Apply(true);
 			}
 
 			//Neutral team crash fix
